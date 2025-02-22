@@ -12,6 +12,7 @@ class FirestoreViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
     @Published var userTestData: [UserTest] = []
     
+    //테스트용
     func fetchUsers() {
         fsDB.collection("userTestData").getDocuments { snapshot, error in
             if let error = error {
@@ -26,7 +27,8 @@ class FirestoreViewModel: ObservableObject {
             }
         }
     }
-
+    
+    //테스트용
     func addUser(text: String, num: Int) {
         let userData: [String: Any] = [
             "text": text,
@@ -34,7 +36,7 @@ class FirestoreViewModel: ObservableObject {
             "createdAt": FieldValue.serverTimestamp()
         ]
         
-        fsDB.collection("userTestData").addDocument(data: userData) { error in
+        fsDB.collection("userTestData").document(text).setData(userData) { error in
             if let error = error {
                 print("[E]추가 실패: \(error.localizedDescription)")
             } else {
@@ -44,6 +46,7 @@ class FirestoreViewModel: ObservableObject {
         }
     }
     
+    //테스트용
     func deleteUser(userId: String) {
         fsDB.collection("userTestData").document(userId).delete { error in
             if let error = error {

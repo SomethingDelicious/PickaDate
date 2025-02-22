@@ -8,12 +8,11 @@
 import SwiftUI
 import FirebaseFirestore
 
-//struct User: Identifiable, Codable {
-////    @DocumentID var id: String?
-//    var id: String = UUID().uuidString
-//
-//    var userID: String
-//    var userPW: String
-//    var registeredAt: Data
-//    var joinGroup: [String] = []
-//}
+struct User: Identifiable, Codable {
+    @DocumentID var id: String?
+    var userID: String          //사용자 ID
+    var userPW: String          //사용자 PW (임시, 수정 예정)
+    var registeredAt: Date      //가입 날짜
+    var joinGroup: [String]     //참여 그룹
+}
+

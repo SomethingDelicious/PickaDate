@@ -5,6 +5,8 @@
 //  Created by 김태건 on 2/20/25.
 //
 
+//KTG(250222/09:56) : 테스트용 내용입니다. 수정 가능.
+
 import SwiftUI
 
 struct ContentView: View {
@@ -32,7 +34,7 @@ struct ContentView: View {
                 }
                 
                 Button("데이터 추가") {
-                    viewModel.addUser(text: "텍스트", num: 25)
+                    viewModel.addUser(text: "텍스트", num: 26)
                 }
                 .padding()
             }
