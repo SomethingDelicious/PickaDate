@@ -101,6 +101,34 @@ class FirestoreViewModel: ObservableObject {
             }
         }
     }
+    func updatePersonalSchedule(scheduleID: String, userID: String, name: String, content: String, groupID: [String], schedule: [TimeSlotPersonal], personalColor: String) {
+        let scheduleData = schedule.map { slot in
+            return [
+                "startTime": slot.startTime,
+                "endTime": slot.endTime
+            ]
+        }
+        
+        let updatedSchedule: [String: Any] = [
+            "userID": userID,   // 기존 데이터와 일관성 유지
+            "name": name,
+            "content": content,
+            "updatedAt": FieldValue.serverTimestamp(), // 수정된 시간 기록
+            "schedule": scheduleData,
+            "groupID": groupID,
+            "personalColor": personalColor
+        ]
+        
+        fsDB.collection("personalSchedule").document(scheduleID).updateData(updatedSchedule) { error in
+            if let error = error {
+                print("[E] 업데이트 실패: \(error.localizedDescription)")
+            } else {
+                print("[L] 문서 업데이트 성공")
+                self.fetchPersonalSchedules() // 데이터 새로고침
+            }
+        }
+    }
+
     
     func deletePersonalSchedule(userId: String) {
         fsDB.collection("personalSchedule").document(userId).delete { error in
