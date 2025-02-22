@@ -54,7 +54,6 @@ class FirestoreViewModel: ObservableObject {
             } else {
                 print("[L]삭제 성공")
                 self.fetchUsers()
-                
             }
         }
     }
