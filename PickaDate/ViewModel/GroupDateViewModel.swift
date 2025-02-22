@@ -1,17 +1,18 @@
 //
-//  FirestoreViewModel.swift
+//  GroupDateViewModel.swift
 //  PickaDate
 //
-//  Created by 김태건 on 2/21/25.
+//  Created by NoelMacMini on 2/23/25.
 //
 
 import SwiftUI
 import FirebaseFirestore
 
-class FirestoreViewModel: ObservableObject {
+class GroupDateViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
     @Published var userTestData: [UserTest] = []
     @Published var personalSchedule: [PersonalSchedule] = []
+    @Published var groupSchedule: [GroupSchedule] = []
     
     
     //테스트용
@@ -73,14 +74,30 @@ class FirestoreViewModel: ObservableObject {
             }
         }
     }
+    func fetchGroupSchedules() {
+        fsDB.collection("groupSchedule").getDocuments { snapshot, error in
+            if let error = error {
+                print("[E]데이터 가져오기 실패: \(error.localizedDescription)")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.groupSchedule = snapshot?.documents.compactMap { doc in
+                    try? doc.data(as: GroupSchedule.self)
+                } ?? []
+            }
+        }
+    }
+    
+    
     
     func addPersonalSchedule(userID: String, name: String, content: String, groupID: [String], schedule: [TimeSlotPersonal], personalColor: String) {
         let scheduleData = schedule.map { slot in
-                return [
-                    "startTime": slot.startTime,
-                    "endTime": slot.endTime
-                ]
-            }
+            return [
+                "startTime": slot.startTime,
+                "endTime": slot.endTime
+            ]
+        }
         
         let personalSchedule: [String: Any] = [
             "userID": userID,
@@ -112,17 +129,4 @@ class FirestoreViewModel: ObservableObject {
             }
         }
     }
-    
-//    func updateUser(userId: String, newName: String) {
-//        fsDB.collection("users").document(userId).updateData([
-//            "text": newName
-//        ]) { error in
-//            if let error = error {
-//                print("업데이트 실패: \(error.localizedDescription)")
-//            } else {
-//                print("업데이트 성공")
-//            }
-//        }
-//    }
 }
-
