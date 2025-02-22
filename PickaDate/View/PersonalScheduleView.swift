@@ -78,14 +78,15 @@ struct PersonalScheduleView: View {
                         // 날짜 표시
                         let firstWeekday = getFirstWeekday(of: year, month: month)
                         let daysInMonth = getDaysInMonth(year: year, month: month)
-                        let totalCells = firstWeekday + daysInMonth
-                        let numRows = Int(ceil(Double(totalCells) / 7.0))
                         
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
                             // 빈 공간 추가 (첫 요일까지)
                             ForEach(0..<firstWeekday, id: \.self) { _ in
                                 VStack {
-                                    Text("syd").frame(maxWidth: .infinity, minHeight: (geometry.size.height - 120) / CGFloat(numRows + 1))
+                                    Text("syd")
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 100)
+
                                     Spacer()
                                 }
                                 .border(Color.gray)
@@ -97,10 +98,33 @@ struct PersonalScheduleView: View {
                                 VStack {
                                     Text("\(day)")
                                         .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity, minHeight: (geometry.size.height - 120) / CGFloat(numRows + 1))
+                                    
+                                        
+                                    let schedules = viewModel.personalSchedule.filter { schedule in
+                                        schedule.schedule.contains { timeSlot in
+                                            isDateInRange(date: day, startDate: timeSlot.startTime, endDate: timeSlot.endTime, year: year, month: month)
+                                        }
+                                    }
+                                    
+                                    if !schedules.isEmpty {
+                                        VStack {
+                                            ForEach(schedules, id: \.id) { schedule in
+                                                Text(schedule.name)
+                                                    .font(.caption)
+                                                    .frame(maxWidth: .infinity)
+                                                    .foregroundColor(.white)
+                                                    .padding(4)
+                                                    .background(schedule.color)
+                                                    .cornerRadius(5)
+                                            }
+                                        }
+                                        
+                                    }
                                     Spacer()
                                     
                                 }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 100)
                                 .border(Color.gray)
                                 
                             }
@@ -153,7 +177,6 @@ struct PersonalScheduleView: View {
         }
         return 0
     }
-    
     func getDaysInMonth(year: Int, month: Int) -> Int {
         let components = DateComponents(year: year, month: month)
         if let range = Calendar.current.range(of: .day, in: .month, for: Calendar.current.date(from: components)!) {
@@ -167,6 +190,15 @@ struct PersonalScheduleView: View {
         formatter.dateFormat = "yyyy년 M월"
         return formatter.string(from: date)
     }
+    func isDateInRange(date: Int, startDate: Date, endDate: Date, year: Int, month: Int) -> Bool {
+        let calendar = Calendar.current
+        let startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
+        let endComponents = calendar.dateComponents([.year, .month, .day], from: endDate)
+        
+        return (startComponents.year == year && startComponents.month == month && startComponents.day! <= date) &&
+        (endComponents.year == year && endComponents.month == month && endComponents.day! >= date)
+    }
+    
 }
 
 
