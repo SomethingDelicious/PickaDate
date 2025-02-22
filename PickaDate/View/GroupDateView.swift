@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GroupDateView: View {
     // MARK: - Properties
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = GroupDateViewModel()
     @State private var selectedDate = Date() // 선택된 날짜를 저장
     @State private var currentMonth: Date = Date()  // 현재 표시중인 월
     @State private var isShowingAddGroupSchedulePeriod = false
@@ -25,26 +25,6 @@ struct GroupDateView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                // 그룹 타이틀 섹션
-                HStack {
-                    Image(systemName: "calendar")
-                        .foregroundColor(.green)
-                    VStack(alignment: .leading) {
-                        Text("\(groupName)")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                    Button(action: {}) {
-                        Image(systemName: "star")
-                    }
-                    Button(action: {}) {
-                        Image(systemName: "bubble.right")
-                    }
-                }
-                .padding()
-                
                 // 캘린더 섹션
                 // 헤더 부분
                 CalendarHeaderView(
@@ -76,7 +56,7 @@ struct GroupDateView: View {
             .navigationTitle("그룹 일정")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchGroupSchedules()
             }
         }
     }
@@ -86,7 +66,7 @@ struct GroupDateView: View {
         let date: Date
         let isSelected: Bool
         let isCurrentMonth: Bool
-        let schedules: [PersonalSchedule]
+        let schedules: [GroupSchedule]
         
         var body: some View {
             VStack {
@@ -101,7 +81,7 @@ struct GroupDateView: View {
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(.white)
                                 .padding(4)
-                                .background(schedule.color)
+                                .background(Color.blue)
                                 .cornerRadius(5)
                         }
                     }
@@ -186,7 +166,7 @@ struct GroupDateView: View {
                 .cornerRadius(40)
                 .padding(.bottom, 20)
                 .sheet(isPresented: $isShowingSheet) {
-                    // AddPersonalScheduleView(groupName: groupName)
+                    AddGroupScheduleView(groupName: groupName)
                 }
             }
         }
@@ -262,8 +242,8 @@ struct GroupDateView: View {
                calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
     
-    private func getSchedulesForDate(_ date: Date) -> [PersonalSchedule] {
-        viewModel.personalSchedule.filter { schedule in
+    private func getSchedulesForDate(_ date: Date) -> [GroupSchedule] {
+        viewModel.groupSchedule.filter { schedule in
             schedule.schedule.contains { timeSlot in
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
