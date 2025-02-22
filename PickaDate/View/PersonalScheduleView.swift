@@ -9,7 +9,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct PersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     
     var body: some View {
@@ -31,18 +31,8 @@ struct ContentView: View {
                                 .foregroundColor(.red)
                         }
                     }
-                    
                 }
-                NavigationLink(destination: PersonalScheduleView()) {
-                    Text("개인 일정 보기")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .padding()
+                
                 Button("데이터 추가") {
                     viewModel.addUser(text: "텍스트", num: 26)
                 }
