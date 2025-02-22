@@ -197,7 +197,7 @@ struct PersonalScheduleView: View {
                             .cornerRadius(40)
                             .padding(.bottom, 20)
                             .sheet(isPresented: $isShowingAddSchedule) {
-                                AddPersonalScheduleView(user: user)
+                                AddPersonalScheduleView(user: user, selectedDate: currentDate)
                             }
                         }
                     }

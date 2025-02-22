@@ -69,8 +69,10 @@ struct PersonalDateScheduleView: View {
                             .foregroundStyle(.black)
                     }
                     .sheet(isPresented: $isShowingAddSchedule) {
-                        AddPersonalScheduleView(user: user)
+                        let selectedDateObject = createDate(year: year, month: month, day: selectedDate)
+                        AddPersonalScheduleView(user: user, selectedDate: selectedDateObject)
                     }
+
                 }
             }
             .background(Color.black.ignoresSafeArea())
