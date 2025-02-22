@@ -62,7 +62,7 @@ struct AddPersonalScheduleView: View {
                         ForEach(colors, id: \.self) { color in
                             HStack {
                                 Circle()
-                                    .fill(colorMap[color, default: .green]) // 🔹 선택한 색상 미리보기
+                                    .fill(colorMap[color, default: .green])
                                     .frame(width: 15, height: 15)
                                 Text(color.capitalized)
                             }
@@ -91,6 +91,7 @@ struct AddPersonalScheduleView: View {
                     Button("닫기") {
                         dismiss()
                     }
+                    .foregroundColor(.black)
                 }
             }
         }
