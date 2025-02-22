@@ -28,23 +28,26 @@ struct PersonalDateScheduleView: View {
                                     .foregroundColor(.gray)
                             } else {
                                 List(schedules, id: \.id) { schedule in
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        Text(schedule.name)
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                        
-                                        Text(schedule.content)
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        
-                                        Text("그룹: \(schedule.groupID.joined(separator: ", "))")
-                                            .font(.caption)
-                                            .foregroundColor(.white)
+                                    NavigationLink(destination: ScheduleDetailView(schedule: schedule, user: user)) {
+                                        VStack(alignment: .leading, spacing: 5) {
+                                            Text(schedule.name)
+                                                .font(.headline)
+                                                .foregroundColor(.white)
+                                            
+                                            Text(schedule.content)
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                            
+                                            Text("그룹: \(schedule.groupID.joined(separator: ", "))")
+                                                .font(.caption)
+                                                .foregroundColor(.white)
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(schedule.color)
+                                        .cornerRadius(10)
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(schedule.color)
-                                    .cornerRadius(10)
+                                    
                                 }
                             }
                 
