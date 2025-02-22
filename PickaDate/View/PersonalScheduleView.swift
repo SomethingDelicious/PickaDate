@@ -226,8 +226,9 @@ struct PersonalScheduleView: View {
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
         let components = DateComponents(year: year, month: month, day: 1)
-        
+        print("\(components)")
         if let firstDay = calendar.date(from: components) {
+            print("\(firstDay)")
             let weekday = calendar.component(.weekday, from: firstDay)
             let test = weekday - 1
             print("2025년 2월의 첫 번째 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일): \(test)")

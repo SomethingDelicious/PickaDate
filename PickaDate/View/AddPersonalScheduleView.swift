@@ -77,26 +77,18 @@ struct AddPersonalScheduleView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                 }
-                
-                
-                Section {
-                    Button(action: {
-                        addSchedule()
-                    }) {
-                        Text("일정 추가")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
             }
             .navigationTitle("새 일정 추가")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
                         dismiss()
+                    }
+                    .foregroundColor(.black)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("저장") {
+                        addSchedule()
                     }
                     .foregroundColor(.black)
                 }
