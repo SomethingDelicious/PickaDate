@@ -74,17 +74,23 @@ class FirestoreViewModel: ObservableObject {
     }
     
     func addPersonalSchedule(userID: String, name: String, content: String, groupID: [String], schedule: [TimeSlotPersonal]) {
+        let scheduleData = schedule.map { slot in
+                return [
+                    "startTime": slot.startTime,
+                    "endTime": slot.endTime
+                ]
+            }
         
         let personalSchedule: [String: Any] = [
             "userID": userID,
             "name": name,
             "content": content,
             "createdAt": FieldValue.serverTimestamp(),
-            "schedule": schedule,
+            "schedule": scheduleData,
             "groupID": groupID
         ]
         
-        fsDB.collection("userTestData").document(userID).setData(personalSchedule) { error in
+        fsDB.collection("personalSchedule").document(userID).setData(personalSchedule) { error in
             if let error = error {
                 print("[E]추가 실패: \(error.localizedDescription)")
             } else {
