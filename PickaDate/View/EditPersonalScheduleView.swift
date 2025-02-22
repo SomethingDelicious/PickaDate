@@ -8,20 +8,39 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct AddPersonalScheduleView: View {
+struct EditPersonalScheduleView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
-    let selectedDate: Date
+    let schedule: PersonalSchedule
     @State private var currentDate = Date()
     
-    @State private var name: String = ""
-    @State private var content: String = ""
-    @State private var groupIDInput: String = ""
+    @State private var name: String
+    @State private var content: String
+    @State private var groupIDInput: String
     @State private var startDate: Date
     @State private var endDate: Date
-    @State private var selectedColor: String = "green"
+    @State private var selectedColor: String
+    
+    init(user: String, schedule: PersonalSchedule) {
+        self.user = user
+        self.schedule = schedule
+        
+        _name = State(initialValue: schedule.name)
+        _content = State(initialValue: schedule.content)
+        _groupIDInput = State(initialValue: schedule.groupID.joined(separator: ", "))
+        
+        if let firstSchedule = schedule.schedule.first {
+            _startDate = State(initialValue: firstSchedule.startTime)
+            _endDate = State(initialValue: firstSchedule.endTime)
+        } else {
+            _startDate = State(initialValue: Date())
+            _endDate = State(initialValue: Date())
+        }
+        
+        _selectedColor = State(initialValue: schedule.personalColor)
+    }
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     
@@ -34,13 +53,6 @@ struct AddPersonalScheduleView: View {
         "purple": .purple,
         "brown": .brown
     ]
-    
-    init(user: String, selectedDate: Date) {
-        self.user = user
-        self.selectedDate = selectedDate
-        self._startDate = State(initialValue: selectedDate)
-        self._endDate = State(initialValue: selectedDate)
-    }
     
     var body: some View {
         NavigationView {
@@ -78,7 +90,7 @@ struct AddPersonalScheduleView: View {
                     .pickerStyle(MenuPickerStyle())
                 }
             }
-            .navigationTitle("새 일정 추가")
+            .navigationTitle("일정 편집")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
@@ -87,23 +99,36 @@ struct AddPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("저장") {
-                        addSchedule()
+                    Button("수정") {
+                        editSchedule()
                     }
                     .foregroundColor(.black)
                 }
             }
         }
     }
-    private func addSchedule() {
-        guard !name.isEmpty, !content.isEmpty else { return }
-        
-        let schedule = [TimeSlotPersonal(startTime: startDate, endTime: endDate)]
-        
-        let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
-        
-        dismiss()
-    }
+    private func editSchedule() {
+            guard !name.isEmpty, !content.isEmpty else { return }
+            
+            let updatedSchedule = [TimeSlotPersonal(startTime: startDate, endTime: endDate)]
+            let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            
+        guard let scheduleID = schedule.id else {
+            print("❌ 오류: schedule.id가 nil입니다.")
+            return
+        }
+
+        viewModel.updatePersonalSchedule(
+            scheduleID: scheduleID,
+            userID: user,
+            name: name,
+            content: content,
+            groupID: groupIDArray,
+            schedule: updatedSchedule,
+            personalColor: selectedColor
+        )
+
+            
+            dismiss()
+        }
 }
