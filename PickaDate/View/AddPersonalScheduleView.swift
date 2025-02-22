@@ -20,7 +20,20 @@ struct AddPersonalScheduleView: View {
     @State private var groupIDInput: String = ""
     @State private var startDate: Date = Date()
     @State private var endDate: Date = Date()
+    @State private var selectedColor: String = "green"
     
+    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
+
+    let colorMap: [String: Color] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "purple": .purple,
+        "brown": .brown
+    ]
+
     
     var body: some View {
         NavigationView {
@@ -44,6 +57,20 @@ struct AddPersonalScheduleView: View {
                         .foregroundColor(.black)
 
                 }
+                Section(header: Text("색상 선택")) {
+                    Picker("색상", selection: $selectedColor) {
+                        ForEach(colors, id: \.self) { color in
+                            HStack {
+                                Circle()
+                                    .fill(colorMap[color, default: .green]) // 🔹 선택한 색상 미리보기
+                                    .frame(width: 15, height: 15)
+                                Text(color.capitalized)
+                            }
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
+
                 
                 Section {
                     Button(action: {
@@ -75,7 +102,7 @@ struct AddPersonalScheduleView: View {
         
         let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
-        viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule)
+        viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
         
         dismiss()
     }
