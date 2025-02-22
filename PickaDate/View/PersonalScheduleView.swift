@@ -13,9 +13,11 @@ import FirebaseFirestore
 struct PersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
+    @State private var isShowingDetailView = false
+    @State private var selectedDate: Int? = nil
+    @State private var currentDate = Date()
     
     let user = "홍길동"
-    @State private var currentDate = Date()
     
     private var year: Int {
         Calendar.current.component(.year, from: currentDate)
@@ -23,13 +25,6 @@ struct PersonalScheduleView: View {
     
     private var month: Int {
         Calendar.current.component(.month, from: currentDate)
-    }
-    
-    private var selectedDate: Int {
-        Calendar.current.component(.day, from: currentDate)
-    }
-    private var today: Date {
-        currentDate
     }
     
     
@@ -43,7 +38,7 @@ struct PersonalScheduleView: View {
                             Image(systemName: "calendar")
                                 .foregroundColor(.green)
                             VStack(alignment: .leading) {
-                                Text(formattedDate(today))
+                                Text(formattedDate(currentDate))
                                     .font(.headline)
                                     .bold()
                                 Text("\(user)")
@@ -61,76 +56,130 @@ struct PersonalScheduleView: View {
                         }
                         .padding()
                         
-                        // 요일 헤더
-                        let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
-                        HStack {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                                ForEach(weekDays, id: \.self) { day in
-                                    Text(day)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                        .frame(maxWidth: .infinity)
-                                }
-                            }
-                            
-                        }
-                        
-                        // 날짜 표시
-                        let firstWeekday = getFirstWeekday(of: year, month: month)
-                        let daysInMonth = getDaysInMonth(year: year, month: month)
-                        
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                            // 빈 공간 추가 (첫 요일까지)
-                            ForEach(0..<firstWeekday, id: \.self) { _ in
-                                VStack {
-                                    Text("syd")
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 100)
-
-                                    Spacer()
-                                }
-                                .border(Color.gray)
-                                
-                            }
-                            
-                            // 날짜 채우기
-                            ForEach(1...daysInMonth, id: \.self) { day in
-                                VStack {
-                                    Text("\(day)")
-                                        .foregroundColor(.white)
-                                    
-                                        
-                                    let schedules = viewModel.personalSchedule.filter { schedule in
-                                        schedule.schedule.contains { timeSlot in
-                                            isDateInRange(date: day, startDate: timeSlot.startTime, endDate: timeSlot.endTime, year: year, month: month)
+                        GeometryReader { geometry in
+                            VStack {
+                                // 요일 헤더
+                                let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
+                                HStack {
+                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                                        ForEach(weekDays, id: \.self) { day in
+                                            Text(day)
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                                .frame(maxWidth: .infinity)
                                         }
                                     }
                                     
-                                    if !schedules.isEmpty {
+                                }
+                                
+                                // 날짜 표시
+                                let firstWeekday = getFirstWeekday(of: year, month: month)
+                                let daysInMonth = getDaysInMonth(year: year, month: month)
+                                let totalCells = firstWeekday + daysInMonth
+                                let numRows = Int(ceil(Double(totalCells) / 7.0))
+                                let cellHeight = 500 / CGFloat(numRows)
+                                
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                                    // 빈 공간 추가 (첫 요일까지)
+                                    ForEach(0..<firstWeekday, id: \.self) { _ in
                                         VStack {
-                                            ForEach(schedules, id: \.id) { schedule in
-                                                Text(schedule.name)
-                                                    .font(.caption)
-                                                    .frame(maxWidth: .infinity)
-                                                    .foregroundColor(.white)
-                                                    .padding(4)
-                                                    .background(schedule.color)
-                                                    .cornerRadius(5)
+                                            Text("sdf")
+                                                
+                                            
+                                            Spacer()
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: cellHeight)
+                                        .border(Color.gray)
+                                        
+                                    }
+                                    
+                                    // 날짜 채우기
+                                    ForEach(7...(daysInMonth + firstWeekday), id: \.self) { day in
+                                        
+                                        VStack {
+                                            
+                                            Text("\(day - firstWeekday)")
+                                                .foregroundColor(.white)
+                                            
+                                            
+                                            let schedules = viewModel.personalSchedule.filter { schedule in
+                                                schedule.schedule.contains { timeSlot in
+                                                    let startDate = convertToDate(timeSlot.startTime)
+                                                    let endDate = convertToDate(timeSlot.endTime)
+                                                    return isDateInRange(date: day, startDate: startDate, endDate: endDate, year: year, month: month)
+                                                }
+                                            }
+                                            
+                                            if !schedules.isEmpty {
+                                                VStack {
+                                                    ForEach(schedules, id: \.id) { schedule in
+                                                        Text(schedule.name)
+                                                            .font(.caption)
+                                                            .frame(maxWidth: .infinity)
+                                                            .foregroundColor(.white)
+                                                            .padding(4)
+                                                            .background(schedule.color)
+                                                            .cornerRadius(5)
+                                                    }
+                                                }
+                                                
+                                            }
+                                            Spacer()
+                                            
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: cellHeight)
+                                        .background(selectedDate == day ? Color.gray.opacity(0.3) : Color.clear)
+                                        .border(Color.gray)
+                                        .onTapGesture {
+                                            if selectedDate == day {
+                                                isShowingDetailView = true
+                                            } else {
+                                                selectedDate = Optional(day)
                                             }
                                         }
+
                                         
                                     }
-                                    Spacer()
-                                    
                                 }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 100)
-                                .border(Color.gray)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 
+                                .gesture(
+                                    DragGesture()
+                                        .onEnded { value in
+                                            if value.translation.width < -50 {
+                                                changeMonth(by: 1)
+                                            } else if value.translation.width > 50 {
+                                                changeMonth(by: -1)
+                                            }
+                                        }
+                                )
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .foregroundColor(.white)
+                            .background(Color.black.ignoresSafeArea())
+                        }
+                        .onAppear {
+                            viewModel.fetchPersonalSchedules()
+                        }
+                        .sheet(isPresented: $isShowingDetailView) {
+                            if let safeDate = selectedDate {
+                                let selectedSchedules = viewModel.personalSchedule.filter { schedule in
+                                    schedule.schedule.contains { timeSlot in
+                                        let startDate = convertToDate(timeSlot.startTime)
+                                        let endDate = convertToDate(timeSlot.endTime)
+                                        return isDateInRange(date: safeDate, startDate: startDate, endDate: endDate, year: year, month: month)
+                                    }
+                                }
+                                PersonalDateScheduleView(selectedDate: safeDate, year: year, month: month, schedules: selectedSchedules, user: user)
+                            } else {
+                                Text("날짜를 선택하세요.")
                             }
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        Spacer()
+
+
                         VStack {
                             Spacer()
                             Button(action: {
@@ -148,7 +197,7 @@ struct PersonalScheduleView: View {
                             .cornerRadius(40)
                             .padding(.bottom, 20)
                             .sheet(isPresented: $isShowingAddSchedule) {
-                                AddPersonalScheduleView(user: user)
+                                AddPersonalScheduleView(user: user, selectedDate: currentDate)
                             }
                         }
                     }
@@ -159,8 +208,18 @@ struct PersonalScheduleView: View {
                 }
                 Spacer()
             }
-            .onAppear {
-                viewModel.fetchPersonalSchedules()
+        }
+    }
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy년 M월"
+        return formatter.string(from: date)
+    }
+    private func changeMonth(by value: Int) {
+        withAnimation {
+            if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentDate) {
+                currentDate = newDate
             }
         }
     }
@@ -184,12 +243,6 @@ struct PersonalScheduleView: View {
         }
         return 30
     }
-    func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy년 M월"
-        return formatter.string(from: date)
-    }
     func isDateInRange(date: Int, startDate: Date, endDate: Date, year: Int, month: Int) -> Bool {
         let calendar = Calendar.current
         let startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
@@ -198,7 +251,14 @@ struct PersonalScheduleView: View {
         return (startComponents.year == year && startComponents.month == month && startComponents.day! <= date) &&
         (endComponents.year == year && endComponents.month == month && endComponents.day! >= date)
     }
-    
+    func convertToDate(_ value: Any?) -> Date {
+        if let timestamp = value as? Timestamp {
+            return timestamp.dateValue()
+        } else if let date = value as? Date {
+            return date
+        }
+        return Date()
+    }
 }
 
 

@@ -13,17 +13,18 @@ struct AddPersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
+    let selectedDate: Date
     @State private var currentDate = Date()
     
     @State private var name: String = ""
     @State private var content: String = ""
     @State private var groupIDInput: String = ""
-    @State private var startDate: Date = Date()
-    @State private var endDate: Date = Date()
+    @State private var startDate: Date
+    @State private var endDate: Date
     @State private var selectedColor: String = "green"
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
-
+    
     let colorMap: [String: Color] = [
         "red": .red,
         "orange": .orange,
@@ -33,7 +34,13 @@ struct AddPersonalScheduleView: View {
         "purple": .purple,
         "brown": .brown
     ]
-
+    
+    init(user: String, selectedDate: Date) {
+        self.user = user
+        self.selectedDate = selectedDate
+        self._startDate = State(initialValue: selectedDate)
+        self._endDate = State(initialValue: selectedDate)
+    }
     
     var body: some View {
         NavigationView {
@@ -41,28 +48,28 @@ struct AddPersonalScheduleView: View {
                 Section(header: Text("일정 정보")) {
                     TextField("일정 이름", text: $name)
                         .foregroundColor(.black)
-
+                    
                     TextField("내용", text: $content)
                         .foregroundColor(.black)
-
+                    
                 }
                 
                 Section(header: Text("날짜 설정")) {
-                                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: .date)
-                                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: .date)
-                                }
+                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: .date)
+                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: .date)
+                }
                 
                 Section(header: Text("공유 그룹 (쉼표로 구분)")) {
                     TextField("그룹 ID (예: group1, group2)", text: $groupIDInput)
                         .foregroundColor(.black)
-
+                    
                 }
                 Section(header: Text("색상 선택")) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
                             HStack {
                                 Circle()
-                                    .fill(colorMap[color, default: .green]) // 🔹 선택한 색상 미리보기
+                                    .fill(colorMap[color, default: .green])
                                     .frame(width: 15, height: 15)
                                 Text(color.capitalized)
                             }
@@ -70,7 +77,7 @@ struct AddPersonalScheduleView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                 }
-
+                
                 
                 Section {
                     Button(action: {
@@ -91,6 +98,7 @@ struct AddPersonalScheduleView: View {
                     Button("닫기") {
                         dismiss()
                     }
+                    .foregroundColor(.black)
                 }
             }
         }
