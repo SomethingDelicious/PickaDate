@@ -50,6 +50,18 @@ struct GroupDateView: View {
                         }
                     }
                 }
+                .gesture(
+                    DragGesture()
+                        .onEnded { value in
+                            if value.translation.width < -30 {
+                                changeMonth(by: 1)
+                            } else if value.translation.width > 30 {
+                                changeMonth(by: -1)
+                            }
+                            
+                        }
+                
+                )
                 // 추가 버튼
                 AddScheduleButton(isShowingSheet: $isShowingAddGroupSchedulePeriod, groupName: groupName)
             }
@@ -248,6 +260,15 @@ struct GroupDateView: View {
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
                 (date >= timeSlot.startTime && date <= timeSlot.endTime)
+            }
+        }
+    }
+    
+    // 스와이프 기능을 위한 changeMonth 메서드 추가
+    private func changeMonth(by value: Int) {
+        withAnimation {
+            if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentMonth) {
+                currentMonth = newDate
             }
         }
     }
