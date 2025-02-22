@@ -12,6 +12,7 @@ import FirebaseFirestore
 
 struct PersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
+    @State private var isShowingAddSchedule = false
     
     let user = "홍길동"
     @State private var currentDate = Date()
@@ -98,18 +99,6 @@ struct PersonalScheduleView: View {
                                         .foregroundColor(.white)
                                         .frame(maxWidth: .infinity, minHeight: (geometry.size.height - 120) / CGFloat(numRows + 1))
                                     Spacer()
-                                    //                                    ForEach(viewModel.userTestData) { userTestData in
-                                    //                                        VStack(alignment: .leading) {
-                                    //                                            Text(userTestData.text)
-                                    //                                                .font(.headline)
-                                    //                                                .foregroundColor(.white)
-                                    //                                            Text("숫자: \(userTestData.num)")
-                                    //                                                .font(.subheadline)
-                                    //                                                .foregroundColor(.gray)
-                                    //                                        }
-                                    //                                        .padding()
-                                    //                                        .border(Color.gray)
-                                    //                                    }
                                     
                                 }
                                 .border(Color.gray)
@@ -120,7 +109,9 @@ struct PersonalScheduleView: View {
                         Spacer()
                         VStack {
                             Spacer()
-                            Button(action: {}) {
+                            Button(action: {
+                                isShowingAddSchedule.toggle()
+                            }) {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .scaledToFit()
@@ -132,6 +123,9 @@ struct PersonalScheduleView: View {
                             .background(Color.gray.opacity(0.3))
                             .cornerRadius(40)
                             .padding(.bottom, 20)
+                            .sheet(isPresented: $isShowingAddSchedule) {
+                                AddPersonalScheduleView(user: user)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -146,7 +140,6 @@ struct PersonalScheduleView: View {
             }
         }
     }
-    // 특정 연도, 월의 첫 번째 요일 구하기
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
         let components = DateComponents(year: year, month: month, day: 1)
@@ -161,7 +154,6 @@ struct PersonalScheduleView: View {
         return 0
     }
     
-    // 특정 연도, 월의 일 수 구하기
     func getDaysInMonth(year: Int, month: Int) -> Int {
         let components = DateComponents(year: year, month: month)
         if let range = Calendar.current.range(of: .day, in: .month, for: Calendar.current.date(from: components)!) {
