@@ -27,7 +27,7 @@ struct ContentView: View {
                     }
                     .tag(0)
                 
-                MainCalendarView()
+                MainCalendarView(user: user)
                     .tabItem {
                         Image(systemName: "person.fill")
                         Text("개인")
@@ -76,7 +76,9 @@ struct ContentView: View {
                             .shadow(radius: 4)
                     }
                     //.offset(y: -30)
-                    .sheet(isPresented: $isShowingPersonalScheduleView) {
+                    .sheet(isPresented: $isShowingPersonalScheduleView, onDismiss: {
+                        viewModel.fetchPersonalSchedules()
+                    }) {
                         AddPersonalScheduleView(user: user, selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
