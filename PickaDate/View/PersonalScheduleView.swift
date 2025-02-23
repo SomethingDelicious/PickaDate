@@ -5,8 +5,6 @@
 //  Created by 김태건 on 2/20/25.
 //
 
-//KTG(250222/09:56) : 테스트용 내용입니다. 수정 가능.
-
 import SwiftUI
 import FirebaseFirestore
 
@@ -14,243 +12,291 @@ struct PersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
-    @State private var selectedDate: Int? = nil
-    @State private var currentDate = Date()
+    @State private var selectedDate = Date() //일
+    @State private var currentMonth: Date = Date() //월
     
     let user = "홍길동"
     
     private var year: Int {
-        Calendar.current.component(.year, from: currentDate)
+        Calendar.current.component(.year, from: selectedDate)
     }
     
     private var month: Int {
-        Calendar.current.component(.month, from: currentDate)
+        Calendar.current.component(.month, from: selectedDate)
     }
     
+    private var days: [Date] {
+        getDaysInMonth(for: currentMonth)
+    }
     
     var body: some View {
         NavigationView {
-            GeometryReader { geometry in
-                ZStack {
-                    //Color.black.ignoresSafeArea()
-                    VStack {
-                        HStack {
-                            Image(systemName: "calendar")
-                                .foregroundColor(.green)
-                            VStack(alignment: .leading) {
-                                Text(formattedDate(currentDate))
-                                    .font(.headline)
-                                    .bold()
-                                Text("\(user)")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                            
-                            Spacer()
-                            Button(action: {}) {
-                                Image(systemName: "star")
-                            }
-                            Button(action: {}) {
-                                Image(systemName: "bubble.right")
-                            }
-                        }
-                        .padding()
-                        
-                        GeometryReader { geometry in
-                            VStack {
-                                // 요일 헤더
-                                let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
-                                HStack {
-                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                                        ForEach(weekDays, id: \.self) { day in
-                                            Text(day)
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                                .frame(maxWidth: .infinity)
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                // 날짜 표시
-                                let firstWeekday = getFirstWeekday(of: year, month: month)
-                                let daysInMonth = getDaysInMonth(year: year, month: month)
-                                let totalCells = firstWeekday + daysInMonth
-                                let numRows = Int(ceil(Double(totalCells) / 7.0))
-                                let cellHeight = 500 / CGFloat(numRows)
-                                
-                                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                                    // 빈 공간 추가 (첫 요일까지)
-                                    ForEach(0..<firstWeekday, id: \.self) { _ in
-                                        VStack {
-                                            Text("sdf")
-                                                
-                                            
-                                            Spacer()
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: cellHeight)
-                                        .border(Color.gray)
-                                        
-                                    }
-                                    
-                                    // 날짜 채우기
-                                    ForEach(7...(daysInMonth + firstWeekday), id: \.self) { day in
-                                        
-                                        VStack {
-                                            
-                                            Text("\(day - firstWeekday)")
-                                                .foregroundColor(.white)
-                                            
-                                            
-                                            let schedules = viewModel.personalSchedule.filter { schedule in
-                                                schedule.schedule.contains { timeSlot in
-                                                    let startDate = convertToDate(timeSlot.startTime)
-                                                    let endDate = convertToDate(timeSlot.endTime)
-                                                    return isDateInRange(date: day, startDate: startDate, endDate: endDate, year: year, month: month)
-                                                }
-                                            }
-                                            
-                                            if !schedules.isEmpty {
-                                                VStack {
-                                                    ForEach(schedules, id: \.id) { schedule in
-                                                        Text(schedule.name)
-                                                            .font(.caption)
-                                                            .frame(maxWidth: .infinity)
-                                                            .foregroundColor(.white)
-                                                            .padding(4)
-                                                            .background(schedule.color)
-                                                            .cornerRadius(5)
-                                                    }
-                                                }
-                                                
-                                            }
-                                            Spacer()
-                                            
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: cellHeight)
-                                        .background(selectedDate == day ? Color.gray.opacity(0.3) : Color.clear)
-                                        .border(Color.gray)
-                                        .onTapGesture {
-                                            if selectedDate == day {
-                                                isShowingDetailView = true
-                                            } else {
-                                                selectedDate = Optional(day)
-                                            }
-                                        }
+            VStack {
+                CalendarHeaderView(
+                    currentMonth: currentMonth,
+                    user: user
+                )
+                WeekdayHeaderView()
+                let firstWeekday = Calendar.current.component(.weekday, from: days.first ?? Date()) - 1
+                let totalCells = firstWeekday + days.count
+                let numRows = Int(ceil(Double(totalCells) / 7.0))
+                let cellHeight = 500 / CGFloat(numRows)
 
-                                        
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                
-                                .gesture(
-                                    DragGesture()
-                                        .onEnded { value in
-                                            if value.translation.width < -50 {
-                                                changeMonth(by: 1)
-                                            } else if value.translation.width > 50 {
-                                                changeMonth(by: -1)
-                                            }
-                                        }
-                                )
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .foregroundColor(.white)
-                            .background(Color.black.ignoresSafeArea())
-                        }
-                        .onAppear {
-                            viewModel.fetchPersonalSchedules()
-                        }
-                        .sheet(isPresented: $isShowingDetailView) {
-                            if let safeDate = selectedDate {
-                                let selectedSchedules = viewModel.personalSchedule.filter { schedule in
-                                    schedule.schedule.contains { timeSlot in
-                                        let startDate = convertToDate(timeSlot.startTime)
-                                        let endDate = convertToDate(timeSlot.endTime)
-                                        return isDateInRange(date: safeDate, startDate: startDate, endDate: endDate, year: year, month: month)
-                                    }
-                                }
-                                PersonalDateScheduleView(selectedDate: safeDate, year: year, month: month, schedules: selectedSchedules, user: user)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                    ForEach(days, id: \.self) { date in
+                        let schedules = getSchedulesForDate(date)
+                        DayCell(
+                            date: date,
+                            isSelected: isSameDay(date, selectedDate),
+                            isCurrentMonth: isSameMonth(date, currentMonth),
+                            schedules: schedules,
+                            cellHeight: cellHeight
+                        )
+                        .background(selectedDate == date ? Color.gray.opacity(0.3) : Color.clear)
+                        .onTapGesture {
+                            if selectedDate == date {
+                                isShowingDetailView = true
                             } else {
-                                Text("날짜를 선택하세요.")
-                            }
-                        }
-
-
-                        VStack {
-                            Spacer()
-                            Button(action: {
-                                isShowingAddSchedule.toggle()
-                            }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .foregroundStyle(.white)
-                                    .frame(width: 50, height: 50)
-                                    .padding()
-                            }
-                            .frame(width: 80, height: 80)
-                            .background(Color.gray.opacity(0.3))
-                            .cornerRadius(40)
-                            .padding(.bottom, 20)
-                            .sheet(isPresented: $isShowingAddSchedule) {
-                                AddPersonalScheduleView(user: user, selectedDate: currentDate)
+                                selectedDate = date
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .foregroundColor(.white)
-                    .background(Color.black.ignoresSafeArea())
+                }
+                .gesture(
+                    DragGesture()
+                        .onEnded { value in
+                            if value.translation.width < -30 {
+                                changeMonth(by: 1)
+                            } else if value.translation.width > 30 {
+                                changeMonth(by: -1)
+                            }
+                            
+                        }
                     
+                )
+                AddScheduleButton(isShowingSheet: $isShowingAddSchedule, selectedDate: $selectedDate, user: user)
+            }
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
+            .sheet(isPresented: $isShowingDetailView) {
+                let selectedSchedules = viewModel.personalSchedule.filter { schedule in
+                    schedule.schedule.contains { timeSlot in
+                        let startDate = convertToDate(timeSlot.startTime)
+                        let endDate = convertToDate(timeSlot.endTime)
+                        return isDateInRange(date: selectedDate, startDate: startDate, endDate: endDate, year: year, month: month)
+                    }
+                }
+                PersonalDateScheduleView(selectedDate: selectedDate, schedules: selectedSchedules, user: user)
+            }
+        }
+            
+    }
+    
+    private struct DayCell: View {
+        let date: Date
+        let isSelected: Bool
+        let isCurrentMonth: Bool
+        let schedules: [PersonalSchedule]
+        let cellHeight: CGFloat
+        
+        var body: some View {
+            VStack {
+                Text("\(Calendar.current.component(.day, from: date))")
+                    .foregroundColor(isCurrentMonth ? .black : .gray)
+                
+                if !schedules.isEmpty {
+                    VStack {
+                        ForEach(schedules) { schedule in
+
+                            Text(schedule.name)
+                                .font(.caption)
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(schedule.color)
+                                .cornerRadius(5)
+                                .lineLimit(1)
+                        }
+                    }
                 }
                 Spacer()
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: cellHeight)
+            .border(Color.gray)
         }
     }
-    func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy년 M월"
-        return formatter.string(from: date)
+    
+    private struct CalendarHeaderView: View {
+        let currentMonth: Date
+        let user: String
+        
+        private func formattedDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ko_KR")
+            formatter.dateFormat = "yyyy년 M월"
+            return formatter.string(from: date)
+        }
+        
+        var body: some View {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundColor(.green)
+                VStack(alignment: .leading) {
+                    Text(formattedDate(currentMonth))
+                        .font(.headline)
+                        .bold()
+                    Text(user)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                Button(action: {}) {
+                    Image(systemName: "star")
+                }
+                Button(action: {}) {
+                    Image(systemName: "bubble.right")
+                }
+            }
+            .padding()
+        }
     }
-    private func changeMonth(by value: Int) {
-        withAnimation {
-            if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentDate) {
-                currentDate = newDate
+    
+    private struct WeekdayHeaderView: View {
+        private let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
+        
+        var body: some View {
+            HStack {
+                ForEach(weekDays, id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity)
+                }
             }
         }
     }
+    
+    private struct AddScheduleButton: View {
+        @Binding var isShowingSheet: Bool
+        @Binding var selectedDate: Date
+        let user: String
+        
+        var body: some View {
+            VStack {
+                Spacer()
+                Button(action: { isShowingSheet.toggle() }) {
+                    Image(systemName: "plus.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.white)
+                        .frame(width: 50, height: 50)
+                        .padding()
+                }
+                .frame(width: 80, height: 80)
+                .background(Color.gray.opacity(0.3))
+                .cornerRadius(40)
+                .padding(.bottom, 20)
+                .sheet(isPresented: $isShowingSheet) {
+                    AddPersonalScheduleView(user: user, selectedDate: selectedDate)
+                }
+            }
+        }
+    }
+    
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
-        let components = DateComponents(year: year, month: month, day: 1)
-        print("\(components)")
-        if let firstDay = calendar.date(from: components) {
-            print("\(firstDay)")
-            let weekday = calendar.component(.weekday, from: firstDay)
-            let test = weekday - 1
-            print("2025년 2월의 첫 번째 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일): \(test)")
-            return test
-            
-        }
-        return 0
+        
+        // 해당 월의 1일 날짜 구하기
+        let firstDate = calendar.date(from: DateComponents(year: year, month: month, day: 1))!
+        
+        // 해당 월의 1일이 있는 주의 일요일 날짜 구하기
+        let firstSunday = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: firstDate))!
+        
+        // 1일과 그 주의 일요일 사이의 일수 차이 구하기
+        let difference = calendar.dateComponents([.day], from: firstSunday, to: firstDate).day ?? 0
+        
+        return difference
     }
-    func getDaysInMonth(year: Int, month: Int) -> Int {
-        let components = DateComponents(year: year, month: month)
-        if let range = Calendar.current.range(of: .day, in: .month, for: Calendar.current.date(from: components)!) {
-            return range.count
-        }
-        return 30
-    }
-    func isDateInRange(date: Int, startDate: Date, endDate: Date, year: Int, month: Int) -> Bool {
+    
+    // 이전 달의 마지막 날짜들을 가져오는 함수
+    func getLastDaysOfPreviousMonth(year: Int, month: Int, count: Int) -> [Int] {
         let calendar = Calendar.current
+        let components = DateComponents(year: year, month: month, day: 1)
+        
+        // 이전 달의 마지막 날 구하기
+        let firstDayOfMonth = calendar.date(from: components)!
+        let lastDayOfPrevMonth = calendar.date(byAdding: .day, value: -1, to: firstDayOfMonth)!
+        
+        let lastDay = calendar.component(.day, from: lastDayOfPrevMonth)
+        
+        // 필요한 만큼의 이전 달 날짜 배열 만들기
+        return (0..<count).map { lastDay - count + $0 + 1 }
+    }
+    
+    private func getDaysInMonth(for date: Date) -> [Date] {
+        let calendar = Calendar.current
+        
+        // 해당 월의 첫날과 마지막날 구하기
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date),
+              let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start),
+              let monthLastWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.end - 1) else {
+            return []
+        }
+        
+        // 첫 주부터 마지막 주까지의 모든 날짜를 배열로 만들기
+        var result: [Date] = []
+        var currentDate = monthFirstWeek.start
+        
+        while currentDate < monthLastWeek.end {
+            result.append(currentDate)
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+        }
+        
+        return result
+    }
+    private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
+        Calendar.current.isDate(date1, inSameDayAs: date2)
+    }
+    
+    private func isSameMonth(_ date1: Date, _ date2: Date) -> Bool {
+        let calendar = Calendar.current
+        return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
+        calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
+    }
+    
+    private func getSchedulesForDate(_ date: Date) -> [PersonalSchedule] {
+        viewModel.personalSchedule.filter { schedule in
+            schedule.schedule.contains { timeSlot in
+                Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
+                Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
+                (date >= timeSlot.startTime && date <= timeSlot.endTime)
+            }
+        }
+    }
+    private func changeMonth(by value: Int) {
+        withAnimation {
+            if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentMonth) {
+                currentMonth = newDate
+            }
+        }
+    }
+    func isDateInRange(date: Date, startDate: Date, endDate: Date, year: Int, month: Int) -> Bool {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
         let endComponents = calendar.dateComponents([.year, .month, .day], from: endDate)
-        
-        return (startComponents.year == year && startComponents.month == month && startComponents.day! <= date) &&
-        (endComponents.year == year && endComponents.month == month && endComponents.day! >= date)
+        guard let day = dateComponents.day,
+              let startDay = startComponents.day,
+              let endDay = endComponents.day else {
+            return false
+        }
+        return (dateComponents.year == year && dateComponents.month == month) &&
+               (startComponents.year == year && startComponents.month == month && startDay <= day) &&
+               (endComponents.year == year && endComponents.month == month && endDay >= day)
     }
     func convertToDate(_ value: Any?) -> Date {
         if let timestamp = value as? Timestamp {
@@ -261,7 +307,3 @@ struct PersonalScheduleView: View {
         return Date()
     }
 }
-
-
-
-
