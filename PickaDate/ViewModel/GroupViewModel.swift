@@ -16,10 +16,10 @@ class GroupViewModel: ObservableObject {
     func fetchGroups() {
         fsDB.collection("groups").getDocuments { snapshot, error in
             if let error = error {
-                print("[E]데이터 가져오기 실패: \(error.localizedDescription)")
+                print("[E]그룹 가져오기 실패: \(error.localizedDescription)")
                 return
             }
-            
+            print("[L]그룹 가져오기 성공")
             DispatchQueue.main.async {
                 self.groups = snapshot?.documents.compactMap { doc in
                     try? doc.data(as: Group.self)
