@@ -12,7 +12,7 @@ struct EditPersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: String
+    let user: User
     let schedule: PersonalSchedule
     @State private var currentDate = Date()
     
@@ -24,7 +24,7 @@ struct EditPersonalScheduleView: View {
     @State private var selectedColor: String
     @State private var isAllDay: Bool = false
     
-    init(user: String, schedule: PersonalSchedule) {
+    init(user: User, schedule: PersonalSchedule) {
         self.user = user
         self.schedule = schedule
         
@@ -162,7 +162,7 @@ struct EditPersonalScheduleView: View {
 
         viewModel.updatePersonalSchedule(
             scheduleID: scheduleID,
-            userID: user,
+            userID: user.userID,
             name: name,
             content: content,
             groupID: groupIDArray,

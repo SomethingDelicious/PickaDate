@@ -23,7 +23,7 @@ struct AddPersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: String
+    let user: User
     let selectedDate: Date
     
     @State private var name: String = ""
@@ -46,7 +46,7 @@ struct AddPersonalScheduleView: View {
         "brown": .brown
     ]
     
-    init(user: String, selectedDate: Date) {
+    init(user: User, selectedDate: Date) {
         self.user = user
         self.selectedDate = selectedDate
         self._startDate = State(initialValue: selectedDate)
@@ -140,7 +140,7 @@ struct AddPersonalScheduleView: View {
         
         let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
-        viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
+        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }
