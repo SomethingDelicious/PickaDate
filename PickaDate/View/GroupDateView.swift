@@ -14,6 +14,7 @@ struct GroupDateView: View {
     @State private var currentMonth: Date = Date()  // 현재 표시중인 월
     @State private var isShowingAddGroupSchedulePeriod = false
     let groupName = "맛있는거사조"
+    @State private var cellHeight: CGFloat = 0 // GeometryReader 사용을 위한 변수
     
     // 달력에 표시할 날짜들을 저장하는 배열
     private var days: [Date] {
@@ -24,54 +25,64 @@ struct GroupDateView: View {
     // MARK: - Body
     var body: some View {
         NavigationStack {
-            VStack {
-                // 캘린더 섹션
-                // 헤더 부분
-                CalendarHeaderView(
-                    currentMonth: currentMonth,
-                    groupName: groupName
-                )
+            GeometryReader { geometry in
+                let minimumCellHeight: CGFloat = 60
+                let headerHeight: CGFloat = 170
+                let requiredHeight = minimumCellHeight * 7
+                let cellHeight = geometry.size.height <= (headerHeight + requiredHeight)
+                    ? minimumCellHeight
+                    : (geometry.size.height - headerHeight) / 7
                 
-                // 요일 헤더
-                WeekdayHeaderView()
-                
-                // 날짜 그리드
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                    ForEach(days, id: \.self) { date in
-                        let schedules = getSchedulesForDate(date)
-                        DayCell(
-                            date: date,
-                            isSelected: isSameDay(date, selectedDate),
-                            isCurrentMonth: isSameMonth(date, currentMonth),
-                            schedules: schedules
-                        )
-                        .onTapGesture {
-                            selectedDate = date
+                VStack {
+                    // 캘린더 섹션
+                    // 헤더 부분
+                    CalendarHeaderView(
+                        currentMonth: currentMonth,
+                        groupName: groupName
+                    )
+                    
+                    // 요일 헤더
+                    WeekdayHeaderView()
+                    
+                    // 날짜 그리드
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                        ForEach(days, id: \.self) { date in
+                            let schedules = getSchedulesForDate(date)
+                            DayCell(
+                                date: date,
+                                isSelected: isSameDay(date, selectedDate),
+                                isCurrentMonth: isSameMonth(date, currentMonth),
+                                schedules: schedules,
+                                cellHeight: cellHeight
+                            )
+                            .onTapGesture {
+                                selectedDate = date
+                            }
                         }
                     }
-                }
-                .gesture(
-                    DragGesture()
-                        .onEnded { value in
-                            if value.translation.width < -30 {
-                                changeMonth(by: 1)
-                            } else if value.translation.width > 30 {
-                                changeMonth(by: -1)
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.width < -30 {
+                                    changeMonth(by: 1)
+                                } else if value.translation.width > 30 {
+                                    changeMonth(by: -1)
+                                }
+                                
                             }
-                            
-                        }
-                
-                )
-                // 추가 버튼
-                AddScheduleButton(isShowingSheet: $isShowingAddGroupSchedulePeriod, groupName: groupName)
-            }
+                    )
+                    // 추가 버튼
+                    AddScheduleButton(isShowingSheet: $isShowingAddGroupSchedulePeriod, groupName: groupName)
+                } //VStack1
+                .padding(.bottom, 30) // 하단 탭바와의 간격
+            } // GeometryReader1
             .navigationTitle("그룹 일정")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 viewModel.fetchGroupSchedules()
-            }
-        }
-    }
+            } // GeometryReader1/onAppear
+        } // NavigationStack1
+    } // Body
     
     // MARK: - Helper Views
     private struct DayCell: View {
@@ -79,6 +90,7 @@ struct GroupDateView: View {
         let isSelected: Bool
         let isCurrentMonth: Bool
         let schedules: [GroupSchedule]
+        let cellHeight: CGFloat // 높이 파라미터 추가
         
         var body: some View {
             VStack {
@@ -92,16 +104,16 @@ struct GroupDateView: View {
                                 .font(.caption)
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(.white)
-                                .padding(4)
+                                .padding(2)
                                 .background(Color.blue)
-                                .cornerRadius(5)
+                                .cornerRadius(3)
                         }
                     }
                 }
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 100)
+            .frame(height: cellHeight)
             .border(Color.gray)
         }
     }
@@ -185,6 +197,7 @@ struct GroupDateView: View {
     }
     
     // MARK: - Methods
+    // 캘린더의 첫주를 구하는 함수
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
         
@@ -215,45 +228,49 @@ struct GroupDateView: View {
         return (0..<count).map { lastDay - count + $0 + 1 }
     }
     
+    // 캘린더에 들어갈 날짜 배열을 만드는 함수
     private func getDaysInMonth(for date: Date) -> [Date] {
         let calendar = Calendar.current
         
         // 해당 월의 첫날과 마지막날 구하기
-        guard let monthInterval = calendar.dateInterval(of: .month, for: date),
-              let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start),
-              let monthLastWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.end - 1) else {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date) else {
             return []
         }
         
-        // 첫 주부터 마지막 주까지의 모든 날짜를 배열로 만들기
-        var result: [Date] = []
-        var currentDate = monthFirstWeek.start
+        let monthStartDate = monthInterval.start
         
-        while currentDate < monthLastWeek.end {
+        let firstWeekday = calendar.component(.weekday, from: monthStartDate)
+        let previousDays = firstWeekday - 1 // 이전 달에서 필요한 날짜 수
+        
+        // 첫 주 일요일 날짜 구하기
+        guard let firstDateOfGrid = calendar.date(byAdding: .day, value: -previousDays, to: monthStartDate) else {
+            return []
+        }
+        
+        // 첫 주부터 마지막 주까지의 모든 날짜를 배열로 만들기(42일, 6주에 맞춰서 날짜 생성)
+        var result: [Date] = []
+        var currentDate = firstDateOfGrid
+        
+        for _ in 0..<42 { // 6주 x 7일 = 42일
             result.append(currentDate)
-            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
+            currentDate = nextDate
         }
         
         return result
     }
     
-//    func formattedDate(_ date: Date) -> String {
-//        let formatter = DateFormatter()
-//        formatter.locale = Locale(identifier: "ko_KR")
-//        formatter.dateFormat = "yyyy년 M월"
-//        return formatter.string(from: date)
-//    }
-    
+    // Day 확인
     private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
         Calendar.current.isDate(date1, inSameDayAs: date2)
     }
-    
+    // Month 확인
     private func isSameMonth(_ date1: Date, _ date2: Date) -> Bool {
         let calendar = Calendar.current
         return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
                calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
-    
+    // 확인한 날짜에 해당하는 일정들을 가져오는 메서드
     private func getSchedulesForDate(_ date: Date) -> [GroupSchedule] {
         viewModel.groupSchedule.filter { schedule in
             schedule.schedule.contains { timeSlot in
