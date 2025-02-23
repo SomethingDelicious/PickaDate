@@ -185,6 +185,7 @@ struct GroupDateView: View {
     }
     
     // MARK: - Methods
+    // 캘린더의 첫주를 구하는 함수
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
         
@@ -215,45 +216,49 @@ struct GroupDateView: View {
         return (0..<count).map { lastDay - count + $0 + 1 }
     }
     
+    // 캘린더에 들어갈 날짜 배열을 만드는 함수
     private func getDaysInMonth(for date: Date) -> [Date] {
         let calendar = Calendar.current
         
         // 해당 월의 첫날과 마지막날 구하기
-        guard let monthInterval = calendar.dateInterval(of: .month, for: date),
-              let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start),
-              let monthLastWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.end - 1) else {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date) else {
             return []
         }
         
-        // 첫 주부터 마지막 주까지의 모든 날짜를 배열로 만들기
-        var result: [Date] = []
-        var currentDate = monthFirstWeek.start
+        let monthStartDate = monthInterval.start
         
-        while currentDate < monthLastWeek.end {
+        let firstWeekday = calendar.component(.weekday, from: monthStartDate)
+        let previousDays = firstWeekday - 1 // 이전 달에서 필요한 날짜 수
+        
+        // 첫 주 일요일 날짜 구하기
+        guard let firstDateOfGrid = calendar.date(byAdding: .day, value: -previousDays, to: monthStartDate) else {
+            return []
+        }
+        
+        // 첫 주부터 마지막 주까지의 모든 날짜를 배열로 만들기(42일, 6주에 맞춰서 날짜 생성)
+        var result: [Date] = []
+        var currentDate = firstDateOfGrid
+        
+        for _ in 0..<42 { // 6주 x 7일 = 42일
             result.append(currentDate)
-            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
+            currentDate = nextDate
         }
         
         return result
     }
     
-//    func formattedDate(_ date: Date) -> String {
-//        let formatter = DateFormatter()
-//        formatter.locale = Locale(identifier: "ko_KR")
-//        formatter.dateFormat = "yyyy년 M월"
-//        return formatter.string(from: date)
-//    }
-    
+    // Day 확인
     private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
         Calendar.current.isDate(date1, inSameDayAs: date2)
     }
-    
+    // Month 확인
     private func isSameMonth(_ date1: Date, _ date2: Date) -> Bool {
         let calendar = Calendar.current
         return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
                calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
-    
+    // 확인한 날짜에 해당하는 일정들을 가져오는 메서드
     private func getSchedulesForDate(_ date: Date) -> [GroupSchedule] {
         viewModel.groupSchedule.filter { schedule in
             schedule.schedule.contains { timeSlot in
