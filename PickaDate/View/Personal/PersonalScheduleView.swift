@@ -111,11 +111,18 @@ struct PersonalScheduleView: View {
         
         var body: some View {
             VStack {
+                let weekday = Calendar.current.component(.weekday, from: date)
+                            let dayColor: Color = {
+                                if weekday == 1 { return .red }
+                                else if weekday == 7 { return .blue }
+                                else { return .black }
+                            }()
                 Text("\(Calendar.current.component(.day, from: date))")
-                    .foregroundColor(isCurrentMonth ? .black : .gray)
+                    .foregroundColor(isCurrentMonth ? dayColor : .gray)
                 
                 if !schedules.isEmpty {
                     VStack {
+                        
                         ForEach(schedules) { schedule in
                             
                             Text(schedule.name)
