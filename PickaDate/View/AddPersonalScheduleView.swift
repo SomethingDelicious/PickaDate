@@ -14,7 +14,6 @@ struct AddPersonalScheduleView: View {
     
     let user: String
     let selectedDate: Date
-    @State private var currentDate = Date()
     
     @State private var name: String = ""
     @State private var content: String = ""
