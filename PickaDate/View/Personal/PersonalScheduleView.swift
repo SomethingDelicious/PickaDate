@@ -29,12 +29,16 @@ struct PersonalScheduleView: View {
     private var days: [Date] {
         getDaysInMonth(for: currentMonth)
     }
+    @State private var selectedYear = Calendar.current.component(.year, from: Date())
+    @State private var selectedMonth = Calendar.current.component(.month, from: Date())
     
     var body: some View {
         NavigationView {
             VStack {
                 CalendarHeaderView(
-                    currentMonth: currentMonth,
+                    currentMonth: $currentMonth,
+                    selectedYear: $selectedYear,
+                    selectedMonth: $selectedMonth,
                     user: user
                 )
                 WeekdayHeaderView()
@@ -134,8 +138,11 @@ struct PersonalScheduleView: View {
     }
     
     private struct CalendarHeaderView: View {
-        let currentMonth: Date
+        @Binding var currentMonth: Date
+        @Binding var selectedYear: Int
+        @Binding var selectedMonth: Int
         let user: User
+        @State private var isShowingDatePicker = false
         
         private func formattedDate(_ date: Date) -> String {
             let formatter = DateFormatter()
@@ -147,11 +154,58 @@ struct PersonalScheduleView: View {
         var body: some View {
             HStack {
                 Image(systemName: "calendar")
-                    .foregroundColor(.green)
+                    .font(.largeTitle)
+                    //.foregroundColor(.green)
                 VStack(alignment: .leading) {
-                    Text(formattedDate(currentMonth))
-                        .font(.headline)
-                        .bold()
+                    HStack {
+                        Text(formattedDate(currentMonth))
+                            .font(.headline)
+                            .bold()
+                        Button(action: {
+                            isShowingDatePicker.toggle()
+                        }) {
+                            Image(systemName: "chevron.down.square.fill")
+                                .font(.headline)
+                        }
+                        .sheet(isPresented: $isShowingDatePicker) {
+                            VStack {
+                                HStack {
+                                    Picker("연도 선택", selection: $selectedYear) {
+                                        ForEach((selectedYear - 100)...(selectedYear + 100), id: \.self) { year in
+                                                            Text("\(year)년").tag(year)
+                                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(width: 120)
+                                    
+                                    Picker("월 선택", selection: $selectedMonth) {
+                                        ForEach(1...12, id: \.self) { month in
+                                            Text("\(month)월").tag(month)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(width: 120)
+                                }
+                                
+                                Button("확인") {
+                                    if let newDate = Calendar.current.date(from: DateComponents(year: selectedYear, month: selectedMonth, day: 1)) {
+                                        currentMonth = newDate
+                                    }
+                                    isShowingDatePicker = false
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                                .padding(.top, 10)
+                                
+                            }
+                            .padding()
+                            .presentationDetents([.medium])
+                        }
+                    }
+                    
                     Text(user.userID)
                         .font(.caption)
                         .foregroundColor(.gray)
@@ -169,7 +223,6 @@ struct PersonalScheduleView: View {
             .padding()
         }
     }
-    
     private struct WeekdayHeaderView: View {
         private let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
         
