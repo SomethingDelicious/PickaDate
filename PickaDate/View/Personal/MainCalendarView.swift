@@ -46,7 +46,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         ]
     )
 ]
-struct CustomCalendarView: View {
+struct MainCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
@@ -54,7 +54,8 @@ struct CustomCalendarView: View {
     @State private var currentMonth: Date = Date() //월
     @State var selectedCalendars: Set<String> = ["개인 캘린더"]
     
-    let user : User
+    //더미데이터
+    let user: User
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -84,7 +85,7 @@ struct CustomCalendarView: View {
                 let firstWeekday = Calendar.current.component(.weekday, from: days.first ?? Date()) - 1
                 let totalCells = firstWeekday + days.count
                 let numRows = Int(ceil(Double(totalCells) / 7.0))
-                let cellHeight = 500 / CGFloat(numRows)
+                let cellHeight = 570 / CGFloat(numRows)
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
                     ForEach(days, id: \.self) { date in
@@ -118,7 +119,6 @@ struct CustomCalendarView: View {
                         }
                     
                 )
-                AddScheduleButton(isShowingSheet: $isShowingAddSchedule, selectedDate: $selectedDate, user: user)
             }
             .sheet(isPresented: $isShowingDetailView, onDismiss: {
                 viewModel.fetchPersonalSchedules()
@@ -177,7 +177,6 @@ struct CustomCalendarView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: cellHeight)
-            .border(Color.gray)
         }
     }
     private struct CalendarHeaderView: View {
@@ -196,7 +195,7 @@ struct CustomCalendarView: View {
             return formatter.string(from: date)
         }
         var body: some View {
-            HStack {
+            HStack(alignment: .center) {
                 Image(systemName: "calendar")
                     .font(.largeTitle)
                 //.foregroundColor(.green)
@@ -250,21 +249,19 @@ struct CustomCalendarView: View {
                         }
                     }
                     
-                    Text("선택된 그룹: \(selectedCalendars.joined(separator: ", "))")
+                    Text(user.userID)
                         .font(.caption)
                         .foregroundColor(.gray)
-                        .lineLimit(1)
                 }
                 
                 Spacer()
                 
-                Button(action: {}) {
-                    Image(systemName: "star")
-                }
                 Button(action: {
                     isChoosing.toggle()
                 }) {
-                    Image(systemName: "togglepower")
+                    Image(systemName: "gearshape.fill")
+                        .font(.headline)
+                        .foregroundColor(.gray)
                 }
             }
             .padding()
@@ -286,35 +283,6 @@ struct CustomCalendarView: View {
                         .font(.caption)
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
-                }
-            }
-        }
-    }
-    private struct AddScheduleButton: View {
-        @StateObject private var viewModel = FirestoreViewModel()
-        @Binding var isShowingSheet: Bool
-        @Binding var selectedDate: Date
-        let user: User
-        
-        var body: some View {
-            VStack {
-                Spacer()
-                Button(action: { isShowingSheet.toggle() }) {
-                    Image(systemName: "plus.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.white)
-                        .frame(width: 50, height: 50)
-                        .padding()
-                }
-                .frame(width: 80, height: 80)
-                .background(Color.gray.opacity(0.3))
-                .cornerRadius(40)
-                .padding(.bottom, 20)
-                .sheet(isPresented: $isShowingSheet, onDismiss: {
-                    viewModel.fetchPersonalSchedules()
-                }) {
-                    AddPersonalScheduleView(user: user, selectedDate: selectedDate)
                 }
             }
         }
@@ -387,7 +355,7 @@ struct CustomCalendarView: View {
                         return isDateInRange(date: date, startDate: startDate, endDate: endDate, year: year, month: month)
                     }
                 }.map { schedule in
-                    (schedule.name, Color.blue)
+                    (schedule.name, schedule.color)
                 }
             } else {
                 return []

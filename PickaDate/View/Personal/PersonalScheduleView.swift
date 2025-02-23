@@ -223,7 +223,7 @@ struct PersonalScheduleView: View {
                 }
                 
                 Spacer()
-                NavigationLink(destination: CustomCalendarView(user: user)) {
+                NavigationLink(destination: MainCalendarView(user: user)) {
                     Image(systemName: "togglepower")
                 }
                 .onDisappear {
