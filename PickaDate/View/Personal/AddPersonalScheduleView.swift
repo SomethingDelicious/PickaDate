@@ -8,13 +8,23 @@
 import SwiftUI
 import FirebaseFirestore
 
+private struct TimeIntervalKey: EnvironmentKey {
+    static let defaultValue: Int = 60
+}
+
+extension EnvironmentValues {
+    var timeInterval: Int {
+        get { self[TimeIntervalKey.self] }
+        set { self[TimeIntervalKey.self] = newValue }
+    }
+}
+
 struct AddPersonalScheduleView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
     let selectedDate: Date
-    @State private var currentDate = Date()
     
     @State private var name: String = ""
     @State private var content: String = ""
@@ -22,6 +32,7 @@ struct AddPersonalScheduleView: View {
     @State private var startDate: Date
     @State private var endDate: Date
     @State private var selectedColor: String = "green"
+    @State private var isAllDay: Bool = false
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     
@@ -45,7 +56,7 @@ struct AddPersonalScheduleView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("일정 정보")) {
+                Section(header: Text("일정 정보").foregroundColor(.black)) {
                     TextField("일정 이름", text: $name)
                         .foregroundColor(.black)
                     
@@ -54,17 +65,36 @@ struct AddPersonalScheduleView: View {
                     
                 }
                 
-                Section(header: Text("날짜 설정")) {
-                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: .date)
-                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: .date)
+                Section {
+                    Toggle("종일", isOn: $isAllDay)
+                        .foregroundColor(.black)
+                        .onChange(of: isAllDay) {
+                            if isAllDay {
+                                startDate = Calendar.current.startOfDay(for: startDate)
+                                endDate = Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399)
+                            }
+                        }
                 }
                 
-                Section(header: Text("공유 그룹 (쉼표로 구분)")) {
+                Section {
+                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: isAllDay ? .date : [.date, .hourAndMinute])
+                        .environment(\.timeInterval, 600)
+                    
+                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: isAllDay ? .date : [.date, .hourAndMinute])
+                        .environment(\.timeInterval, 600)
+                } header: {
+                    Text("날짜 설정")
+                        .foregroundColor(.black)
+                }
+                
+                
+                
+                Section(header: Text("공유 그룹 (쉼표로 구분)").foregroundColor(.black)) {
                     TextField("그룹 ID (예: group1, group2)", text: $groupIDInput)
                         .foregroundColor(.black)
                     
                 }
-                Section(header: Text("색상 선택")) {
+                Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
                             HStack {
@@ -82,7 +112,7 @@ struct AddPersonalScheduleView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.black)
                 }
@@ -93,17 +123,26 @@ struct AddPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
             }
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
         }
+        
+        
     }
     private func addSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
         
-        let schedule = [TimeSlotPersonal(startTime: startDate, endTime: endDate)]
+        let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
+        let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
+
+        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
         
         let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
         viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
         
-        dismiss()
+        presentationMode.wrappedValue.dismiss()
     }
 }
+
