@@ -108,9 +108,11 @@ struct ScheduleDetailView: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text("그룹: \(schedule.groupID.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.white)
+                        Text(schedule.groupID.isEmpty ? "없음" : schedule.groupID.joined(separator: ", "))
+                            .font(.body)
+                            .foregroundColor(.black)
+
+                        
                         Spacer()
                     }
                     .padding()
