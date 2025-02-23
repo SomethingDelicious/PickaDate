@@ -27,52 +27,71 @@ struct SharePersonalScheduleView: View {
         "brown": .brown
     ]
     
+    @State private var selectedGroups: Set<String> = []
+    
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 10) {
-                Text("사용자 정보")
-                    .font(.title)
-                    .bold()
-                    .padding(.bottom, 5)
                 
-                HStack {
-                    Text("ID: ")
-                        .font(.headline)
-                    Text(user.userID)
-                }
-                
-                HStack {
-                    Text("가입 날짜: ")
-                        .font(.headline)
-                    Text(formattedDate(user.registeredAt))
-                }
                 
                 VStack(alignment: .leading) {
-                    Text("가입한 그룹: ")
-                        .font(.headline)
-                    ForEach(user.joinGroup, id: \.self) { group in
-                        Text(group)
-                            .padding(5)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(5)
-                    }
+                    
+                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                        .frame(height: 200)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
                 }
                 
                 Spacer()
+                if !selectedGroups.isEmpty {
+                    Text("선택된 그룹: \(selectedGroups.joined(separator: ", "))")
+                        .font(.headline)
+                        .padding(.top, 10)
+                }
             }
             .padding()
-            .navigationBarItems(trailing: Button("닫기") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .navigationBarItems(
+                leading: Button("닫기") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("저장") {
+                    updatePersonalSchedule()
+                    presentationMode.wrappedValue.dismiss()
+                }
+            )
+
+
             .onAppear {
                 viewModel.fetchUsers()
+                viewModel.fetchPersonalSchedules()
+                selectedGroups = Set(schedule.groupID)
             }
         }
+        .navigationTitle(Text("일정 공유 그룹"))
+        .navigationBarTitleDisplayMode(.inline)
     }
-    
+
     func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy년 MM월 dd일"
         return formatter.string(from: date)
     }
+    func updatePersonalSchedule() {
+        let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
+        
+        guard let scheduleID = schedule.id else {
+            print("오류: schedule.id가 nil입니다.")
+            return
+        }
+        viewModel.updatePersonalSchedule(
+            scheduleID: scheduleID,
+            userID: user.userID,
+            name: schedule.name,
+            content: schedule.content,
+            groupID: updatedGroupIDArray,
+            schedule: schedule.schedule,
+            personalColor: schedule.personalColor
+        )
+    }
+
 }
