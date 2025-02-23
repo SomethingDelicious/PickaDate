@@ -9,15 +9,15 @@ import SwiftUI
 import FirebaseFirestore
 
 
-struct PersonalScheduleView: View {
+struct CustomCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
     @State private var currentMonth: Date = Date() //월
+    @State var selectedCalendars: Set<String> = ["개인 캘린더"]
     
-    //더미데이터
-    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
+    let user : User
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -40,7 +40,8 @@ struct PersonalScheduleView: View {
                     currentMonth: $currentMonth,
                     selectedYear: $selectedYear,
                     selectedMonth: $selectedMonth,
-                    user: user
+                    user: user,
+                    selectedCalendars: $selectedCalendars
                 )
                 WeekdayHeaderView()
                 let firstWeekday = Calendar.current.component(.weekday, from: days.first ?? Date()) - 1
@@ -151,17 +152,15 @@ struct PersonalScheduleView: View {
         @Binding var selectedYear: Int
         @Binding var selectedMonth: Int
         let user: User
-        
         @State private var isShowingDatePicker = false
         @State private var isChoosing = false
-                
+        @Binding var selectedCalendars: Set<String>
         private func formattedDate(_ date: Date) -> String {
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "ko_KR")
             formatter.dateFormat = "yyyy년 M월"
             return formatter.string(from: date)
         }
-        
         var body: some View {
             HStack {
                 Image(systemName: "calendar")
@@ -217,31 +216,33 @@ struct PersonalScheduleView: View {
                         }
                     }
                     
-                    Text(user.userID)
+                    Text("선택된 그룹: \(selectedCalendars.joined(separator: ", "))")
                         .font(.caption)
                         .foregroundColor(.gray)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
-                NavigationLink(destination: CustomCalendarView(user: user)) {
+                
+                Button(action: {}) {
+                    Image(systemName: "star")
+                }
+                Button(action: {
+                    isChoosing.toggle()
+                }) {
                     Image(systemName: "togglepower")
                 }
-                .onDisappear {
-                    viewModel.fetchPersonalSchedules()
-                    viewModel.fetchUsers()
-                }
-
-                                Button(action: {}) {
-                                    Image(systemName: "star")
-                                }
-                                Button(action: {}) {
-                                    Image(systemName: "bubble.right")
-                                }
-                
             }
             .padding()
+            .sheet(isPresented: $isChoosing, onDismiss: {
+                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUsers()
+            }) {
+                ChooseShowingCalendarView(user: user, selectedCalendars: $selectedCalendars)
+            }
         }
     }
+    
     private struct WeekdayHeaderView: View {
         private let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
         
@@ -347,7 +348,11 @@ struct PersonalScheduleView: View {
         return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
         calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
-    
+//    private func getSchedulesForDate(_ date: Date) -> [PersonalSchedule] {
+//        viewModel.personalSchedule.filter { schedule in
+//            selectedCalendars.contains("개인 캘린더") || selectedCalendars.contains(schedule.groupID)
+//        }
+//    }
     private func getSchedulesForDate(_ date: Date) -> [PersonalSchedule] {
         viewModel.personalSchedule.filter { schedule in
             schedule.schedule.contains { timeSlot in
