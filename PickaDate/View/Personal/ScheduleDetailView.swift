@@ -11,8 +11,9 @@ import FirebaseFirestore
 struct ScheduleDetailView: View {
     let schedule: PersonalSchedule
     let user: String
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
+    @State private var isCopying = false
     @StateObject private var viewModel = FirestoreViewModel()
 
     var body: some View {
@@ -120,12 +121,12 @@ struct ScheduleDetailView: View {
                 .padding(.horizontal, 16)
                 
             }
-            
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
             
         }
-        .onAppear {
-            viewModel.fetchPersonalSchedules()
-        }
+        
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
@@ -142,12 +143,12 @@ struct ScheduleDetailView: View {
                     }) {
                         Label("복사", systemImage: "doc.on.doc")
                     }
-
                     Button(action: {
                         print("여러 날짜에 복사 선택됨")
-                    }) {
-                        Label("여러 날짜에 복사", systemImage: "calendar.badge.plus")
-                    }
+                        isCopying.toggle()
+                                }) {
+                                    Label("여러 날짜에 복사", systemImage: "calendar.badge.plus")
+                                }
 
                     Button(role: .destructive, action: {
                         guard let scheduleID = schedule.id else {
@@ -155,7 +156,7 @@ struct ScheduleDetailView: View {
                             return
                         }
                         viewModel.deletePersonalSchedule(scheduleID: scheduleID)
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
                     }
@@ -174,10 +175,17 @@ struct ScheduleDetailView: View {
             }
             
         }
-        .sheet(isPresented: $isEditing) {
+        .sheet(isPresented: $isEditing, onDismiss: {
+            viewModel.fetchPersonalSchedules()
+        }) {
             EditPersonalScheduleView(user: user, schedule: schedule)
         }
-        
+        .sheet(isPresented: $isCopying, onDismiss: {
+            viewModel.fetchPersonalSchedules()
+        }) {
+            CopyPersonalScheduleView(user: user, schedule: schedule)
+                .environmentObject(viewModel)
+        }
         
         
     }

@@ -20,7 +20,7 @@ extension EnvironmentValues {
 }
 
 struct AddPersonalScheduleView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
@@ -112,7 +112,7 @@ struct AddPersonalScheduleView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.black)
                 }
@@ -123,11 +123,12 @@ struct AddPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
             }
-            
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
         }
-        .onAppear {
-            viewModel.fetchPersonalSchedules()
-        }
+        
+        
     }
     private func addSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
@@ -141,7 +142,7 @@ struct AddPersonalScheduleView: View {
         
         viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
         
-        dismiss()
+        presentationMode.wrappedValue.dismiss()
     }
 }
 

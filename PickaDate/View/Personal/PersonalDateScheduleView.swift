@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 struct PersonalDateScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     
     
@@ -56,7 +56,7 @@ struct PersonalDateScheduleView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.black)
                 }
@@ -69,17 +69,20 @@ struct PersonalDateScheduleView: View {
                             .scaledToFit()
                             .foregroundStyle(.black)
                     }
-                    .sheet(isPresented: $isShowingAddSchedule) {
+                    .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
+                        viewModel.fetchPersonalSchedules()
+                    }) {
                         AddPersonalScheduleView(user: user, selectedDate: selectedDate)
                     }
                     
                 }
             }
-            
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
         }
-        .onAppear {
-            viewModel.fetchPersonalSchedules()
-        }
+        
+        
     }
     func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
