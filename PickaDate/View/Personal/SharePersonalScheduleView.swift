@@ -15,18 +15,6 @@ struct SharePersonalScheduleView: View {
     let user: User
     let schedule: PersonalSchedule
     
-    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
-    
-    let colorMap: [String: Color] = [
-        "red": .red,
-        "orange": .orange,
-        "yellow": .yellow,
-        "green": .green,
-        "blue": .blue,
-        "purple": .purple,
-        "brown": .brown
-    ]
-    
     @State private var selectedGroups: Set<String> = []
     
     var body: some View {
