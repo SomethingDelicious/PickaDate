@@ -29,6 +29,12 @@ struct ContentView: View {
                     Image(systemName: "person.3.sequence.fill")
                     Text("그룹")
                 }
+            
+            PostView()
+                .tabItem {
+                    Image(systemName: "bell.fill")
+                    Text("게시판")
+                }
         }
 
         //        NavigationView {
@@ -73,5 +79,3 @@ struct ContentView: View {
         //        }
     }
 }
-
-
