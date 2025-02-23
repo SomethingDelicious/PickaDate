@@ -76,11 +76,12 @@ class FirestoreViewModel: ObservableObject {
     
     func addPersonalSchedule(userID: String, name: String, content: String, groupID: [String], schedule: [TimeSlotPersonal], personalColor: String) {
         let scheduleData = schedule.map { slot in
-                return [
-                    "startTime": slot.startTime,
-                    "endTime": slot.endTime
-                ]
-            }
+            return [
+                "startTime": slot.startTime,
+                "endTime": slot.endTime,
+                "isAllDay": slot.isAllDay
+            ] as [String: Any]
+        }
         
         let personalSchedule: [String: Any] = [
             "userID": userID,
@@ -105,8 +106,10 @@ class FirestoreViewModel: ObservableObject {
         let scheduleData = schedule.map { slot in
             return [
                 "startTime": slot.startTime,
-                "endTime": slot.endTime
-            ]
+                "endTime": slot.endTime,
+                "isAllDay": slot.isAllDay
+            ] as [String: Any]
+            
         }
         
         let updatedSchedule: [String: Any] = [
@@ -128,10 +131,10 @@ class FirestoreViewModel: ObservableObject {
             }
         }
     }
-
     
-    func deletePersonalSchedule(userId: String) {
-        fsDB.collection("personalSchedule").document(userId).delete { error in
+    
+    func deletePersonalSchedule(scheduleID: String) {
+        fsDB.collection("personalSchedule").document(scheduleID).delete { error in
             if let error = error {
                 print("[E]삭제 실패: \(error.localizedDescription)")
             } else {
@@ -141,16 +144,16 @@ class FirestoreViewModel: ObservableObject {
         }
     }
     
-//    func updateUser(userId: String, newName: String) {
-//        fsDB.collection("users").document(userId).updateData([
-//            "text": newName
-//        ]) { error in
-//            if let error = error {
-//                print("업데이트 실패: \(error.localizedDescription)")
-//            } else {
-//                print("업데이트 성공")
-//            }
-//        }
-//    }
+    //    func updateUser(userId: String, newName: String) {
+    //        fsDB.collection("users").document(userId).updateData([
+    //            "text": newName
+    //        ]) { error in
+    //            if let error = error {
+    //                print("업데이트 실패: \(error.localizedDescription)")
+    //            } else {
+    //                print("업데이트 성공")
+    //            }
+    //        }
+    //    }
 }
 

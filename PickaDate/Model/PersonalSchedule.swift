@@ -31,10 +31,17 @@ struct PersonalSchedule: Identifiable, Codable {
     
     var color: Color {
         colorMap[personalColor, default: .green]
-        }
+    }
 }
 
 struct TimeSlotPersonal: Codable {
     var startTime: Date  // 시작 시간
     var endTime: Date    // 종료 시간
+    var isAllDay: Bool
+    
+    init(startTime: Date, endTime: Date, isAllDay: Bool = false) {
+        self.startTime = isAllDay ? Calendar.current.startOfDay(for: startTime) : startTime
+        self.endTime = isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: startTime)?.addingTimeInterval(-1) ?? endTime : endTime
+        self.isAllDay = isAllDay
+    }
 }
