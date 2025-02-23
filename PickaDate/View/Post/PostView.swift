@@ -19,7 +19,7 @@ struct PostView: View {
         NavigationView {
             List {
                 ForEach(viewModel.posts.sorted(by: { $0.createdAt < $1.createdAt })) { postData in
-                    NavigationLink(destination: PostDetailView(post: postData, commentsCount: viewModel.comments[postData.postID]?.count ?? 0)) {
+                    NavigationLink(destination: PostDetailView(post: postData)) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(postData.title)
                                 .font(.headline)
@@ -44,7 +44,9 @@ struct PostView: View {
             }
             .navigationTitle("게시판")
             .onAppear {
-                // 주석을 지우자.
+                viewModel.fetchPosts()
+            }
+            .refreshable {
                 viewModel.fetchPosts()
             }
             .sheet(isPresented: $showingAddPost) {
@@ -57,10 +59,6 @@ struct PostView: View {
                     }
                 }
             }
-        }
-        
-        if viewModel.posts.isEmpty {
-            Text("텅")
         }
     }
     func formatDate(_ date: Date) -> String {
