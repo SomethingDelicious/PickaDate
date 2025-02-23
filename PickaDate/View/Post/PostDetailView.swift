@@ -10,13 +10,11 @@ import SwiftUI
 struct PostDetailView: View {
     @State private var post: Post
     @StateObject private var viewModel = PostViewModel()
-    @State private var commentsCount: Int
     @State private var newCommentText = ""
     @State private var showingCommentForm = false
     
-    init(post: Post, commentsCount: Int) {
+    init(post: Post) {
         self.post = post
-        self.commentsCount = commentsCount
     }
     var body: some View {
         ScrollView {
@@ -45,7 +43,7 @@ struct PostDetailView: View {
                 // 댓글 갯수
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("댓글 \(commentsCount)개")
+                        Text("댓글 \(viewModel.comments[post.postID]?.count ?? 0)개")
                             .font(.headline)
                         
                         Spacer()
@@ -59,7 +57,7 @@ struct PostDetailView: View {
                         }
                     }
 
-                    if commentsCount == 0 {
+                    if (viewModel.comments[post.postID]?.count ?? 0) == 0 {
                         Text("아직 댓글이 없습니다.")
                             .foregroundColor(.gray)
                             .padding(.vertical, 8)
@@ -94,10 +92,14 @@ struct PostDetailView: View {
         }
         .navigationTitle(post.title)
         .onAppear {
-            // 주석을 지우자.
             viewModel.fetchPosts()
         }
-        .sheet(isPresented: $showingCommentForm) {
+        .refreshable {
+            viewModel.fetchPosts()
+        }
+        .sheet(isPresented: $showingCommentForm, onDismiss: {
+            viewModel.fetchPosts()
+        }) {
             AddCommentView(post: post)
         }
     }

@@ -8,16 +8,53 @@
 import SwiftUI
 import FirebaseFirestore
 
-
-struct PersonalScheduleView: View {
+let dummyGroupSchedules: [GroupSchedule] = [
+    GroupSchedule(
+        groupID: "group1",
+        name: "운동하기",
+        content: "헬스장에서 1시간 운동",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
+        ]
+    ),
+    GroupSchedule(
+        groupID: "group1",
+        name: "동아리 회의",
+        content: "다음 프로젝트 계획 회의",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
+        ]
+    ),
+    GroupSchedule(
+        groupID: "group2",
+        name: "알고리즘 스터디",
+        content: "백준 문제 풀이",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
+        ]
+    ),
+    GroupSchedule(
+        groupID: "group2",
+        name: "동아리 회의",
+        content: "다음 프로젝트 계획 회의",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
+        ]
+    )
+]
+struct CustomCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
     @State private var currentMonth: Date = Date() //월
+    @State var selectedCalendars: Set<String> = ["개인 캘린더"]
     
-    //더미데이터
-    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
+    let user : User
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -40,7 +77,8 @@ struct PersonalScheduleView: View {
                     currentMonth: $currentMonth,
                     selectedYear: $selectedYear,
                     selectedMonth: $selectedMonth,
-                    user: user
+                    user: user,
+                    selectedCalendars: $selectedCalendars
                 )
                 WeekdayHeaderView()
                 let firstWeekday = Calendar.current.component(.weekday, from: days.first ?? Date()) - 1
@@ -107,32 +145,30 @@ struct PersonalScheduleView: View {
         let date: Date
         let isSelected: Bool
         let isCurrentMonth: Bool
-        let schedules: [PersonalSchedule]
+        let schedules: [(String, Color)]
         let cellHeight: CGFloat
         
         var body: some View {
             VStack {
                 let weekday = Calendar.current.component(.weekday, from: date)
-                            let dayColor: Color = {
-                                if weekday == 1 { return .red }
-                                else if weekday == 7 { return .blue }
-                                else { return .black }
-                            }()
+                let dayColor: Color = {
+                    if weekday == 1 { return .red }
+                    else if weekday == 7 { return .blue }
+                    else { return .black }
+                }()
                 Text("\(Calendar.current.component(.day, from: date))")
                     .foregroundColor(isCurrentMonth ? dayColor : .gray)
                 
                 if !schedules.isEmpty {
-                    VStack {
-                        
-                        ForEach(schedules) { schedule in
-                            
-                            Text(schedule.name)
-                                .font(.caption)
+                    VStack(spacing: 2) {
+                        ForEach(schedules, id: \.0) { schedule in
+                            Text(schedule.0)
+                                .font(.caption2)
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(.white)
-                                .padding(4)
-                                .background(schedule.color)
-                                .cornerRadius(5)
+                                .padding(3)
+                                .background(schedule.1)
+                                .cornerRadius(4)
                                 .lineLimit(1)
                         }
                     }
@@ -144,29 +180,26 @@ struct PersonalScheduleView: View {
             .border(Color.gray)
         }
     }
-    
     private struct CalendarHeaderView: View {
         @StateObject private var viewModel = FirestoreViewModel()
         @Binding var currentMonth: Date
         @Binding var selectedYear: Int
         @Binding var selectedMonth: Int
         let user: User
-        
         @State private var isShowingDatePicker = false
         @State private var isChoosing = false
-                
+        @Binding var selectedCalendars: Set<String>
         private func formattedDate(_ date: Date) -> String {
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "ko_KR")
             formatter.dateFormat = "yyyy년 M월"
             return formatter.string(from: date)
         }
-        
         var body: some View {
             HStack {
                 Image(systemName: "calendar")
                     .font(.largeTitle)
-                    //.foregroundColor(.green)
+                //.foregroundColor(.green)
                 VStack(alignment: .leading) {
                     HStack {
                         Text(formattedDate(currentMonth))
@@ -183,8 +216,8 @@ struct PersonalScheduleView: View {
                                 HStack {
                                     Picker("연도 선택", selection: $selectedYear) {
                                         ForEach((selectedYear - 100)...(selectedYear + 100), id: \.self) { year in
-                                                            Text("\(String(format: "%d", year))년").tag(year)
-                                                        }
+                                            Text("\(String(format: "%d", year))년").tag(year)
+                                        }
                                     }
                                     .pickerStyle(WheelPickerStyle())
                                     .frame(width: 120)
@@ -217,29 +250,30 @@ struct PersonalScheduleView: View {
                         }
                     }
                     
-                    Text(user.userID)
+                    Text("선택된 그룹: \(selectedCalendars.joined(separator: ", "))")
                         .font(.caption)
                         .foregroundColor(.gray)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
-                NavigationLink(destination: CustomCalendarView(user: user)) {
+                
+                Button(action: {}) {
+                    Image(systemName: "star")
+                }
+                Button(action: {
+                    isChoosing.toggle()
+                }) {
                     Image(systemName: "togglepower")
                 }
-                .onDisappear {
-                    viewModel.fetchPersonalSchedules()
-                    viewModel.fetchUsers()
-                }
-
-                                Button(action: {}) {
-                                    Image(systemName: "star")
-                                }
-                                Button(action: {}) {
-                                    Image(systemName: "bubble.right")
-                                }
-                
             }
             .padding()
+            .sheet(isPresented: $isChoosing, onDismiss: {
+                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUsers()
+            }) {
+                ChooseShowingCalendarView(user: user, selectedCalendars: $selectedCalendars)
+            }
         }
     }
     private struct WeekdayHeaderView: View {
@@ -256,7 +290,6 @@ struct PersonalScheduleView: View {
             }
         }
     }
-    
     private struct AddScheduleButton: View {
         @StateObject private var viewModel = FirestoreViewModel()
         @Binding var isShowingSheet: Bool
@@ -286,7 +319,6 @@ struct PersonalScheduleView: View {
             }
         }
     }
-    
     func getFirstWeekday(of year: Int, month: Int) -> Int {
         let calendar = Calendar.current
         
@@ -301,7 +333,6 @@ struct PersonalScheduleView: View {
         
         return difference
     }
-    
     // 이전 달의 마지막 날짜들을 가져오는 함수
     func getLastDaysOfPreviousMonth(year: Int, month: Int, count: Int) -> [Int] {
         let calendar = Calendar.current
@@ -316,7 +347,6 @@ struct PersonalScheduleView: View {
         // 필요한 만큼의 이전 달 날짜 배열 만들기
         return (0..<count).map { lastDay - count + $0 + 1 }
     }
-    
     private func getDaysInMonth(for date: Date) -> [Date] {
         let calendar = Calendar.current
         
@@ -341,22 +371,44 @@ struct PersonalScheduleView: View {
     private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
         Calendar.current.isDate(date1, inSameDayAs: date2)
     }
-    
     private func isSameMonth(_ date1: Date, _ date2: Date) -> Bool {
         let calendar = Calendar.current
         return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
         calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
     
-    private func getSchedulesForDate(_ date: Date) -> [PersonalSchedule] {
-        viewModel.personalSchedule.filter { schedule in
+    private func getSchedulesForDate(_ date: Date) -> [(String, Color)] {
+        let personalSchedules: [(String, Color)] = {
+            if selectedCalendars.contains("개인 캘린더") {
+                return viewModel.personalSchedule.filter { schedule in
+                    schedule.schedule.contains { timeSlot in
+                        let startDate = convertToDate(timeSlot.startTime)
+                        let endDate = convertToDate(timeSlot.endTime)
+                        return isDateInRange(date: date, startDate: startDate, endDate: endDate, year: year, month: month)
+                    }
+                }.map { schedule in
+                    (schedule.name, Color.blue)
+                }
+            } else {
+                return []
+            }
+        }()
+        
+        
+        let groupSchedules = dummyGroupSchedules.filter { schedule in
+            selectedCalendars.contains(schedule.groupID) &&
             schedule.schedule.contains { timeSlot in
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
                 (date >= timeSlot.startTime && date <= timeSlot.endTime)
             }
+        }.map { schedule in
+            (schedule.name, Color.green)
         }
+        return personalSchedules + groupSchedules
     }
+    
+    
     private func changeMonth(by value: Int) {
         withAnimation {
             if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentMonth) {
