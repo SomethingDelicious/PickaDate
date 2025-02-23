@@ -22,6 +22,7 @@ struct EditPersonalScheduleView: View {
     @State private var startDate: Date
     @State private var endDate: Date
     @State private var selectedColor: String
+    @State private var isAllDay: Bool = false
     
     init(user: String, schedule: PersonalSchedule) {
         self.user = user
@@ -30,13 +31,14 @@ struct EditPersonalScheduleView: View {
         _name = State(initialValue: schedule.name)
         _content = State(initialValue: schedule.content)
         _groupIDInput = State(initialValue: schedule.groupID.joined(separator: ", "))
-        
         if let firstSchedule = schedule.schedule.first {
             _startDate = State(initialValue: firstSchedule.startTime)
             _endDate = State(initialValue: firstSchedule.endTime)
+            _isAllDay = State(initialValue: firstSchedule.isAllDay)
         } else {
             _startDate = State(initialValue: Date())
             _endDate = State(initialValue: Date())
+            _isAllDay = State(initialValue: false)
         }
         
         _selectedColor = State(initialValue: schedule.personalColor)
@@ -66,9 +68,26 @@ struct EditPersonalScheduleView: View {
                     
                 }
                 
-                Section(header: Text("날짜 설정").foregroundColor(.black)) {
-                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: .date)
-                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: .date)
+                Section {
+                    Toggle("종일", isOn: $isAllDay)
+                        .foregroundColor(.black)
+                        .onChange(of: isAllDay) {
+                            if isAllDay {
+                                startDate = Calendar.current.startOfDay(for: startDate)
+                                endDate = Calendar.current.startOfDay(for: endDate)
+                            }
+                        }
+                }
+                
+                Section {
+                    DatePicker("시작 날짜", selection: $startDate, displayedComponents: isAllDay ? .date : [.date, .hourAndMinute])
+                        .environment(\.timeInterval, 600)
+                    
+                    DatePicker("종료 날짜", selection: $endDate, displayedComponents: isAllDay ? .date : [.date, .hourAndMinute])
+                        .environment(\.timeInterval, 600)
+                } header: {
+                    Text("날짜 설정")
+                        .foregroundColor(.black)
                 }
                 
                 Section(header: Text("공유 그룹 (쉼표로 구분)").foregroundColor(.black)) {
@@ -108,16 +127,16 @@ struct EditPersonalScheduleView: View {
         }
     }
     private func editSchedule() {
-            guard !name.isEmpty, !content.isEmpty else { return }
-            
-            let updatedSchedule = [TimeSlotPersonal(startTime: startDate, endTime: endDate)]
-            let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            
+        guard !name.isEmpty, !content.isEmpty else { return }
+        
+        let updatedSchedule = [TimeSlotPersonal(startTime: startDate, endTime: endDate, isAllDay: isAllDay)]
+        let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        
         guard let scheduleID = schedule.id else {
             print("❌ 오류: schedule.id가 nil입니다.")
             return
         }
-
+        
         viewModel.updatePersonalSchedule(
             scheduleID: scheduleID,
             userID: user,
@@ -127,8 +146,8 @@ struct EditPersonalScheduleView: View {
             schedule: updatedSchedule,
             personalColor: selectedColor
         )
-
-            
-            dismiss()
-        }
+        
+        
+        dismiss()
+    }
 }

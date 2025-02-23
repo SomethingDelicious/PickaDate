@@ -13,6 +13,7 @@ struct ScheduleDetailView: View {
     let user: String
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
+    @StateObject private var viewModel = FirestoreViewModel()
 
     var body: some View {
         NavigationStack {
@@ -109,7 +110,12 @@ struct ScheduleDetailView: View {
                     }
 
                     Button(role: .destructive, action: {
-                        print("삭제 선택됨")
+                        guard let scheduleID = schedule.id else {
+                            print("❌ 오류: schedule.id가 nil입니다.")
+                            return
+                        }
+                        viewModel.deletePersonalSchedule(scheduleID: scheduleID)
+                        dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
                     }
