@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct CopyPersonalScheduleView: View {
+struct SharePersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     

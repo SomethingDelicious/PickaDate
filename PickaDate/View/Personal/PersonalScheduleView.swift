@@ -8,14 +8,15 @@
 import SwiftUI
 import FirebaseFirestore
 
+
 struct PersonalScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
     @State private var currentMonth: Date = Date() //월
-    
-    let user = "홍길동"
+    //더미데이터
+    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -134,7 +135,7 @@ struct PersonalScheduleView: View {
     
     private struct CalendarHeaderView: View {
         let currentMonth: Date
-        let user: String
+        let user: User
         
         private func formattedDate(_ date: Date) -> String {
             let formatter = DateFormatter()
@@ -151,7 +152,7 @@ struct PersonalScheduleView: View {
                     Text(formattedDate(currentMonth))
                         .font(.headline)
                         .bold()
-                    Text(user)
+                    Text(user.userID)
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
@@ -188,7 +189,7 @@ struct PersonalScheduleView: View {
         @StateObject private var viewModel = FirestoreViewModel()
         @Binding var isShowingSheet: Bool
         @Binding var selectedDate: Date
-        let user: String
+        let user: User
         
         var body: some View {
             VStack {

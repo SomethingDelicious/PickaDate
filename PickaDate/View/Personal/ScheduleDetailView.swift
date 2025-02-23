@@ -8,14 +8,18 @@
 import SwiftUI
 import FirebaseFirestore
 
+
+
+
 struct ScheduleDetailView: View {
     let schedule: PersonalSchedule
-    let user: String
+    let user: User
     @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
     @State private var isCopying = false
+    @State private var isSharing = false
     @StateObject private var viewModel = FirestoreViewModel()
-
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -66,7 +70,7 @@ struct ScheduleDetailView: View {
                                 .font(.body)
                                 .foregroundColor(.gray)
                         }
-
+                        
                         Spacer()
                     }
                     .padding()
@@ -84,7 +88,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "calendar")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(user)
+                        Text(user.userID)
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
@@ -132,24 +136,26 @@ struct ScheduleDetailView: View {
                 Menu {
                     
                     Button(action: {
-                                    print("편집 선택됨")
+                        print("편집 선택됨")
                         isEditing.toggle()
-                                }) {
-                                    Label("편집", systemImage: "pencil")
-                                }
-
-                    Button(action: {
-                        print("복사 선택됨")
                     }) {
-                        Label("복사", systemImage: "doc.on.doc")
+                        Label("편집", systemImage: "pencil")
                     }
+                    
                     Button(action: {
                         print("여러 날짜에 복사 선택됨")
                         isCopying.toggle()
-                                }) {
-                                    Label("여러 날짜에 복사", systemImage: "calendar.badge.plus")
-                                }
-
+                    }) {
+                        Label("여러 날짜에 복사", systemImage: "calendar.badge.plus")
+                    }
+                    
+                    
+                    Button(action: {
+                        print("공유 선택됨")
+                        isSharing.toggle()
+                    }) {
+                        Label("공유", systemImage: "square.and.arrow.up")
+                    }
                     Button(role: .destructive, action: {
                         guard let scheduleID = schedule.id else {
                             print("schedule.id가 nil")
@@ -159,12 +165,6 @@ struct ScheduleDetailView: View {
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
-                    }
-
-                    Button(action: {
-                        print("공유 선택됨")
-                    }) {
-                        Label("공유", systemImage: "square.and.arrow.up")
                     }
                 } label: {
                     Image(systemName: "ellipsis")
@@ -186,6 +186,13 @@ struct ScheduleDetailView: View {
             CopyPersonalScheduleView(user: user, schedule: schedule)
                 .environmentObject(viewModel)
         }
+        .sheet(isPresented: $isSharing, onDismiss: {
+            viewModel.fetchPersonalSchedules()
+        }) {
+            SharePersonalScheduleView(user: user, schedule: schedule)
+                .environmentObject(viewModel)
+        }
+        
         
         
     }
@@ -201,12 +208,12 @@ struct ScheduleDetailView: View {
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
     }
-
+    
     func formattedDateTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "M월 d일 (E) HH:mm"
         return formatter.string(from: date)
     }
-
+    
 }
