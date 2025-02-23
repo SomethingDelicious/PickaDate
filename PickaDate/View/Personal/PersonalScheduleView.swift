@@ -41,7 +41,7 @@ struct PersonalScheduleView: View {
                 let totalCells = firstWeekday + days.count
                 let numRows = Int(ceil(Double(totalCells) / 7.0))
                 let cellHeight = 500 / CGFloat(numRows)
-
+                
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
                     ForEach(days, id: \.self) { date in
                         let schedules = getSchedulesForDate(date)
@@ -76,9 +76,6 @@ struct PersonalScheduleView: View {
                 )
                 AddScheduleButton(isShowingSheet: $isShowingAddSchedule, selectedDate: $selectedDate, user: user)
             }
-            .onAppear {
-                viewModel.fetchPersonalSchedules()
-            }
             .sheet(isPresented: $isShowingDetailView) {
                 let selectedSchedules = viewModel.personalSchedule.filter { schedule in
                     schedule.schedule.contains { timeSlot in
@@ -89,8 +86,11 @@ struct PersonalScheduleView: View {
                 }
                 PersonalDateScheduleView(selectedDate: selectedDate, schedules: selectedSchedules, user: user)
             }
-        }
             
+        }
+        .onAppear {
+            viewModel.fetchPersonalSchedules()
+        }
     }
     
     private struct DayCell: View {
@@ -108,7 +108,7 @@ struct PersonalScheduleView: View {
                 if !schedules.isEmpty {
                     VStack {
                         ForEach(schedules) { schedule in
-
+                            
                             Text(schedule.name)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity)
@@ -295,8 +295,8 @@ struct PersonalScheduleView: View {
             return false
         }
         return (dateComponents.year == year && dateComponents.month == month) &&
-               (startComponents.year == year && startComponents.month == month && startDay <= day) &&
-               (endComponents.year == year && endComponents.month == month && endDay >= day)
+        (startComponents.year == year && startComponents.month == month && startDay <= day) &&
+        (endComponents.year == year && endComponents.month == month && endDay >= day)
     }
     func convertToDate(_ value: Any?) -> Date {
         if let timestamp = value as? Timestamp {

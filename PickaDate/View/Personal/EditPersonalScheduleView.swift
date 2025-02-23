@@ -8,31 +8,41 @@
 import SwiftUI
 import FirebaseFirestore
 
-private struct TimeIntervalKey: EnvironmentKey {
-    static let defaultValue: Int = 60
-}
-
-extension EnvironmentValues {
-    var timeInterval: Int {
-        get { self[TimeIntervalKey.self] }
-        set { self[TimeIntervalKey.self] = newValue }
-    }
-}
-
-struct AddPersonalScheduleView: View {
+struct EditPersonalScheduleView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
-    let selectedDate: Date
+    let schedule: PersonalSchedule
+    @State private var currentDate = Date()
     
-    @State private var name: String = ""
-    @State private var content: String = ""
-    @State private var groupIDInput: String = ""
+    @State private var name: String
+    @State private var content: String
+    @State private var groupIDInput: String
     @State private var startDate: Date
     @State private var endDate: Date
-    @State private var selectedColor: String = "green"
+    @State private var selectedColor: String
     @State private var isAllDay: Bool = false
+    
+    init(user: String, schedule: PersonalSchedule) {
+        self.user = user
+        self.schedule = schedule
+        
+        _name = State(initialValue: schedule.name)
+        _content = State(initialValue: schedule.content)
+        _groupIDInput = State(initialValue: schedule.groupID.joined(separator: ", "))
+        if let firstSchedule = schedule.schedule.first {
+            _startDate = State(initialValue: firstSchedule.startTime)
+            _endDate = State(initialValue: firstSchedule.endTime)
+            _isAllDay = State(initialValue: firstSchedule.isAllDay)
+        } else {
+            _startDate = State(initialValue: Date())
+            _endDate = State(initialValue: Date())
+            _isAllDay = State(initialValue: false)
+        }
+        
+        _selectedColor = State(initialValue: schedule.personalColor)
+    }
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     
@@ -45,13 +55,6 @@ struct AddPersonalScheduleView: View {
         "purple": .purple,
         "brown": .brown
     ]
-    
-    init(user: String, selectedDate: Date) {
-        self.user = user
-        self.selectedDate = selectedDate
-        self._startDate = State(initialValue: selectedDate)
-        self._endDate = State(initialValue: selectedDate)
-    }
     
     var body: some View {
         NavigationView {
@@ -71,7 +74,7 @@ struct AddPersonalScheduleView: View {
                         .onChange(of: isAllDay) {
                             if isAllDay {
                                 startDate = Calendar.current.startOfDay(for: startDate)
-                                endDate = Calendar.current.startOfDay(for: endDate)
+                                endDate = Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399)
                             }
                         }
                 }
@@ -86,8 +89,6 @@ struct AddPersonalScheduleView: View {
                     Text("날짜 설정")
                         .foregroundColor(.black)
                 }
-                
-                
                 
                 Section(header: Text("공유 그룹 (쉼표로 구분)").foregroundColor(.black)) {
                     TextField("그룹 ID (예: group1, group2)", text: $groupIDInput)
@@ -108,7 +109,7 @@ struct AddPersonalScheduleView: View {
                     .pickerStyle(MenuPickerStyle())
                 }
             }
-            .navigationTitle("새 일정 추가")
+            .navigationTitle("일정 편집")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
@@ -117,27 +118,58 @@ struct AddPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("저장") {
-                        addSchedule()
+                    Button("수정") {
+                        editSchedule()
                     }
                     .foregroundColor(.black)
                 }
             }
+            
+        }
+        .onAppear {
+            viewModel.fetchPersonalSchedules()
         }
     }
-    private func addSchedule() {
+    private func editSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
-        
-        let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
-        let finalEndDate = isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: finalStartDate)?.addingTimeInterval(-1) ?? endDate : endDate
-        
-        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
-        
+
+        let calendar = Calendar.current
+        let finalStartDate = isAllDay ? calendar.startOfDay(for: startDate) : startDate
+        let finalEndDate = isAllDay ? calendar.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
+
+        var updatedSchedule: [TimeSlotPersonal] = []
+
+        if isAllDay {
+            var currentDate = finalStartDate
+            while currentDate <= finalEndDate {
+                let dayStart = calendar.startOfDay(for: currentDate)
+                let dayEnd = calendar.startOfDay(for: currentDate).addingTimeInterval(86399)
+
+                updatedSchedule.append(TimeSlotPersonal(startTime: dayStart, endTime: dayEnd, isAllDay: true))
+                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+            }
+        } else {
+            updatedSchedule.append(TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
+        }
+
         let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        viewModel.addPersonalSchedule(userID: user, name: name, content: content, groupID: groupIDArray, schedule: schedule, personalColor: selectedColor)
-        
+
+        guard let scheduleID = schedule.id else {
+            print("오류: schedule.id가 nil입니다.")
+            return
+        }
+
+        viewModel.updatePersonalSchedule(
+            scheduleID: scheduleID,
+            userID: user,
+            name: name,
+            content: content,
+            groupID: groupIDArray,
+            schedule: updatedSchedule,
+            personalColor: selectedColor
+        )
+
         dismiss()
     }
-}
 
+}

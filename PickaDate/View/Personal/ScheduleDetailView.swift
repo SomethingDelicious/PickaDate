@@ -24,15 +24,51 @@ struct ScheduleDetailView: View {
                         .bold()
                         .foregroundColor(schedule.color)
                     if let firstSchedule = schedule.schedule.first {
-                        Text("\(formattedDate(firstSchedule.startTime)) ~ \(formattedDate(firstSchedule.endTime))")
-                            .font(.body)
-                            .foregroundColor(.black)
+                        if (firstSchedule.startTime == firstSchedule.endTime) {
+                            Text("\(formattedDate(firstSchedule.startTime))")
+                                .font(.body)
+                                .foregroundColor(.black)
+                        } else {
+                            Text("\(formattedDate(firstSchedule.startTime)) ~ \(formattedDate(firstSchedule.endTime))")
+                                .font(.body)
+                                .foregroundColor(.black)
+                        }
+                        
                     }
                     
                 }
                 .padding()
                 Divider()
                 VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Image(systemName: "clock")
+                            .font(.body)
+                            .foregroundColor(schedule.color)
+                        if let firstSchedule = schedule.schedule.first {
+                            if firstSchedule.isAllDay {
+                                Text("종일")
+                                    .font(.body)
+                                    .foregroundColor(.black)
+                            } else {
+                                if Calendar.current.isDate(firstSchedule.startTime, inSameDayAs: firstSchedule.endTime) {
+                                    Text("\(formattedTime(firstSchedule.startTime)) ~ \(formattedTime(firstSchedule.endTime))")
+                                        .font(.body)
+                                        .foregroundColor(.black)
+                                } else {
+                                    Text("\(formattedDateTime(firstSchedule.startTime)) ~ \(formattedDateTime(firstSchedule.endTime))")
+                                        .font(.body)
+                                        .foregroundColor(.black)
+                                }
+                            }
+                        } else {
+                            Text("일정 없음")
+                                .font(.body)
+                                .foregroundColor(.gray)
+                        }
+
+                        Spacer()
+                    }
+                    .padding()
                     HStack {
                         Image(systemName: "document")
                             .font(.body)
@@ -85,6 +121,10 @@ struct ScheduleDetailView: View {
                 
             }
             
+            
+        }
+        .onAppear {
+            viewModel.fetchPersonalSchedules()
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -111,7 +151,7 @@ struct ScheduleDetailView: View {
 
                     Button(role: .destructive, action: {
                         guard let scheduleID = schedule.id else {
-                            print("❌ 오류: schedule.id가 nil입니다.")
+                            print("schedule.id가 nil")
                             return
                         }
                         viewModel.deletePersonalSchedule(scheduleID: scheduleID)
@@ -130,9 +170,9 @@ struct ScheduleDetailView: View {
                         .resizable()
                         .scaledToFit()
                         .foregroundStyle(.black)
-                        //.rotationEffect(.degrees(90))
                 }
             }
+            
         }
         .sheet(isPresented: $isEditing) {
             EditPersonalScheduleView(user: user, schedule: schedule)
@@ -147,4 +187,18 @@ struct ScheduleDetailView: View {
         formatter.dateFormat = "M월 d일 E요일"
         return formatter.string(from: date)
     }
+    func formattedTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
+    func formattedDateTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M월 d일 (E) HH:mm"
+        return formatter.string(from: date)
+    }
+
 }

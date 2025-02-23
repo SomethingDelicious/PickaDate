@@ -15,7 +15,7 @@ struct PersonalDateScheduleView: View {
     
     
     var selectedDate: Date
-    let schedules: [PersonalSchedule]
+    var schedules: [PersonalSchedule]
     let user: String
     
     var body: some View {
@@ -75,7 +75,10 @@ struct PersonalDateScheduleView: View {
                     
                 }
             }
-            .background(Color.black.ignoresSafeArea())
+            
+        }
+        .onAppear {
+            viewModel.fetchPersonalSchedules()
         }
     }
     func formattedDate(_ date: Date) -> String {
@@ -84,20 +87,4 @@ struct PersonalDateScheduleView: View {
         formatter.dateFormat = "M월 d일 E요일"
         return formatter.string(from: date)
     }
-//    func isDateInRange(date: Int, startDate: Date, endDate: Date, year: Int, month: Int) -> Bool {
-//        let calendar = Calendar.current
-//        let startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
-//        let endComponents = calendar.dateComponents([.year, .month, .day], from: endDate)
-//        
-//        return (startComponents.year == year && startComponents.month == month && startComponents.day! <= date) &&
-//        (endComponents.year == year && endComponents.month == month && endComponents.day! >= date)
-//    }
-//    func convertToDate(_ value: Any?) -> Date {
-//        if let timestamp = value as? Timestamp {
-//            return timestamp.dateValue()
-//        } else if let date = value as? Date {
-//            return date
-//        }
-//        return Date()
-//    }
 }
