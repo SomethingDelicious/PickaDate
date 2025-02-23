@@ -18,7 +18,7 @@ struct ContentView: View {
                     Text("홈")
                 }
  
-            PersonalScheduleView()
+            MainCalendarView()
                 .tabItem {
                     Image(systemName: "person.fill")
                     Text("개인")

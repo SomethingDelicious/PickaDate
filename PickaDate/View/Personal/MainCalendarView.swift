@@ -46,7 +46,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         ]
     )
 ]
-struct CustomCalendarView: View {
+struct MainCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingAddSchedule = false
     @State private var isShowingDetailView = false
@@ -54,7 +54,8 @@ struct CustomCalendarView: View {
     @State private var currentMonth: Date = Date() //월
     @State var selectedCalendars: Set<String> = ["개인 캘린더"]
     
-    let user : User
+    //더미데이터
+    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -387,7 +388,7 @@ struct CustomCalendarView: View {
                         return isDateInRange(date: date, startDate: startDate, endDate: endDate, year: year, month: month)
                     }
                 }.map { schedule in
-                    (schedule.name, Color.blue)
+                    (schedule.name, schedule.color)
                 }
             } else {
                 return []
