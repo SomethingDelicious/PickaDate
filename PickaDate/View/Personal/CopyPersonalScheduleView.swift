@@ -12,7 +12,7 @@ struct CopyPersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: String
+    let user: User
     let schedule: PersonalSchedule
     @State private var selectedDates: [Date] = []
     @State private var currentMonth: Date = Date()

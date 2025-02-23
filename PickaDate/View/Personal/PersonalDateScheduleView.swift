@@ -16,7 +16,7 @@ struct PersonalDateScheduleView: View {
     
     var selectedDate: Date
     var schedules: [PersonalSchedule]
-    let user: String
+    let user: User
     
     var body: some View {
         NavigationView {
