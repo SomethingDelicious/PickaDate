@@ -151,29 +151,29 @@ struct CustomCalendarView: View {
         var body: some View {
             VStack {
                 let weekday = Calendar.current.component(.weekday, from: date)
-                            let dayColor: Color = {
-                                if weekday == 1 { return .red }
-                                else if weekday == 7 { return .blue }
-                                else { return .black }
-                            }()
+                let dayColor: Color = {
+                    if weekday == 1 { return .red }
+                    else if weekday == 7 { return .blue }
+                    else { return .black }
+                }()
                 Text("\(Calendar.current.component(.day, from: date))")
                     .foregroundColor(isCurrentMonth ? dayColor : .gray)
                 
                 if !schedules.isEmpty {
-                                VStack(spacing: 2) {
-                                    ForEach(schedules, id: \.0) { schedule in
-                                        Text(schedule.0)
-                                            .font(.caption2)
-                                            .frame(maxWidth: .infinity)
-                                            .foregroundColor(.white)
-                                            .padding(3)
-                                            .background(schedule.1)
-                                            .cornerRadius(4)
-                                            .lineLimit(1)
-                                    }
-                                }
-                            }
-                            Spacer()
+                    VStack(spacing: 2) {
+                        ForEach(schedules, id: \.0) { schedule in
+                            Text(schedule.0)
+                                .font(.caption2)
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(.white)
+                                .padding(3)
+                                .background(schedule.1)
+                                .cornerRadius(4)
+                                .lineLimit(1)
+                        }
+                    }
+                }
+                Spacer()
             }
             .frame(maxWidth: .infinity)
             .frame(height: cellHeight)
@@ -199,7 +199,7 @@ struct CustomCalendarView: View {
             HStack {
                 Image(systemName: "calendar")
                     .font(.largeTitle)
-                    //.foregroundColor(.green)
+                //.foregroundColor(.green)
                 VStack(alignment: .leading) {
                     HStack {
                         Text(formattedDate(currentMonth))
@@ -216,8 +216,8 @@ struct CustomCalendarView: View {
                                 HStack {
                                     Picker("연도 선택", selection: $selectedYear) {
                                         ForEach((selectedYear - 100)...(selectedYear + 100), id: \.self) { year in
-                                                            Text("\(year)년").tag(year)
-                                                        }
+                                            Text("\(String(format: "%d", year))년").tag(year)
+                                        }
                                     }
                                     .pickerStyle(WheelPickerStyle())
                                     .frame(width: 120)
@@ -393,7 +393,7 @@ struct CustomCalendarView: View {
                 return []
             }
         }()
-
+        
         
         let groupSchedules = dummyGroupSchedules.filter { schedule in
             selectedCalendars.contains(schedule.groupID) &&
@@ -407,8 +407,8 @@ struct CustomCalendarView: View {
         }
         return personalSchedules + groupSchedules
     }
-
-
+    
+    
     private func changeMonth(by value: Int) {
         withAnimation {
             if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentMonth) {

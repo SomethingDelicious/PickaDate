@@ -183,7 +183,7 @@ struct PersonalScheduleView: View {
                                 HStack {
                                     Picker("연도 선택", selection: $selectedYear) {
                                         ForEach((selectedYear - 100)...(selectedYear + 100), id: \.self) { year in
-                                                            Text("\(year)년").tag(year)
+                                                            Text("\(String(format: "%d", year))년").tag(year)
                                                         }
                                     }
                                     .pickerStyle(WheelPickerStyle())
