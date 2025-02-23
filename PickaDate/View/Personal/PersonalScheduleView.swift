@@ -76,7 +76,9 @@ struct PersonalScheduleView: View {
                 )
                 AddScheduleButton(isShowingSheet: $isShowingAddSchedule, selectedDate: $selectedDate, user: user)
             }
-            .sheet(isPresented: $isShowingDetailView) {
+            .sheet(isPresented: $isShowingDetailView, onDismiss: {
+                viewModel.fetchPersonalSchedules()
+            }) {
                 let selectedSchedules = viewModel.personalSchedule.filter { schedule in
                     schedule.schedule.contains { timeSlot in
                         let startDate = convertToDate(timeSlot.startTime)
@@ -86,11 +88,13 @@ struct PersonalScheduleView: View {
                 }
                 PersonalDateScheduleView(selectedDate: selectedDate, schedules: selectedSchedules, user: user)
             }
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
             
         }
-        .onAppear {
-            viewModel.fetchPersonalSchedules()
-        }
+        
+        
     }
     
     private struct DayCell: View {
@@ -181,6 +185,7 @@ struct PersonalScheduleView: View {
     }
     
     private struct AddScheduleButton: View {
+        @StateObject private var viewModel = FirestoreViewModel()
         @Binding var isShowingSheet: Bool
         @Binding var selectedDate: Date
         let user: String
@@ -200,7 +205,9 @@ struct PersonalScheduleView: View {
                 .background(Color.gray.opacity(0.3))
                 .cornerRadius(40)
                 .padding(.bottom, 20)
-                .sheet(isPresented: $isShowingSheet) {
+                .sheet(isPresented: $isShowingSheet, onDismiss: {
+                    viewModel.fetchPersonalSchedules()
+                }) {
                     AddPersonalScheduleView(user: user, selectedDate: selectedDate)
                 }
             }

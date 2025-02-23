@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseFirestore
 
 struct EditPersonalScheduleView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: String
@@ -113,7 +113,7 @@ struct EditPersonalScheduleView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.black)
                 }
@@ -124,11 +124,12 @@ struct EditPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
             }
-            
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
         }
-        .onAppear {
-            viewModel.fetchPersonalSchedules()
-        }
+        
+        
     }
     private func editSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
@@ -169,7 +170,7 @@ struct EditPersonalScheduleView: View {
             personalColor: selectedColor
         )
 
-        dismiss()
+        presentationMode.wrappedValue.dismiss()
     }
 
 }
