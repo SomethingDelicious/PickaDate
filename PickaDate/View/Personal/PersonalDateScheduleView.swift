@@ -1,0 +1,93 @@
+//
+//  ContentView.swift
+//  PickaDate
+//
+//  Created by 김태건 on 2/20/25.
+//
+
+import SwiftUI
+import FirebaseFirestore
+
+struct PersonalDateScheduleView: View {
+    @StateObject private var viewModel = FirestoreViewModel()
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isShowingAddSchedule = false
+    
+    
+    var selectedDate: Date
+    var schedules: [PersonalSchedule]
+    let user: String
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                if schedules.isEmpty {
+                    Text("일정이 없습니다.")
+                        .foregroundColor(.gray)
+                } else {
+                    List(schedules, id: \.id) { schedule in
+                        NavigationLink(destination: ScheduleDetailView(schedule: schedule, user: user)) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(schedule.name)
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                
+                                Text(schedule.content)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                
+                                Text("그룹: \(schedule.groupID.joined(separator: ", "))")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(schedule.color)
+                            .cornerRadius(10)
+                        }
+                        
+                    }
+                }
+                
+                Spacer()
+            }
+            .navigationTitle(Text(formattedDate(selectedDate)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("닫기") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    .foregroundColor(.black)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        isShowingAddSchedule.toggle()
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.black)
+                    }
+                    .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
+                        viewModel.fetchPersonalSchedules()
+                    }) {
+                        AddPersonalScheduleView(user: user, selectedDate: selectedDate)
+                    }
+                    
+                }
+            }
+            .onAppear {
+                viewModel.fetchPersonalSchedules()
+            }
+        }
+        
+        
+    }
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M월 d일 E요일"
+        return formatter.string(from: date)
+    }
+}
