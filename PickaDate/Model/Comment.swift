@@ -9,8 +9,9 @@ import SwiftUI
 import FirebaseFirestore
 
 struct Comment: Identifiable, Codable {
-    var id: String
+    @DocumentID var id: String?
+    var commentID: String
     var content: String
-    var author: String
+    var writer: String
     var createdAt: Date
 }
