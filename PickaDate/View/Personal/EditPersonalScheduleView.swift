@@ -18,7 +18,7 @@ struct EditPersonalScheduleView: View {
     
     @State private var name: String
     @State private var content: String
-    @State private var groupIDInput: String
+    @State private var selectedGroups: Set<String>
     @State private var startDate: Date
     @State private var endDate: Date
     @State private var selectedColor: String
@@ -30,7 +30,7 @@ struct EditPersonalScheduleView: View {
         
         _name = State(initialValue: schedule.name)
         _content = State(initialValue: schedule.content)
-        _groupIDInput = State(initialValue: schedule.groupID.joined(separator: ", "))
+        _selectedGroups = State(initialValue: Set(schedule.groupID))
         if let firstSchedule = schedule.schedule.first {
             _startDate = State(initialValue: firstSchedule.startTime)
             _endDate = State(initialValue: firstSchedule.endTime)
@@ -90,11 +90,9 @@ struct EditPersonalScheduleView: View {
                         .foregroundColor(.black)
                 }
                 
-                Section(header: Text("공유 그룹 (쉼표로 구분)").foregroundColor(.black)) {
-                    TextField("그룹 ID (예: group1, group2)", text: $groupIDInput)
-                        .foregroundColor(.black)
-                    
-                }
+                Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
+                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
@@ -153,7 +151,7 @@ struct EditPersonalScheduleView: View {
             updatedSchedule.append(TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
         }
 
-        let groupIDArray = groupIDInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
         guard let scheduleID = schedule.id else {
             print("오류: schedule.id가 nil입니다.")
@@ -165,7 +163,7 @@ struct EditPersonalScheduleView: View {
             userID: user.userID,
             name: name,
             content: content,
-            groupID: groupIDArray,
+            groupID: updatedGroupIDArray,
             schedule: updatedSchedule,
             personalColor: selectedColor
         )
@@ -174,3 +172,33 @@ struct EditPersonalScheduleView: View {
     }
 
 }
+//struct MultiSelectGroupView: View {
+//    let userGroups: [String]
+//    @Binding var selectedGroups: Set<String>
+//    
+//    var body: some View {
+//        List {
+//            ForEach(userGroups, id: \.self) { group in
+//                HStack {
+//                    Text(group)
+//                    Spacer()
+//                    if selectedGroups.contains(group) {
+//                        Image(systemName: "checkmark.circle.fill")
+//                            .foregroundColor(.blue)
+//                    } else {
+//                        Image(systemName: "circle")
+//                            .foregroundColor(.gray)
+//                    }
+//                }
+//                .contentShape(Rectangle())
+//                .onTapGesture {
+//                    if selectedGroups.contains(group) {
+//                        selectedGroups.remove(group)
+//                    } else {
+//                        selectedGroups.insert(group)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
