@@ -239,6 +239,9 @@ struct MainCalendarView: View {
                                 Button("확인") {
                                     if let newDate = Calendar.current.date(from: DateComponents(year: selectedYear, month: selectedMonth, day: 1)) {
                                         currentMonth = newDate
+                                        selectedYear = Calendar.current.component(.year, from: newDate)
+                                        selectedMonth = Calendar.current.component(.month, from: newDate)
+                                        print("picker - \(currentMonth)")
                                     }
                                     isShowingDatePicker = false
                                 }
@@ -307,7 +310,6 @@ struct MainCalendarView: View {
         
         return difference
     }
-    // 이전 달의 마지막 날짜들을 가져오는 함수
     func getLastDaysOfPreviousMonth(year: Int, month: Int, count: Int) -> [Int] {
         let calendar = Calendar.current
         let components = DateComponents(year: year, month: month, day: 1)
@@ -350,7 +352,6 @@ struct MainCalendarView: View {
         return calendar.component(.month, from: date1) == calendar.component(.month, from: date2) &&
         calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
-    
     private func getSchedulesForDate(_ date: Date) -> [(String, Color)] {
         let personalSchedules: [(String, Color)] = {
             if selectedCalendars.contains("개인 캘린더") {
@@ -358,7 +359,10 @@ struct MainCalendarView: View {
                     schedule.schedule.contains { timeSlot in
                         let startDate = convertToDate(timeSlot.startTime)
                         let endDate = convertToDate(timeSlot.endTime)
+                        
                         return isDateInRange(date: date, startDate: startDate, endDate: endDate, year: year, month: month)
+                        || Calendar.current.isDate(date, inSameDayAs: startDate)
+                        || Calendar.current.isDate(date, inSameDayAs: endDate)
                     }
                 }.map { schedule in
                     (schedule.name, schedule.color)
@@ -368,25 +372,29 @@ struct MainCalendarView: View {
             }
         }()
         
-        
         let groupSchedules = dummyGroupSchedules.filter { schedule in
             selectedCalendars.contains(schedule.groupID) &&
             schedule.schedule.contains { timeSlot in
-                Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
-                Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
-                (date >= timeSlot.startTime && date <= timeSlot.endTime)
+                let startDate = timeSlot.startTime
+                let endDate = timeSlot.endTime
+                
+                return Calendar.current.isDate(date, inSameDayAs: startDate)
+                || Calendar.current.isDate(date, inSameDayAs: endDate)
+                || (date >= startDate && date <= endDate)
             }
         }.map { schedule in
             (schedule.name, schedule.color)
         }
+        
         return personalSchedules + groupSchedules
     }
-    
-    
     private func changeMonth(by value: Int) {
         withAnimation {
             if let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentMonth) {
                 currentMonth = newDate
+                selectedYear = Calendar.current.component(.year, from: newDate)
+                selectedMonth = Calendar.current.component(.month, from: newDate)
+                print("드래그 - \(currentMonth)")
             }
         }
     }
