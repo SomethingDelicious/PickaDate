@@ -8,15 +8,25 @@
 import SwiftUI
 
 struct PostDetailView: View {
-    @State private var post: Post
+    @State private var postID: String
+    @State private var commentID: String = ""
     @StateObject private var viewModel = PostViewModel()
-    @Environment(\.presentationMode) var presentationMode // 현재 화면 상태 관리
+    @Environment(\.presentationMode) var presentationMode
     @State private var newCommentText = ""
     @State private var showingCommentForm = false
+    @State private var showingDeletePostAlert: Bool = false
+    @State private var showingEditPostAlert: Bool = false
+    @State private var showingDeleteCommentAlert: Bool = false
     
     init(post: Post) {
-        self.post = post
+        self.postID = post.postID
     }
+    
+    // 현재 post를 계산 프로퍼티로 구현
+    private var post: Post {
+        viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date())
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -44,7 +54,7 @@ struct PostDetailView: View {
                 // 댓글 갯수
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("댓글 \(viewModel.comments[post.postID]?.count ?? 0)개")
+                        Text("댓글 \(viewModel.comments[postID]?.count ?? 0)개")
                             .font(.headline)
                         
                         Spacer()
@@ -58,12 +68,12 @@ struct PostDetailView: View {
                         }
                     }
                     
-                    if (viewModel.comments[post.postID]?.count ?? 0) == 0 {
+                    if (viewModel.comments[postID]?.count ?? 0) == 0 {
                         Text("아직 댓글이 없습니다.")
                             .foregroundColor(.gray)
                             .padding(.vertical, 8)
                     } else {
-                        ForEach(viewModel.comments[post.postID]?.sorted(by: { $0.createdAt < $1.createdAt }) ?? [], id: \.id) { comment in
+                        ForEach(viewModel.comments[postID]?.sorted(by: { $0.createdAt < $1.createdAt }) ?? [], id: \.id) { comment in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
                                     Text(comment.writer)
@@ -75,6 +85,22 @@ struct PostDetailView: View {
                                     Text(formatDate(comment.createdAt))
                                         .font(.caption)
                                         .foregroundColor(.gray)
+                                    
+                                    Menu {
+                                        Button(role: .destructive, action: {
+                                            showingDeleteCommentAlert = true
+                                            commentID = comment.commentID
+                                        }) {
+                                            Label("삭제", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .rotationEffect(.degrees(90))
+                                            .font(.caption)
+                                            .foregroundColor(.black)
+                                            .padding(.leading, 4)
+                                    }
+                                    
                                 }
                                 
                                 Text(comment.content)
@@ -104,37 +130,34 @@ struct PostDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
-                    self.presentationMode.wrappedValue.dismiss() // 게시판 화면으로 돌아감.
+                    self.presentationMode.wrappedValue.dismiss()
                 }) {
                     HStack {
                         Image(systemName: "chevron.backward")
                     }
                     .foregroundColor(.blue)
-
                 }
             }
             
             ToolbarItem(placement: .primaryAction) {
                 Menu(content: {
                     Button(action: {
-                        // 게시글 수정
+                        showingEditPostAlert = true
                     }) {
                         HStack {
                             Text("수정")
                             Spacer()
                             Image(systemName: "pencil")
                         }
-                        
                     }
                     
                     Button(action: {
-                        // 게시글 삭제
+                        showingDeletePostAlert = true
                     }) {
                         HStack {
                             Text("삭제")
                             Spacer()
                             Image(systemName: "trash")
-                            
                         }
                     }
                 }, label: {
@@ -143,7 +166,6 @@ struct PostDetailView: View {
                 })
             }
         }
-
         .onAppear {
             viewModel.fetchPosts()
         }
@@ -154,6 +176,24 @@ struct PostDetailView: View {
             viewModel.fetchPosts()
         }) {
             AddCommentView(post: post)
+        }
+        .sheet(isPresented: $showingEditPostAlert, onDismiss: {
+            viewModel.fetchPosts()
+        }) {
+            EditPostView(post: post)
+        }
+        .alert("이 게시물을 삭제하시겠습니까?", isPresented: $showingDeletePostAlert) {
+            Button("취소", role: .cancel) { }
+            Button("확인", role: .destructive) {
+                viewModel.deletePost(postID: postID)
+                self.presentationMode.wrappedValue.dismiss()
+            }
+        }
+        .alert("이 댓글을 삭제하시겠습니까?", isPresented: $showingDeleteCommentAlert) {
+            Button("취소", role: .cancel) { }
+            Button("확인", role: .destructive) {
+                viewModel.deleteComment(postID: postID, commentID: commentID)
+            }
         }
     }
     

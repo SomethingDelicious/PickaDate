@@ -99,10 +99,14 @@ class PostViewModel: ObservableObject {
     
     // 수정하기(update)
     // 게시판 수정하기
-    func updatePost(postID: String, title: String, content: String) {
+    func updatePost(postID: String, groupID: String, title: String, content: String, writer: String, createdAt: Date) {
         let updateData: [String: Any] = [
+            "postID": postID,
+            "groupID": groupID,
             "title": title,
             "content": content,
+            "writer": writer,
+            "createdAt": createdAt,
             "updatedAt": FieldValue.serverTimestamp()
         ]
         

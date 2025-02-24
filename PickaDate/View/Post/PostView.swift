@@ -30,6 +30,7 @@ struct PostView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(postData.title)
                                 .font(.headline)
+                                .lineLimit(1)
                             HStack {
                                 Text(postData.writer)
                                     .font(.subheadline)
