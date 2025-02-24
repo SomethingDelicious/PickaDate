@@ -15,6 +15,12 @@ struct GroupSchedule: Identifiable, Codable {
     var content: String             //그룹 일정 내용
     var createdAt: Date             //일정 생성 날짜
     var schedule: [TimeSlotGroup]   //그룹 일정 날짜, 시간
+    
+    var groupColor: String
+    
+    var color: Color {
+        colorMap[groupColor, default: .blue]
+    }
 }
 
 struct TimeSlotGroup: Codable {
