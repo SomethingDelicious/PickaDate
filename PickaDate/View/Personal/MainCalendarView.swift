@@ -16,7 +16,9 @@ let dummyGroupSchedules: [GroupSchedule] = [
         createdAt: Date(),
         schedule: [
             TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ]
+        ],
+        groupColor: "red"
+        
     ),
     GroupSchedule(
         groupID: "group1",
@@ -25,7 +27,8 @@ let dummyGroupSchedules: [GroupSchedule] = [
         createdAt: Date(),
         schedule: [
             TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
-        ]
+        ],
+        groupColor: "green"
     ),
     GroupSchedule(
         groupID: "group2",
@@ -34,7 +37,8 @@ let dummyGroupSchedules: [GroupSchedule] = [
         createdAt: Date(),
         schedule: [
             TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ]
+        ],
+        groupColor: "blue"
     ),
     GroupSchedule(
         groupID: "group2",
@@ -44,6 +48,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         schedule: [
             TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
         ]
+        ,groupColor: "orange"
     )
 ]
 struct MainCalendarView: View {
@@ -371,7 +376,7 @@ struct MainCalendarView: View {
                 (date >= timeSlot.startTime && date <= timeSlot.endTime)
             }
         }.map { schedule in
-            (schedule.name, Color.green)
+            (schedule.name, schedule.color)
         }
         return personalSchedules + groupSchedules
     }
