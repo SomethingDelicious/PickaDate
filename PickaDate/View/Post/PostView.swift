@@ -18,6 +18,13 @@ struct PostView: View {
     var body: some View {
         NavigationView {
             List {
+                if viewModel.posts.isEmpty {
+                    Text("텅...")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
                 ForEach(viewModel.posts.sorted(by: { $0.createdAt < $1.createdAt })) { postData in
                     NavigationLink(destination: PostDetailView(post: postData)) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -43,21 +50,49 @@ struct PostView: View {
                 }
             }
             .navigationTitle("게시판")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("게시판")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.primary)
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                    }, label: {
+                        Image(systemName: "magnifyingglass")
+                    })
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Menu(content: {
+                        Button(action: {
+                            showingAddPost.toggle()
+                        }) {
+                            HStack {
+                                Text("글쓰기")
+                                Spacer()
+                                Image(systemName: "pencil")
+                            }
+                        }
+                    }, label: {
+                        Image(systemName: "ellipsis")
+                            .rotationEffect(.degrees(90))
+                    })
+                }
+                
+            }
             .onAppear {
                 viewModel.fetchPosts()
             }
             .refreshable {
                 viewModel.fetchPosts()
             }
-            .sheet(isPresented: $showingAddPost) {
+            .sheet(isPresented: $showingAddPost, onDismiss: {
+                viewModel.fetchPosts()
+            }) {
                 AddPostView()
-            }
-            .toolbar{
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("새 게시판 추가") {
-                        showingAddPost.toggle()
-                    }
-                }
             }
         }
     }

@@ -10,6 +10,7 @@ import SwiftUI
 struct PostDetailView: View {
     @State private var post: Post
     @StateObject private var viewModel = PostViewModel()
+    @Environment(\.presentationMode) var presentationMode // 현재 화면 상태 관리
     @State private var newCommentText = ""
     @State private var showingCommentForm = false
     
@@ -56,7 +57,7 @@ struct PostDetailView: View {
                                 .foregroundColor(.blue)
                         }
                     }
-
+                    
                     if (viewModel.comments[post.postID]?.count ?? 0) == 0 {
                         Text("아직 댓글이 없습니다.")
                             .foregroundColor(.gray)
@@ -91,6 +92,58 @@ struct PostDetailView: View {
             .padding()
         }
         .navigationTitle(post.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(post.title)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.primary)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    self.presentationMode.wrappedValue.dismiss() // 게시판 화면으로 돌아감.
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.backward")
+                    }
+                    .foregroundColor(.blue)
+
+                }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Menu(content: {
+                    Button(action: {
+                        // 게시글 수정
+                    }) {
+                        HStack {
+                            Text("수정")
+                            Spacer()
+                            Image(systemName: "pencil")
+                        }
+                        
+                    }
+                    
+                    Button(action: {
+                        // 게시글 삭제
+                    }) {
+                        HStack {
+                            Text("삭제")
+                            Spacer()
+                            Image(systemName: "trash")
+                            
+                        }
+                    }
+                }, label: {
+                    Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
+                })
+            }
+        }
+
         .onAppear {
             viewModel.fetchPosts()
         }
