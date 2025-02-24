@@ -147,7 +147,11 @@ struct CopyPersonalScheduleView: View {
         return days
     }
     private func copyScheduleToSelectedDates() {
-        for date in selectedDates {
+        let initialDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
+            let newDates = selectedDates.filter { date in
+                !initialDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) })
+            }
+        for date in newDates {
             let newTimeSlots = schedule.schedule.map { timeSlot -> TimeSlotPersonal in
                 let originalStartTime = timeSlot.startTime
                 let timeOffset = originalStartTime.timeIntervalSince(Calendar.current.startOfDay(for: originalStartTime))

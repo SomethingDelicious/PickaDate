@@ -166,7 +166,8 @@ struct MainCalendarView: View {
                 
                 if !schedules.isEmpty {
                     VStack(spacing: 2) {
-                        ForEach(schedules, id: \.0) { schedule in
+                        let maxSchedules = Int(cellHeight / 20) - 2
+                        ForEach(schedules.prefix(maxSchedules), id: \.0) { schedule in
                             Text(schedule.0)
                                 .font(.caption2)
                                 .frame(maxWidth: .infinity)
