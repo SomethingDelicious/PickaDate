@@ -91,8 +91,10 @@ struct MainCalendarView: View {
                 let totalCells = firstWeekday + days.count
                 let numRows = Int(ceil(Double(totalCells) / 7.0))
                 let cellHeight = 570 / CGFloat(numRows)
-                
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible(), spacing: 1), count: 7),
+                    spacing: 0
+                ) {
                     ForEach(days, id: \.self) { date in
                         let schedules = getSchedulesForDate(date)
                         DayCell(
