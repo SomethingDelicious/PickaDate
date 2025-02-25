@@ -12,9 +12,10 @@ struct AddCommentView: View {
     @StateObject private var viewModel = PostViewModel()
     
     @State private var post: Post
-    
     @State private var content = ""
-    @State private var writer = "익명"
+    @State private var writer = "작성자명"
+    
+    @State private var isAnonymous: Bool = false
     
     init(post: Post) {
         self.post = post
@@ -29,7 +30,27 @@ struct AddCommentView: View {
                 }
                 
                 Section(header: Text("작성자")) {
-                    TextField("작성자명", text: $writer)
+                    HStack {
+                        Button(action: {
+                            isAnonymous.toggle()
+                            if isAnonymous {
+                                writer = "익명"
+                            } else {
+                                writer = "작성자명"
+                            }
+                            
+                        }, label: {
+                            HStack {
+                                Image(systemName: isAnonymous ? "checkmark.square":"square")
+                                Text("익명")
+                            }
+                            .foregroundStyle(isAnonymous ? .red : .gray)
+                        })
+                        
+                        if !isAnonymous {
+                            TextField("작성자명", text: $writer)
+                        }
+                    }
                 }
             }
             .navigationTitle("댓글 작성")

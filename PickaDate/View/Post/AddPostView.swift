@@ -9,6 +9,7 @@ import SwiftUI
 struct AddPostView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = PostViewModel()
+    @StateObject private var groupViewModel = GroupViewModel()
     @State private var title = ""
     @State private var content = ""
     @State private var writer = "익명"
@@ -31,8 +32,30 @@ struct AddPostView: View {
                 }
                 
                 Section(header: Text("작성자 그룹")) {
-                    TextField("작성자 그룹을 입력하세요.", text: $groupID)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .center) {
+                            ForEach(groupViewModel.groups) { group in
+                                Button(action: {
+                                    groupID = group.groupName
+                                }, label: {
+                                    // 예제 데이터 입니다.
+                                    Text(group.groupName)
+                                        .foregroundStyle(.black)
+                                        .padding(8)
+                                        .background(
+                                                    groupID == group.groupName ? Color.gray.opacity(0.3) : Color.clear
+                                                )
+                                                .cornerRadius(8)
+                                })
+                            }
+                            
+                        }
+                    }
+                    .padding()
                 }
+            }
+            .onAppear{
+                groupViewModel.fetchGroups()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
