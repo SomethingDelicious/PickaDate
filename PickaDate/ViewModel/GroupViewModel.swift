@@ -29,9 +29,11 @@ class GroupViewModel: ObservableObject {
     }
     
     // 그룹 추가하기
-    func addGroup(groupID: String, leader: String, member: [String]) {
+    func addGroup(groupName: String, leader: String, member: [String]) {
+        let groupID = UUID().uuidString
         let groupData: [String: Any] = [
             "groupID": groupID,
+            "groupName": groupName,
             "createdAt": FieldValue.serverTimestamp(),
             "leader": leader,
             "member": member
