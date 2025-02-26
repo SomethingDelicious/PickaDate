@@ -54,7 +54,7 @@ class PostViewModel: ObservableObject {
     
     // 추가하기(add)
     // 게시판 추가하기
-    func addPost(groupID: String, title: String, content: String, writer: String, createdAt: Date = Date()) {
+    func addPost(groupID: String, title: String, content: String, writer: String, createdAt: Date = Date(), likes: Int = 0) {
         let postID = UUID().uuidString
         let postData: [String: Any] = [
             "postID": postID,
@@ -62,7 +62,8 @@ class PostViewModel: ObservableObject {
             "title": title,
             "content": content,
             "writer": writer,
-            "createdAt": FieldValue.serverTimestamp()
+            "createdAt": FieldValue.serverTimestamp(),
+            "likes": likes
         ]
         
         fsDB.collection("posts").document(postID).setData(postData) { error in
@@ -99,7 +100,7 @@ class PostViewModel: ObservableObject {
     
     // 수정하기(update)
     // 게시판 수정하기
-    func updatePost(postID: String, groupID: String, title: String, content: String, writer: String, createdAt: Date) {
+    func updatePost(postID: String, groupID: String, title: String, content: String, writer: String, createdAt: Date, likes: Int) {
         let updateData: [String: Any] = [
             "postID": postID,
             "groupID": groupID,
@@ -107,7 +108,8 @@ class PostViewModel: ObservableObject {
             "content": content,
             "writer": writer,
             "createdAt": createdAt,
-            "updatedAt": FieldValue.serverTimestamp()
+            "updatedAt": FieldValue.serverTimestamp(),
+            "likes": likes
         ]
         
         fsDB.collection("posts").document(postID).updateData(updateData) { error in

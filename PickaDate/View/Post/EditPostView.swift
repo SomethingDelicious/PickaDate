@@ -16,6 +16,7 @@ struct EditPostView: View {
     @State private var content: String
     @State private var writer: String
     @State private var groupID: String
+    @State private var likes: Int
     
     init(post: Post) {
         self.post = post
@@ -23,6 +24,7 @@ struct EditPostView: View {
         content = post.content
         writer = post.writer
         groupID = post.groupID
+        likes = post.likes
     }
     
     var body: some View {
@@ -76,7 +78,7 @@ struct EditPostView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("재등록") {
-                        viewModel.updatePost(postID: post.postID, groupID: groupID, title: title, content: content, writer: writer, createdAt: post.createdAt)
+                        viewModel.updatePost(postID: post.postID, groupID: groupID, title: title, content: content, writer: writer, createdAt: post.createdAt, likes: likes)
                         
                         dismiss()
                     }
