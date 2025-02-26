@@ -18,6 +18,12 @@ struct PostDetailView: View {
     @State private var showingEditPostAlert: Bool = false
     @State private var showingDeleteCommentAlert: Bool = false
     
+    // 댓글
+    @State private var isAnonymous: Bool = false
+    @StateObject private var groupViewModel = GroupViewModel()
+    @State private var commentContent = ""
+    @State private var commentWriter = "멋사"
+    
     init(post: Post) {
         self.postID = post.postID
     }
@@ -58,14 +64,14 @@ struct PostDetailView: View {
                             .font(.headline)
                         
                         Spacer()
-                        
-                        Button(action: {
-                            showingCommentForm = true
-                        }) {
-                            Text("댓글 작성")
-                                .font(.subheadline)
-                                .foregroundColor(.blue)
-                        }
+//                        // 미관상 없애는 것이 좋아서 주석처리함.
+//                        Button(action: {
+//                            showingCommentForm = true
+//                        }) {
+//                            Text("댓글 작성")
+//                                .font(.subheadline)
+//                                .foregroundColor(.blue)
+//                        }
                     }
                     
                     if (viewModel.comments[postID]?.count ?? 0) == 0 {
@@ -195,6 +201,45 @@ struct PostDetailView: View {
                 viewModel.deleteComment(postID: postID, commentID: commentID)
             }
         }
+        
+        // 댓글 입력 창
+        HStack {
+            Button(action: {
+                isAnonymous.toggle()
+                if isAnonymous {
+                    commentWriter = "익명"
+                } else {
+                    commentWriter = "익명"
+                }
+                
+            }, label: {
+                HStack {
+                    Image(systemName: isAnonymous ? "checkmark.square" : "square")
+                    Text("익명")
+                }
+                .foregroundStyle(isAnonymous ? .red : .gray)
+            })
+            
+            TextField("댓글을 입력하세요.", text: $commentContent)
+            
+            Button(action: {
+                if(!commentContent.isEmpty && !commentWriter.isEmpty) {
+                    viewModel.addComment(postID: postID, content: commentContent, writer: commentWriter)
+                    isAnonymous = false
+                    commentWriter = "멋사"
+                    commentContent = ""
+                }
+                viewModel.fetchPosts()
+            }, label: {
+                Image(systemName: "paperplane")
+                    .foregroundStyle(.red)
+            })
+            .disabled(commentContent.isEmpty || commentWriter.isEmpty)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.2))
+        .cornerRadius(10)
+        .frame(height: 40)
     }
     
     func formatDate(_ date: Date) -> String {
