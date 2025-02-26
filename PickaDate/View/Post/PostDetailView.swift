@@ -17,6 +17,15 @@ struct PostDetailView: View {
     @State private var showingDeletePostAlert: Bool = false
     @State private var showingEditPostAlert: Bool = false
     @State private var showingDeleteCommentAlert: Bool = false
+    @State private var likes: Int
+    @State private var isLiked: Bool = false
+    
+    // 게시판
+    @State private var groupID: String
+    @State private var title: String
+    @State private var content: String
+    @State private var writer: String
+    @State private var createdAt: Date
     
     // 댓글
     @State private var isAnonymous: Bool = false
@@ -26,11 +35,17 @@ struct PostDetailView: View {
     
     init(post: Post) {
         self.postID = post.postID
+        groupID = post.groupID
+        title = post.title
+        content = post.content
+        writer = post.writer
+        createdAt = post.createdAt
+        likes = post.likes
     }
     
     // 현재 post를 계산 프로퍼티로 구현
     private var post: Post {
-        viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date())
+        viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date(), likes: 0)
     }
     
     var body: some View {
@@ -60,6 +75,19 @@ struct PostDetailView: View {
                 // 댓글 갯수
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
+                        Button(action: {
+                            isLiked.toggle()
+                            if isLiked {
+                                likes += 1
+                            } else {
+                                likes -= 1
+                            }
+                            viewModel.updatePost(postID: postID, groupID: post.groupID, title: post.title, content: post.content, writer: post.writer, createdAt: post.createdAt, likes: likes)
+                        }, label: {
+                            Text("좋아요 \(likes)개")
+                                .foregroundStyle(isLiked ? .red : .black)
+                                .font(.headline)
+                        })
                         Text("댓글 \(viewModel.comments[postID]?.count ?? 0)개")
                             .font(.headline)
                         

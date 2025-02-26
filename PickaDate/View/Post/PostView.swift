@@ -53,10 +53,21 @@ struct PostView: View {
                                         .font(.caption)
                                         .foregroundColor(.gray)
                                 }
-                                
-                                Text("댓글 \(viewModel.comments[postData.postID]?.count ?? 0)개")
-                                    .font(.caption)
+                                HStack {
+                                    HStack {
+                                        Image(systemName: "hand.thumbsup")
+                                        Text("\(postData.likes)")
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.red)
+                                    HStack {
+                                        Image(systemName: "message")
+                                        Text("\(viewModel.comments[postData.postID]?.count ?? 0)")
+                                            .font(.caption)
+                                    }
                                     .foregroundColor(.blue)
+                                }
+                                
                             }
                             .padding(.vertical, 4)
                         }
