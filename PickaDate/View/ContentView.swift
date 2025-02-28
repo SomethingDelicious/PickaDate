@@ -1,9 +1,10 @@
 //
 //  ContentView.swift
-//  PickaDate
+//  TestGithub
 //
-//  Created by 김태건 on 2/20/25.
+//  Created by NoelMacMini on 2/26/25.
 //
+
 
 import SwiftUI
 
@@ -12,11 +13,15 @@ struct ContentView: View {
     @State private var selectedTab = 0
     
     //더미데이터
-    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
+   let user = User.init(userID: "1234", userName: "기본이름", email: "abc1234@google.com", userPW: "password")
     let groupName = "맛있는거사조"
+    let userId: String = "jiyong7578"
+    let groupId: String = "group1"
     
     @State private var isShowingPersonalScheduleView = false
-    @State private var isShowingGroupScheduleView = false
+    // @State private var isShowingGroupScheduleView = false
+    @State private var isShowingProposeGroupScheduleView = false
+    
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -40,7 +45,7 @@ struct ContentView: View {
                     }
                     .tag(2)
                 
-                GroupDateView()
+                GroupScheduleView()
                     .tabItem {
                         Image(systemName: "person.3.sequence.fill")
                         Text("그룹")
@@ -64,7 +69,7 @@ struct ContentView: View {
                             isShowingPersonalScheduleView = true
                         } else if selectedTab == 3 {
                             print("그룹 일정 추가 화면")
-                            isShowingGroupScheduleView = true
+                            isShowingProposeGroupScheduleView = true
                         }
                     }) {
                         Image(systemName: "plus.circle.fill")
@@ -81,56 +86,14 @@ struct ContentView: View {
                     }) {
                         AddPersonalScheduleView(user: user, selectedDate: Date())
                     }
-                    .sheet(isPresented: $isShowingGroupScheduleView) {
-                        AddGroupScheduleView(groupName: groupName)
+                    .sheet(isPresented: $isShowingProposeGroupScheduleView) {
+                        ProposeGroupScheduleView(userID: userId, groupID: groupId)
                     }
                     Spacer()
                 }
             }
             .padding(.bottom, 10)
         }
-        
     }
-    
-    //        NavigationView {
-    //            VStack {
-    //                List(viewModel.userTestData) { userTestData in
-    //                    HStack {
-    //                        VStack(alignment: .leading) {
-    //                            Text(userTestData.text).font(.headline)
-    //                            Text("숫자: \(userTestData.num)").font(.subheadline)
-    //                        }
-    //                        Spacer()
-    //                        Button(action: {
-    //                            if let userId = userTestData.id {
-    //                                viewModel.deleteUser(userId: userId)
-    //                            }
-    //                        }) {
-    //                            Image(systemName: "trash")
-    //                                .foregroundColor(.red)
-    //                        }
-    //                    }
-    //
-    //                }
-    //                NavigationLink(destination: PersonalScheduleView()) {
-    //                    Text("개인 일정 보기")
-    //                        .font(.headline)
-    //                        .padding()
-    //                        .frame(maxWidth: .infinity)
-    //                        .background(Color.blue)
-    //                        .foregroundColor(.white)
-    //                        .cornerRadius(10)
-    //                }
-    //                .padding()
-    //                Button("데이터 추가") {
-    //                    viewModel.addUser(text: "텍스트", num: 26)
-    //                }
-    //                .padding()
-    //            }
-    //            .navigationTitle("데이터 목록")
-    //            .onAppear {
-    //                viewModel.fetchUsers()
-    //            }
-    //        }
 }
 

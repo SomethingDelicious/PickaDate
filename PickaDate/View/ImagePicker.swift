@@ -1,3 +1,9 @@
+//
+//  ImagePicker.swift
+//  TestGithub
+//
+//  Created by NoelMacMini on 2/26/25.
+//
 import SwiftUI
 
 struct ImagePicker: UIViewControllerRepresentable {
@@ -35,3 +41,4 @@ extension ImagePicker {
         }
     }
 }
+

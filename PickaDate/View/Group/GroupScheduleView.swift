@@ -1,25 +1,38 @@
 //
-//  GroupDateView.swift
-//  PickaDate
+//  GroupScheduleView.swift
+//  TestGithub
 //
-//  Created by NoelMacMini on 2/22/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI
 
-struct GroupDateView: View {
+struct GroupScheduleView: View {
     // MARK: - Properties
-    @StateObject private var viewModel = GroupDateViewModel()
+    @StateObject private var viewModel = GroupScheduleViewModel()
     @State private var selectedDate = Date() // 선택된 날짜를 저장
     @State private var currentMonth: Date = Date()  // 현재 표시중인 월
     @State private var isShowingAddGroupSchedulePeriod = false
-    let groupName = "맛있는거사조"
+    
+    // 더미 데이터
+    let groupName = "맛있는거사조" // 예시 더미 데이터
+    let groupId = "group1" // 예시 더미 데이터
     @State private var cellHeight: CGFloat = 0 // GeometryReader 사용을 위한 변수
+    @State private var isShowingProposalList = false // 일정제안목록 보이기
     
     // 달력에 표시할 날짜들을 저장하는 배열
     private var days: [Date] {
         getDaysInMonth(for: currentMonth)
     }
+    
+    // 연도와 월 계산
+    private var year: Int {
+        Calendar.current.component(.year, from: currentMonth)
+    }
+    private var month: Int {
+        Calendar.current.component(.month, from: currentMonth)
+    }
+    
     
     
     // MARK: - Body
@@ -34,11 +47,19 @@ struct GroupDateView: View {
                     : (geometry.size.height - headerHeight) / 7
                 
                 VStack {
-                    // 캘린더 섹션
-                    // 헤더 부분
+                    // 캘린더 헤더 (월 선택 및 그룹 이름 표시)
                     CalendarHeaderView(
                         currentMonth: currentMonth,
-                        groupName: groupName
+                        groupName: groupName,
+                        groupId: groupId,
+                        onProposalListTap: {
+                            // 월이 변경되면 새 월의 일정 상태 계산
+                            viewModel.calculateMonthScheduleStatus(
+                                groupID: groupId,
+                                year: year,
+                                month: month
+                            )
+                        }
                     )
                     
                     // 요일 헤더
@@ -47,16 +68,21 @@ struct GroupDateView: View {
                     // 날짜 그리드
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
                         ForEach(days, id: \.self) { date in
-                            let schedules = getSchedulesForDate(date)
+                            //let schedules = getSchedulesForDate(date)
+                            //let proposals = viewModel.getGroupProposalForDate(date)
+                            let status = viewModel.getScheduleStatusForDate(date)
                             DayCell(
                                 date: date,
                                 isSelected: isSameDay(date, selectedDate),
                                 isCurrentMonth: isSameMonth(date, currentMonth),
-                                schedules: schedules,
-                                cellHeight: cellHeight
+                                // schedules: schedules,
+                                // proposals: proposals,
+                                scheduleStatus: status
+                                // cellHeight: cellHeight
                             )
                             .onTapGesture {
                                 selectedDate = date
+                                // 여기에 날짜 선택 시 수행할 작업 추가
                             }
                         }
                     }
@@ -71,56 +97,151 @@ struct GroupDateView: View {
                                 
                             }
                     )
+                    
                     // 추가 버튼
                     AddScheduleButton(isShowingSheet: $isShowingAddGroupSchedulePeriod, groupName: groupName)
+                    
                 } //VStack1
                 .padding(.bottom, 30) // 하단 탭바와의 간격
             } // GeometryReader1
             .navigationTitle("그룹 일정")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                viewModel.fetchGroupSchedules()
+                viewModel.fetchGroupSchedules(groupID: groupId)
+                viewModel.fetchGroupProposals(for: groupId)
+                // 현재 달의 일정 상태 계산
+                viewModel.calculateMonthScheduleStatus(
+                    groupID: groupId,
+                    year: year,
+                    month: month
+                )
             } // GeometryReader1/onAppear
         } // NavigationStack1
     } // Body
     
     // MARK: - Helper Views
+//    private struct DayCell: View {
+//        let date: Date
+//        let isSelected: Bool
+//        let isCurrentMonth: Bool
+//        let schedules: [GroupSchedule]
+//        let proposals: [GroupScheduleProposal]
+//        let scheduleStatus: (withSchedule: Int, withoutSchedule: Int)
+//        let cellHeight: CGFloat // 높이 파라미터 추가
+//        
+//        var body: some View {
+//            VStack {
+//                Text("\(Calendar.current.component(.day, from: date))")
+//                    .foregroundColor(isCurrentMonth ? .black : .gray)
+//                
+//                // 기존 그룹일정 표시
+//                if !schedules.isEmpty {
+//                    VStack {
+//                        ForEach(schedules) { schedule in
+//                            Text(schedule.title)
+//                                .font(.caption)
+//                                .frame(maxWidth: .infinity)
+//                                .foregroundColor(.white)
+//                                .padding(2)
+//                                .background(Color.blue)
+//                                .cornerRadius(3)
+//                        }
+//                    }
+//                }
+//                
+//                // 제안 표시 (간단한 점으로)
+//                if !proposals.isEmpty {
+//                    // 디버깅 로그
+//                    let _ = print("날짜 \(date): \(proposals.count)개의 제안이 있습니다.")
+//        
+//                    Circle()
+//                        .fill(Color.orange)
+//                        .frame(width: 6, height: 6)
+//                    VStack {
+//                        ForEach(proposals) { proposal in
+//                            Text(proposal.title)
+//                                .font(.caption2)
+//                                .lineLimit(1)
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                                .foregroundStyle(.orange)
+//                                .padding(2)
+//                                .background(Color.yellow.opacity(0.8))
+//                                .clipShape(RoundedRectangle(cornerRadius: 20))
+//                        }
+//                    }
+//                }
+//                
+//                Spacer()
+//            }
+//            .frame(maxWidth: .infinity)
+//            .frame(height: cellHeight)
+//            .border(Color.gray)
+//        }
+//    }
+    
     private struct DayCell: View {
         let date: Date
         let isSelected: Bool
         let isCurrentMonth: Bool
-        let schedules: [GroupSchedule]
-        let cellHeight: CGFloat // 높이 파라미터 추가
+        let scheduleStatus: (withSchedule: Int, withoutSchedule: Int)
         
         var body: some View {
             VStack {
+                // 날짜 숫자
                 Text("\(Calendar.current.component(.day, from: date))")
+                    .font(.system(size: 14))
                     .foregroundColor(isCurrentMonth ? .black : .gray)
+                    .padding(4)
+                    .background(isSelected ? Color.blue.opacity(0.3) : Color.clear)
+                    .clipShape(Circle())
                 
-                if !schedules.isEmpty {
-                    VStack {
-                        ForEach(schedules) { schedule in
-                            Text(schedule.name)
-                                .font(.caption)
-                                .frame(maxWidth: .infinity)
-                                .foregroundColor(.white)
+                // 일정 상태 표시
+                if isCurrentMonth && (scheduleStatus.withSchedule > 0 || scheduleStatus.withoutSchedule > 0) {
+                    VStack(spacing: 2) {
+                        if scheduleStatus.withSchedule > 0 {
+                            Text("일정 있음: \(scheduleStatus.withSchedule)명")
+                                .font(.system(size: 8))
                                 .padding(2)
-                                .background(Color.blue)
-                                .cornerRadius(3)
+                                .background(getScheduleStatusColor(ratio: Double(scheduleStatus.withSchedule) / Double(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)))
+                                .cornerRadius(4)
+                                .foregroundColor(.white)
                         }
+                        
+                        Text("총 \(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)명")
+                            .font(.system(size: 8))
+                            .foregroundColor(.gray)
                     }
+                    .padding(.top, 2)
                 }
+                
                 Spacer()
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: cellHeight)
-            .border(Color.gray)
+            .frame(height: 70)
+            .padding(2)
+            .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+            .cornerRadius(8)
+        }
+        
+        // 일정 상태에 따른 색상 계산
+        private func getScheduleStatusColor(ratio: Double) -> Color {
+            switch ratio {
+            case 0...0.33:
+                return .green  // 적은 인원이 일정 있음 (좋음)
+            case 0.34...0.66:
+                return .orange // 절반 정도 일정 있음 (주의)
+            default:
+                return .red    // 대부분 일정 있음 (나쁨)
+            }
         }
     }
+    
     
     private struct CalendarHeaderView: View {
         let currentMonth: Date
         let groupName: String
+        let groupId: String
+        // 버튼 액션을 위한 클로저 속성 추가
+        let onProposalListTap: () -> Void
         
         private func formattedDate(_ date: Date) -> String {
             let formatter = DateFormatter()
@@ -143,6 +264,13 @@ struct GroupDateView: View {
                 }
                 
                 Spacer()
+                
+                // 일정 제안 목록 버튼 추가
+                Button(action: onProposalListTap) {
+                    // isShowingProposalList 토글 코드
+                    Image(systemName: "list.bullet")
+                        .foregroundStyle(.blue)
+                }
                 
                 Button(action: {}) {
                     Image(systemName: "star")
@@ -172,6 +300,7 @@ struct GroupDateView: View {
     
     private struct AddScheduleButton: View {
         @Binding var isShowingSheet: Bool
+        // @State private var isShowingAddGroupProposal = false
         let groupName: String
         
         var body: some View {
@@ -190,7 +319,7 @@ struct GroupDateView: View {
                 .cornerRadius(40)
                 .padding(.bottom, 20)
                 .sheet(isPresented: $isShowingSheet) {
-                    AddGroupScheduleView(groupName: groupName)
+                    GroupScheduleProposalView(userID: "현재 사용자 ID", groupID: groupName)
                 }
             }
         }
@@ -294,5 +423,5 @@ struct GroupDateView: View {
 
 // MARK: - Preview
 #Preview {
-    GroupDateView()
+    GroupScheduleView()
 }

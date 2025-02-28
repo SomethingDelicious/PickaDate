@@ -1,23 +1,14 @@
 //
 //  PersonalSchedule.swift
-//  PickaDate
+//  TestGithub
 //
-//  Created by 김태건 on 2/21/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI
 import FirebaseFirestore
 
-let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
-let colorMap: [String: Color] = [
-    "red": .red,
-    "orange": .orange,
-    "yellow": .yellow,
-    "green": .green,
-    "blue": .blue,
-    "purple": .purple,
-    "brown": .brown
-]
+
 
 struct PersonalSchedule: Identifiable, Codable {
     @DocumentID var id: String?

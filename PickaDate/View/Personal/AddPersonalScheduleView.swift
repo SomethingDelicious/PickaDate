@@ -1,9 +1,10 @@
 //
-//  ContentView.swift
-//  PickaDate
+//  AddPersonalScheduleView.swift
+//  TestGithub
 //
-//  Created by 김태건 on 2/20/25.
+//  Created by NoelMacMini on 2/26/25.
 //
+
 
 import SwiftUI
 import FirebaseFirestore
@@ -90,7 +91,7 @@ struct AddPersonalScheduleView: View {
                 
                 
                 Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {

@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
-//  PickaDate
+//  SharePersonalScheduleView.swift
+//  TestGithub
 //
-//  Created by 김태건 on 2/20/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI
@@ -24,7 +24,7 @@ struct SharePersonalScheduleView: View {
                 
                 VStack(alignment: .leading) {
                     
-                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                         .frame(height: 200)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)

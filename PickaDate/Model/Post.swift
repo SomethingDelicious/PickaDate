@@ -1,8 +1,8 @@
 //
 //  Post.swift
-//  PickaDate
+//  TestGithub
 //
-//  Created by 김태건 on 2/21/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI

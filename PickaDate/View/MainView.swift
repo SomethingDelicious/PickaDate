@@ -1,8 +1,8 @@
 //
 //  MainView.swift
-//  PickaDate
+//  TestGithub
 //
-//  Created by 김태건 on 2/23/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI

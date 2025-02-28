@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
-//  PickaDate
+//  EditPersonalScheduleView.swift
+//  TestGithub
 //
-//  Created by 김태건 on 2/20/25.
+//  Created by NoelMacMini on 2/26/25.
 //
 
 import SwiftUI
@@ -91,7 +91,7 @@ struct EditPersonalScheduleView: View {
                 }
                 
                 Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
@@ -175,7 +175,7 @@ struct EditPersonalScheduleView: View {
 //struct MultiSelectGroupView: View {
 //    let userGroups: [String]
 //    @Binding var selectedGroups: Set<String>
-//    
+//
 //    var body: some View {
 //        List {
 //            ForEach(userGroups, id: \.self) { group in
@@ -202,3 +202,4 @@ struct EditPersonalScheduleView: View {
 //        }
 //    }
 //}
+
