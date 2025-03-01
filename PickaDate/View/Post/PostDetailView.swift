@@ -48,6 +48,47 @@ struct PostDetailView: View {
         viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date(), likes: 0)
     }
     
+    fileprivate func extractedFunc() -> some View {
+        return // 댓글 입력 창
+        HStack {
+            Button(action: {
+                isAnonymous.toggle()
+                if isAnonymous {
+                    commentWriter = "익명"
+                } else {
+                    commentWriter = "익명"
+                }
+                
+            }, label: {
+                HStack {
+                    Image(systemName: isAnonymous ? "checkmark.square" : "square")
+                    Text("익명")
+                }
+                .foregroundStyle(isAnonymous ? .red : .gray)
+            })
+            
+            TextField("댓글을 입력하세요.", text: $commentContent)
+            
+            Button(action: {
+                if(!commentContent.isEmpty && !commentWriter.isEmpty) {
+                    viewModel.addComment(postID: postID, content: commentContent, writer: commentWriter)
+                    isAnonymous = false
+                    commentWriter = "멋사"
+                    commentContent = ""
+                }
+                viewModel.fetchPosts()
+            }, label: {
+                Image(systemName: "paperplane")
+                    .foregroundStyle(.red)
+            })
+            .disabled(commentContent.isEmpty || commentWriter.isEmpty)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.2))
+        .cornerRadius(10)
+        .frame(height: 40)
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -230,44 +271,7 @@ struct PostDetailView: View {
             }
         }
         
-        // 댓글 입력 창
-        HStack {
-            Button(action: {
-                isAnonymous.toggle()
-                if isAnonymous {
-                    commentWriter = "익명"
-                } else {
-                    commentWriter = "익명"
-                }
-                
-            }, label: {
-                HStack {
-                    Image(systemName: isAnonymous ? "checkmark.square" : "square")
-                    Text("익명")
-                }
-                .foregroundStyle(isAnonymous ? .red : .gray)
-            })
-            
-            TextField("댓글을 입력하세요.", text: $commentContent)
-            
-            Button(action: {
-                if(!commentContent.isEmpty && !commentWriter.isEmpty) {
-                    viewModel.addComment(postID: postID, content: commentContent, writer: commentWriter)
-                    isAnonymous = false
-                    commentWriter = "멋사"
-                    commentContent = ""
-                }
-                viewModel.fetchPosts()
-            }, label: {
-                Image(systemName: "paperplane")
-                    .foregroundStyle(.red)
-            })
-            .disabled(commentContent.isEmpty || commentWriter.isEmpty)
-        }
-        .padding()
-        .background(Color.gray.opacity(0.2))
-        .cornerRadius(10)
-        .frame(height: 40)
+        extractedFunc()
     }
     
     func formatDate(_ date: Date) -> String {

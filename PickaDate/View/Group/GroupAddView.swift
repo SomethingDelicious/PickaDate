@@ -11,16 +11,24 @@ struct GroupAddView: View {
     @State private var groupName: String = ""
     @State private var leader: String = ""
     @State private var member: [String] = []
-    
+    // 유저 더미 데이터
+    @State private var somethingDeliciousMembers: [String] = ["고지용", "김태건","박민우","심연아","이민서"]
     @State var showImagePicker = false
     @State var selectedUIImage: UIImage?
     @State var image: Image?
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
     @State private var isSelected: Bool = false
-    // 테스트로 유저가 20명있다고 가정하고 추가한 것
-    @State private var selectedItems: [Bool] = Array(repeating: false, count: 20)
+    
+    // 테스트로 유저가 5명있다고 가정하고 추가한 것
+    @State private var selectedLeader: [Bool] = Array(repeating: false, count: 5)
+    @State private var selectedMembers: [Bool] = Array(repeating: false, count: 5)
+    @State private var setLeader: Bool = false
+    @State private var firstSelected: Bool = false
     
     @StateObject private var viewModel = GroupViewModel()
+    
+    @State private var isPresented: Bool = false
+    @State private var isgroupAdded: Bool = false
     
     func loadImage() {
         guard let selectedImage = selectedUIImage else { return }
@@ -64,7 +72,7 @@ struct GroupAddView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
                     .foregroundStyle(.gray)
-
+                
                 TextField("", text: $groupName)
                     .frame(width: 350, height: 50)
                     .background(Color.gray.opacity(0.1))
@@ -74,42 +82,62 @@ struct GroupAddView: View {
                         UITextField.appearance().clearButtonMode = .whileEditing
                     }
                 
-                Text("그룹장 이름")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 30)
-                    .foregroundStyle(.gray)
-                
-                TextField("", text: $leader)
-                    .frame(width: 350, height: 50)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding()
-                    .onAppear {
-                        UITextField.appearance().clearButtonMode = .whileEditing
-                    }
-                
-                Text("그룹원 추가")
+                Text("그룹장")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
                     .foregroundStyle(.gray)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .center) {
-                        
-                        ForEach(0..<20) { num in
+                        ForEach(0..<5, id: \.self) { num in
                             Button(action: {
-                                selectedItems[num] = !selectedItems[num]
-                                member.append("홍길동\(num)")
+                                if leader == somethingDeliciousMembers[num] {
+                                    // 같은 사람을 다시 선택하면 선택 해제
+                                    selectedLeader[num] = false
+                                    leader = ""
+                                } else {
+                                    // 기존 선택된 사람을 해제하고 새 그룹장 설정
+                                    selectedLeader = Array(repeating: false, count: 5)
+                                    selectedLeader[num] = true
+                                    leader = somethingDeliciousMembers[num]
+                                }
                             }, label: {
-                                // 예제 데이터 입니다.
-                                Text("홍길동\(num)")
+                                Text(somethingDeliciousMembers[num])
                                     .foregroundStyle(.black)
                                     .padding(8)
                                     .overlay(
                                         Capsule()
-                                            .fill(selectedItems[num] ? Color.green.opacity(0.4) : Color.clear)
+                                            .fill(selectedLeader[num] ? Color.green.opacity(0.4) : Color.clear)
                                     )
-                                    .animation(.easeInOut, value: selectedItems[num])
+                            })
+                        }
+                    }
+                }
+                .padding()
+                
+                Text("그룹원")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 30)
+                    .foregroundStyle(.gray)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .center) {
+                        ForEach(0..<5) { num in
+                            Button(action: {
+                                if leader != "" {
+                                    selectedMembers[num] = !selectedMembers[num]
+                                }
+                                
+                            }, label: {
+                                if !selectedLeader[num] {
+                                    Text(somethingDeliciousMembers[num])
+                                        .foregroundStyle(.black)
+                                        .padding(8)
+                                        .overlay(
+                                            Capsule()
+                                                .fill(selectedMembers[num] ? Color.green.opacity(0.4) : Color.clear)
+                                        )
+                                }
                             })
                         }
                         
@@ -117,21 +145,51 @@ struct GroupAddView: View {
                 }
                 .padding()
                 Button(action: {
-                    viewModel.addGroup(groupName: groupName, leader: leader, member: member)
+                    for groupCheck in viewModel.groups {
+                        if groupCheck.groupName == groupName {
+                            isPresented = true
+                        }
+                    }
+                    
+                    if !isPresented {
+                        for num in (0..<5) {
+                            if selectedLeader[num] {
+                                continue
+                            }
+                            
+                            if selectedMembers[num] {
+                                member.append(somethingDeliciousMembers[num])
+                            }
+                        }
+                        viewModel.addGroup(groupName: groupName, leader: leader, member: member)
+                        member.removeAll()
+                        isgroupAdded = true
+                    }
                 }, label: {
                     Text("저장")
                         .foregroundStyle(.white)
                         .frame(width: 400, height: 50)
-                        .background((groupName == "" || leader == "" || member.isEmpty) ? Color.gray : Color.green)
+                        .background((groupName == "" || leader == "") ? Color.gray : Color.green)
                         .cornerRadius(10)
                         .padding()
                 })
-                .disabled(groupName == "" && leader == "" && member.isEmpty)
-
+                .onAppear{
+                    viewModel.fetchGroups()
+                }
+                .disabled(groupName == "" && leader == "")
+                
             }
+//            .alert(isPresented: $isPresented) {
+//                Alert(title: Text("중복된 그룹명입니다."))
+//            }
+            .alert(isPresented: $isgroupAdded) {
+                Alert(title: Text("그룹이 생성되었습니다."))
+            }
+
         }
         
     }
+    
 }
 
 #Preview {

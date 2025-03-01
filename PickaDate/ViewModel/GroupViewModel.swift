@@ -39,7 +39,39 @@ class GroupViewModel: ObservableObject {
             "member": member
         ]
         
-        fsDB.collection("groups").document(groupID).setData(groupData) { error in
+        fsDB.collection("groups").document(groupName).setData(groupData) { error in
+            if let error = error {
+                print("[E]그룹 추가 실패: \(error.localizedDescription)")
+            } else {
+                print("[L]그룹 추가 성공")
+                self.fetchGroups()
+            }
+        }
+    }
+    
+    // 그룹 삭제하기
+    func deleteGroup(groupName: String) {
+        fsDB.collection("groups").document(groupName).delete { error in
+            if let error = error {
+                print("[E]그룹 삭제 실패: \(error.localizedDescription)")
+            } else {
+                print("[L]그룹 삭제 성공")
+                self.fetchGroups()
+            }
+        }
+    }
+    
+    // 그룹 수정하기
+    func updateGroup(groupID:String, groupName: String, leader: String, member: [String]) {
+        let groupData: [String: Any] = [
+            "groupID": groupID,
+            "groupName": groupName,
+            "createdAt": FieldValue.serverTimestamp(),
+            "leader": leader,
+            "member": member
+        ]
+        
+        fsDB.collection("groups").document(groupName).setData(groupData) { error in
             if let error = error {
                 print("[E]그룹 추가 실패: \(error.localizedDescription)")
             } else {
