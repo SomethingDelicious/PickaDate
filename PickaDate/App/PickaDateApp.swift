@@ -10,7 +10,8 @@ import FirebaseCore
 
 @main
 struct PickaDateApp: App {
-    //@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     init() {
         FirebaseApp.configure()
     }
