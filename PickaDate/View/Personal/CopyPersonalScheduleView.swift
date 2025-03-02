@@ -14,7 +14,7 @@ struct CopyPersonalScheduleView: View {
     
     let user: User
     let schedule: PersonalSchedule
-    @State private var selectedDates: [Date] = []
+    @State private var selectedDates: Set<Date> = []
     @State private var currentMonth: Date = Date()
     
     let calendar = Calendar.current
@@ -64,7 +64,7 @@ struct CopyPersonalScheduleView: View {
                 .padding()
                 
                 List {
-                    ForEach(selectedDates, id: \.self) { date in
+                    ForEach(selectedDates.sorted(), id: \.self) { date in
                         HStack {
                             Text(selectedDateFormatter.string(from: date))
                             Spacer()
@@ -85,6 +85,9 @@ struct CopyPersonalScheduleView: View {
             }
             .onAppear {
                 initializeSelectedDates()
+                if let firstDate = schedule.schedule.first?.startTime {
+                    currentMonth = firstDate
+                }
             }
             .navigationBarItems(trailing: Button("닫기") {
                 presentationMode.wrappedValue.dismiss()
@@ -92,11 +95,13 @@ struct CopyPersonalScheduleView: View {
         }
     }
     private func initializeSelectedDates() {
-        selectedDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
+        let existingDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
+        selectedDates.formUnion(existingDates)
     }
+    
     private struct DayCell: View {
         let date: Date
-        @Binding var selectedDates: [Date]
+        @Binding var selectedDates: Set<Date>
         
         var isSelected: Bool {
             selectedDates.contains { Calendar.current.isDate($0, inSameDayAs: date) }
@@ -117,17 +122,20 @@ struct CopyPersonalScheduleView: View {
         }
     }
     private func toggleDateSelection(_ date: Date) {
-        if selectedDates.contains(date) {
-            selectedDates.removeAll { $0 == date }
-        } else {
-            selectedDates.append(date)
-        }
+        let normalizedDate = Calendar.current.startOfDay(for: date)
+        selectedDates.formSymmetricDifference([normalizedDate])
+        print("토글시 - \(selectedDates)")
     }
+    
+    
     private func changeMonth(by value: Int) {
-        if let newDate = calendar.date(byAdding: .month, value: value, to: currentMonth) {
+        guard let newDate = calendar.date(byAdding: .month, value: value, to: currentMonth) else { return }
+        withAnimation {
             currentMonth = newDate
+            print("changeMonth: \(currentMonth)")
         }
     }
+    
     
     private func getDaysInMonth(for date: Date) -> [Date] {
         guard let monthInterval = calendar.dateInterval(of: .month, for: date),
@@ -148,9 +156,11 @@ struct CopyPersonalScheduleView: View {
     }
     private func copyScheduleToSelectedDates() {
         let initialDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
-            let newDates = selectedDates.filter { date in
-                !initialDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) })
-            }
+        print("initialDates: \(initialDates)")
+        let newDates = selectedDates.sorted().filter { date in
+            !initialDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) })
+        }
+        print("newDates: \(newDates)")
         for date in newDates {
             let newTimeSlots = schedule.schedule.map { timeSlot -> TimeSlotPersonal in
                 let originalStartTime = timeSlot.startTime

@@ -1,19 +1,31 @@
 //
-//  AddPostView.swift
+//  EditPostView.swift
 //  PickaDate
 //
-//  Created by mwpark on 2/23/25.
+//  Created by mwpark on 2/24/25.
 //
+
 import SwiftUI
 
-struct AddPostView: View {
+struct EditPostView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = PostViewModel()
     @StateObject private var groupViewModel = GroupViewModel()
-    @State private var title = ""
-    @State private var content = ""
-    @State private var writer = "익명"
-    @State private var groupID = ""
+    @State private var post: Post
+    @State private var title: String
+    @State private var content: String
+    @State private var writer: String
+    @State private var groupID: String
+    @State private var likes: Int
+    
+    init(post: Post) {
+        self.post = post
+        title = post.title
+        content = post.content
+        writer = post.writer
+        groupID = post.groupID
+        likes = post.likes
+    }
     
     var body: some View {
         NavigationView {
@@ -65,8 +77,9 @@ struct AddPostView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("등록") {
-                        viewModel.addPost(groupID: groupID, title: title, content: content, writer: writer)
+                    Button("재등록") {
+                        viewModel.updatePost(postID: post.postID, groupID: groupID, title: title, content: content, writer: writer, createdAt: post.createdAt, likes: likes)
+                        
                         dismiss()
                     }
                     .disabled(title.isEmpty || writer.isEmpty || groupID.isEmpty)

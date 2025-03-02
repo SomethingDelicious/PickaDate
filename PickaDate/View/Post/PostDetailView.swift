@@ -8,14 +8,46 @@
 import SwiftUI
 
 struct PostDetailView: View {
-    @State private var post: Post
+    @State private var postID: String
+    @State private var commentID: String = ""
     @StateObject private var viewModel = PostViewModel()
+    @Environment(\.presentationMode) var presentationMode
     @State private var newCommentText = ""
     @State private var showingCommentForm = false
+    @State private var showingDeletePostAlert: Bool = false
+    @State private var showingEditPostAlert: Bool = false
+    @State private var showingDeleteCommentAlert: Bool = false
+    @State private var likes: Int
+    @State private var isLiked: Bool = false
+    
+    // 게시판
+    @State private var groupID: String
+    @State private var title: String
+    @State private var content: String
+    @State private var writer: String
+    @State private var createdAt: Date
+    
+    // 댓글
+    @State private var isAnonymous: Bool = false
+    @StateObject private var groupViewModel = GroupViewModel()
+    @State private var commentContent = ""
+    @State private var commentWriter = "멋사"
     
     init(post: Post) {
-        self.post = post
+        self.postID = post.postID
+        groupID = post.groupID
+        title = post.title
+        content = post.content
+        writer = post.writer
+        createdAt = post.createdAt
+        likes = post.likes
     }
+    
+    // 현재 post를 계산 프로퍼티로 구현
+    private var post: Post {
+        viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date(), likes: 0)
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -43,26 +75,39 @@ struct PostDetailView: View {
                 // 댓글 갯수
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("댓글 \(viewModel.comments[post.postID]?.count ?? 0)개")
+                        Button(action: {
+                            isLiked.toggle()
+                            if isLiked {
+                                likes += 1
+                            } else {
+                                likes -= 1
+                            }
+                            viewModel.updatePost(postID: postID, groupID: post.groupID, title: post.title, content: post.content, writer: post.writer, createdAt: post.createdAt, likes: likes)
+                        }, label: {
+                            Text("좋아요 \(likes)개")
+                                .foregroundStyle(isLiked ? .red : .black)
+                                .font(.headline)
+                        })
+                        Text("댓글 \(viewModel.comments[postID]?.count ?? 0)개")
                             .font(.headline)
                         
                         Spacer()
-                        
-                        Button(action: {
-                            showingCommentForm = true
-                        }) {
-                            Text("댓글 작성")
-                                .font(.subheadline)
-                                .foregroundColor(.blue)
-                        }
+//                        // 미관상 없애는 것이 좋아서 주석처리함.
+//                        Button(action: {
+//                            showingCommentForm = true
+//                        }) {
+//                            Text("댓글 작성")
+//                                .font(.subheadline)
+//                                .foregroundColor(.blue)
+//                        }
                     }
-
-                    if (viewModel.comments[post.postID]?.count ?? 0) == 0 {
+                    
+                    if (viewModel.comments[postID]?.count ?? 0) == 0 {
                         Text("아직 댓글이 없습니다.")
                             .foregroundColor(.gray)
                             .padding(.vertical, 8)
                     } else {
-                        ForEach(viewModel.comments[post.postID]?.sorted(by: { $0.createdAt < $1.createdAt }) ?? [], id: \.id) { comment in
+                        ForEach(viewModel.comments[postID]?.sorted(by: { $0.createdAt < $1.createdAt }) ?? [], id: \.id) { comment in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
                                     Text(comment.writer)
@@ -74,6 +119,22 @@ struct PostDetailView: View {
                                     Text(formatDate(comment.createdAt))
                                         .font(.caption)
                                         .foregroundColor(.gray)
+                                    
+                                    Menu {
+                                        Button(role: .destructive, action: {
+                                            showingDeleteCommentAlert = true
+                                            commentID = comment.commentID
+                                        }) {
+                                            Label("삭제", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .rotationEffect(.degrees(90))
+                                            .font(.caption)
+                                            .foregroundColor(.black)
+                                            .padding(.leading, 4)
+                                    }
+                                    
                                 }
                                 
                                 Text(comment.content)
@@ -91,6 +152,54 @@ struct PostDetailView: View {
             .padding()
         }
         .navigationTitle(post.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(post.title)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.primary)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.backward")
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Menu(content: {
+                    Button(action: {
+                        showingEditPostAlert = true
+                    }) {
+                        HStack {
+                            Text("수정")
+                            Spacer()
+                            Image(systemName: "pencil")
+                        }
+                    }
+                    
+                    Button(action: {
+                        showingDeletePostAlert = true
+                    }) {
+                        HStack {
+                            Text("삭제")
+                            Spacer()
+                            Image(systemName: "trash")
+                        }
+                    }
+                }, label: {
+                    Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
+                })
+            }
+        }
         .onAppear {
             viewModel.fetchPosts()
         }
@@ -102,6 +211,63 @@ struct PostDetailView: View {
         }) {
             AddCommentView(post: post)
         }
+        .sheet(isPresented: $showingEditPostAlert, onDismiss: {
+            viewModel.fetchPosts()
+        }) {
+            EditPostView(post: post)
+        }
+        .alert("이 게시물을 삭제하시겠습니까?", isPresented: $showingDeletePostAlert) {
+            Button("취소", role: .cancel) { }
+            Button("확인", role: .destructive) {
+                viewModel.deletePost(postID: postID)
+                self.presentationMode.wrappedValue.dismiss()
+            }
+        }
+        .alert("이 댓글을 삭제하시겠습니까?", isPresented: $showingDeleteCommentAlert) {
+            Button("취소", role: .cancel) { }
+            Button("확인", role: .destructive) {
+                viewModel.deleteComment(postID: postID, commentID: commentID)
+            }
+        }
+        
+        // 댓글 입력 창
+        HStack {
+            Button(action: {
+                isAnonymous.toggle()
+                if isAnonymous {
+                    commentWriter = "익명"
+                } else {
+                    commentWriter = "익명"
+                }
+                
+            }, label: {
+                HStack {
+                    Image(systemName: isAnonymous ? "checkmark.square" : "square")
+                    Text("익명")
+                }
+                .foregroundStyle(isAnonymous ? .red : .gray)
+            })
+            
+            TextField("댓글을 입력하세요.", text: $commentContent)
+            
+            Button(action: {
+                if(!commentContent.isEmpty && !commentWriter.isEmpty) {
+                    viewModel.addComment(postID: postID, content: commentContent, writer: commentWriter)
+                    isAnonymous = false
+                    commentWriter = "멋사"
+                    commentContent = ""
+                }
+                viewModel.fetchPosts()
+            }, label: {
+                Image(systemName: "paperplane")
+                    .foregroundStyle(.red)
+            })
+            .disabled(commentContent.isEmpty || commentWriter.isEmpty)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.2))
+        .cornerRadius(10)
+        .frame(height: 40)
     }
     
     func formatDate(_ date: Date) -> String {

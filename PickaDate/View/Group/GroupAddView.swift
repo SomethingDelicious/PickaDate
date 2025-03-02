@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GroupAddView: View {
-    @State private var groupID: String = ""
+    @State private var groupName: String = ""
     @State private var leader: String = ""
     @State private var member: [String] = []
     
@@ -64,13 +64,8 @@ struct GroupAddView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
                     .foregroundStyle(.gray)
-                HStack {
-                        ForEach(viewModel.groups) { groupData in
-                            Text(groupData.groupID)
-                                .font(.headline)
-                        }
-                    }
-                TextField("", text: $groupID)
+
+                TextField("", text: $groupName)
                     .frame(width: 350, height: 50)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
@@ -122,16 +117,16 @@ struct GroupAddView: View {
                 }
                 .padding()
                 Button(action: {
-                    viewModel.addGroup(groupID: groupID, leader: leader, member: member)
+                    viewModel.addGroup(groupName: groupName, leader: leader, member: member)
                 }, label: {
                     Text("저장")
                         .foregroundStyle(.white)
                         .frame(width: 400, height: 50)
-                        .background((groupID == "" || leader == "" || member.isEmpty) ? Color.gray : Color.green)
+                        .background((groupName == "" || leader == "" || member.isEmpty) ? Color.gray : Color.green)
                         .cornerRadius(10)
                         .padding()
                 })
-                .disabled(groupID == "" && leader == "" && member.isEmpty)
+                .disabled(groupName == "" && leader == "" && member.isEmpty)
 
             }
         }

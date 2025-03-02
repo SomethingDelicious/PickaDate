@@ -16,4 +16,5 @@ struct Post: Identifiable, Codable {
     var content: String         //게시글 내용
     var writer: String          //게시글 작성자
     var createdAt: Date         //게시글 생성 날짜
+    var likes: Int              //좋아요 갯수
 }
