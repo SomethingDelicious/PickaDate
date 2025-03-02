@@ -1,0 +1,7 @@
+22:42:47.387 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+22:42:47.447 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+22:43:35.650 [NamespaceSystem-akka.actor.default-dispatcher-5] INFO com.firebase.core.namespace.NamespaceActor - somethingdelicious-4f258 successfully activated FBKV (SurveyIdle(0)) wait: 51ms, init: 0ms
+22:43:36.121 [Thread-0] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
+22:43:36.125 [NamespaceSystem-akka.actor.default-dispatcher-7] INFO com.firebase.core.namespace.Terminator$Terminator - 1 actors left to terminate: somethingdelicious-4f258
+22:43:36.129 [NamespaceSystem-akka.actor.default-dispatcher-7] INFO com.firebase.core.namespace.NamespaceActor - stopped namespace actor for somethingdelicious-4f258
+22:43:36.131 [Thread-0] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.
