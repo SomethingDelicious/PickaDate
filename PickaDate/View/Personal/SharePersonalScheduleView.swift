@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,8 +11,8 @@ struct SharePersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: User
-    let schedule: PersonalSchedule
+    let user: PDUser
+    let schedule: PDPersonalSchedule
     
     @State private var selectedGroups: Set<String> = []
     

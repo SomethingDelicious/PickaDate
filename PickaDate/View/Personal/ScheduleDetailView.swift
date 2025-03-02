@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,8 +11,8 @@ import FirebaseFirestore
 
 
 struct ScheduleDetailView: View {
-    let schedule: PersonalSchedule
-    let user: User
+    let schedule: PDPersonalSchedule
+    let user: PDUser
     @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
     @State private var isCopying = false

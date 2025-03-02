@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct User: Identifiable, Codable {
+struct PDUser: Identifiable, Codable {
     @DocumentID var id: String?
     var userID: String          //사용자 ID
     var userPW: String          //사용자 PW (임시, 수정 예정)

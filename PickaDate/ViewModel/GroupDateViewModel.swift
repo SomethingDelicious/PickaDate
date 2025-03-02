@@ -10,9 +10,9 @@ import FirebaseFirestore
 
 class GroupDateViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var userTestData: [UserTest] = []
-    @Published var personalSchedule: [PersonalSchedule] = []
-    @Published var groupSchedule: [GroupSchedule] = []
+    @Published var userTestData: [PDUserTest] = []
+    @Published var personalSchedule: [PDPersonalSchedule] = []
+    @Published var groupSchedule: [PDGroupSchedule] = []
     
     
     //테스트용
@@ -25,7 +25,7 @@ class GroupDateViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 self.userTestData = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: UserTest.self)
+                    try? doc.data(as: PDUserTest.self)
                 } ?? []
             }
         }
@@ -69,7 +69,7 @@ class GroupDateViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 self.personalSchedule = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: PersonalSchedule.self)
+                    try? doc.data(as: PDPersonalSchedule.self)
                 } ?? []
             }
         }
@@ -83,7 +83,7 @@ class GroupDateViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 self.groupSchedule = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: GroupSchedule.self)
+                    try? doc.data(as: PDGroupSchedule.self)
                 } ?? []
             }
         }

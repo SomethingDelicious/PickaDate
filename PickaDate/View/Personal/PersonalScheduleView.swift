@@ -1,5 +1,4 @@
 ////
-////  ContentView.swift
 ////  PickaDate
 ////
 ////  Created by 김태건 on 2/20/25.

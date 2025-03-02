@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        FirebaseApp.configure()
+        FirebaseApp.configure() // 파이어베이스 초기화
         
         // 앱의 시작 지점에서 에뮬레이터 설정
         #if DEBUG

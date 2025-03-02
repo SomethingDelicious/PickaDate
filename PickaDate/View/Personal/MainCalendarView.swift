@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,8 +7,8 @@
 import SwiftUI
 import FirebaseFirestore
 
-let dummyGroupSchedules: [GroupSchedule] = [
-    GroupSchedule(
+let dummyGroupSchedules: [PDGroupSchedule] = [
+    PDGroupSchedule(
         groupID: "group1",
         name: "운동하기",
         content: "헬스장에서 1시간 운동",
@@ -20,7 +19,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         groupColor: "red"
         
     ),
-    GroupSchedule(
+    PDGroupSchedule(
         groupID: "group1",
         name: "동아리 회의",
         content: "다음 프로젝트 계획 회의",
@@ -30,7 +29,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         ],
         groupColor: "green"
     ),
-    GroupSchedule(
+    PDGroupSchedule(
         groupID: "group2",
         name: "알고리즘 스터디",
         content: "백준 문제 풀이",
@@ -40,7 +39,7 @@ let dummyGroupSchedules: [GroupSchedule] = [
         ],
         groupColor: "blue"
     ),
-    GroupSchedule(
+    PDGroupSchedule(
         groupID: "group2",
         name: "동아리 회의",
         content: "다음 프로젝트 계획 회의",
@@ -97,7 +96,7 @@ struct MainCalendarView: View {
     @State var selectedCalendars: Set<String> = ["개인 캘린더"]
     
     //더미데이터
-    let user: User
+    let user: PDUser
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -294,7 +293,7 @@ private struct CalendarHeaderView: View {
     @Binding var currentMonth: Date
     @Binding var selectedYear: Int
     @Binding var selectedMonth: Int
-    let user: User
+    let user: PDUser
     @State private var isShowingDatePicker = false
     @State private var isChoosing = false
     @Binding var selectedCalendars: Set<String>

@@ -10,8 +10,8 @@ import FirebaseFirestore
 
 class FirestoreViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var userTestData: [UserTest] = []
-    @Published var personalSchedule: [PersonalSchedule] = []
+    @Published var userTestData: [PDUserTest] = []
+    @Published var personalSchedule: [PDPersonalSchedule] = []
     
     
     //테스트용
@@ -24,7 +24,7 @@ class FirestoreViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 self.userTestData = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: UserTest.self)
+                    try? doc.data(as: PDUserTest.self)
                 } ?? []
             }
         }
@@ -68,7 +68,7 @@ class FirestoreViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 self.personalSchedule = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: PersonalSchedule.self)
+                    try? doc.data(as: PDPersonalSchedule.self)
                 } ?? []
             }
         }

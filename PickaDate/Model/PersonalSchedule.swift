@@ -19,7 +19,7 @@ let colorMap: [String: Color] = [
     "brown": .brown
 ]
 
-struct PersonalSchedule: Identifiable, Codable {
+struct PDPersonalSchedule: Identifiable, Codable {
     @DocumentID var id: String?
     var userID: String          //사용자 ID
     var name: String            //개인 일정 이름

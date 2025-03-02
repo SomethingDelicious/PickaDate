@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct Post: Identifiable, Codable {
+struct PDPost: Identifiable, Codable {
     @DocumentID var id: String?
     var postID: String          //게시글 ID
     var groupID: String         //그룹 이름

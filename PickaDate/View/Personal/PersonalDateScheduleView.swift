@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -15,8 +14,8 @@ struct PersonalDateScheduleView: View {
     
     
     var selectedDate: Date
-    var schedules: [PersonalSchedule]
-    let user: User
+    var schedules: [PDPersonalSchedule]
+    let user: PDUser
     
     var body: some View {
         NavigationView {

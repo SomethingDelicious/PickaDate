@@ -33,7 +33,7 @@ struct PostDetailView: View {
     @State private var commentContent = ""
     @State private var commentWriter = "멋사"
     
-    init(post: Post) {
+    init(post: PDPost) {
         self.postID = post.postID
         groupID = post.groupID
         title = post.title
@@ -44,8 +44,8 @@ struct PostDetailView: View {
     }
     
     // 현재 post를 계산 프로퍼티로 구현
-    private var post: Post {
-        viewModel.posts.first { $0.postID == postID } ?? Post(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date(), likes: 0)
+    private var post: PDPost {
+        viewModel.posts.first { $0.postID == postID } ?? PDPost(postID: "", groupID: "", title: "", content: "", writer: "", createdAt: Date(), likes: 0)
     }
     
     var body: some View {

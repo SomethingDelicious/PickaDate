@@ -11,13 +11,13 @@ struct AddCommentView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = PostViewModel()
     
-    @State private var post: Post
+    @State private var post: PDPost
     @State private var content = ""
     @State private var writer = "작성자명"
     
     @State private var isAnonymous: Bool = false
     
-    init(post: Post) {
+    init(post: PDPost) {
         self.post = post
     }
     

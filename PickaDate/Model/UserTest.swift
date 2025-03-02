@@ -10,7 +10,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct UserTest: Identifiable, Codable {
+struct PDUserTest: Identifiable, Codable {
     @DocumentID var id: String?
     var text: String
     var num: Int

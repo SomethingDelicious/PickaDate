@@ -10,8 +10,8 @@ import FirebaseFirestore
 
 class PostViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var posts: [Post] = []
-    @Published var comments: [String: [Comment]] = [:] // [postid : 댓글 내용]
+    @Published var posts: [PDPost] = []
+    @Published var comments: [String: [PDComment]] = [:] // [postid : 댓글 내용]
     
     // 가져오기(fetch)
     // 게시판 정보 가져오기
@@ -24,7 +24,7 @@ class PostViewModel: ObservableObject {
             print("[L]post 가져오기 성공")
             DispatchQueue.main.async {
                 self.posts = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: Post.self)
+                    try? doc.data(as: PDPost.self)
                 } ?? []
                 
                 for post in self.posts {
@@ -46,7 +46,7 @@ class PostViewModel: ObservableObject {
                 print("[L]댓글 가져오기 성공")
                 DispatchQueue.main.async {
                     self.comments[postID] = snapshot?.documents.compactMap { doc in
-                        try? doc.data(as: Comment.self)
+                        try? doc.data(as: PDComment.self)
                     } ?? []
                 }
             }

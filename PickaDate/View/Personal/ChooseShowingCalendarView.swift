@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,7 +11,7 @@ struct ChooseShowingCalendarView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: User
+    let user: PDUser
     
     @Binding var selectedCalendars: Set<String>
     

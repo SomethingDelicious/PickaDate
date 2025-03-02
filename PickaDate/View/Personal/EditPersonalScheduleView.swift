@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,8 +11,8 @@ struct EditPersonalScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
-    let user: User
-    let schedule: PersonalSchedule
+    let user: PDUser
+    let schedule: PDPersonalSchedule
     @State private var currentDate = Date()
     
     @State private var name: String
@@ -24,7 +23,7 @@ struct EditPersonalScheduleView: View {
     @State private var selectedColor: String
     @State private var isAllDay: Bool = false
     
-    init(user: User, schedule: PersonalSchedule) {
+    init(user: PDUser, schedule: PDPersonalSchedule) {
         self.user = user
         self.schedule = schedule
         
