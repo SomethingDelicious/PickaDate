@@ -1,5 +1,5 @@
 //
-//  GroupDateView.swift
+//  GroupCalendarView.swift
 //  PickaDate
 //
 //  Created by NoelMacMini on 2/22/25.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct GroupDateView: View {
+struct GroupCalendarView: View {
     // MARK: - Properties
-    @StateObject private var viewModel = GroupDateViewModel()
+    @StateObject private var viewModel = GroupCalendarViewModel()
     @State private var selectedDate = Date() // 선택된 날짜를 저장
     @State private var currentMonth: Date = Date()  // 현재 표시중인 월
     @State private var isShowingAddGroupSchedulePeriod = false
@@ -294,5 +294,5 @@ struct GroupDateView: View {
 
 // MARK: - Preview
 #Preview {
-    GroupDateView()
+    GroupCalendarView()
 }

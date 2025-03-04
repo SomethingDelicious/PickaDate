@@ -26,7 +26,7 @@ struct HomeView: View {
                     }
                     .tag(0)
                 
-                MainCalendarView(user: user)
+                PersonalCalendarView(user: user)
                     .tabItem {
                         Image(systemName: "person.fill")
                         Text("개인")
@@ -39,7 +39,7 @@ struct HomeView: View {
                     }
                     .tag(2)
                 
-                GroupDateView()
+                GroupCalendarView()
                     .tabItem {
                         Image(systemName: "person.3.sequence.fill")
                         Text("그룹")

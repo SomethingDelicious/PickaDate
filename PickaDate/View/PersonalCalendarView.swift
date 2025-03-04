@@ -88,7 +88,7 @@ struct DayCellBoundsKey: PreferenceKey {
         value.merge(nextValue()) { $1 }
     }
 }
-struct MainCalendarView: View {
+struct PersonalCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
@@ -408,7 +408,7 @@ private struct WeekdayHeaderView: View {
 }
 
 // 날짜 관련 기능, 일정 생성 및 트랙 배치 등 주요 로직들을 여기에 정의합니다.
-extension MainCalendarView {
+extension PersonalCalendarView {
     
     // (A) 개인 일정과 그룹 일정을 Event 배열로 변환
     // Firestore의 Timestamp를 Date로 변환하는 convertToDate 함수를 활용합니다.

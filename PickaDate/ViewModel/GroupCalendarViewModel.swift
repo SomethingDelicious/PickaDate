@@ -1,5 +1,5 @@
 //
-//  GroupDateViewModel.swift
+//  GroupCalendarViewModel.swift
 //  PickaDate
 //
 //  Created by NoelMacMini on 2/23/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-class GroupDateViewModel: ObservableObject {
+class GroupCalendarViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
     @Published var userData: [PDUser] = []
     @Published var personalSchedule: [PDPersonalSchedule] = []
