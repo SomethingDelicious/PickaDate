@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,12 +7,13 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct SharePersonalScheduleView: View {
+struct ShareUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     
-    let user: User
-    let schedule: PersonalSchedule
+    let user: PDUser
+    let schedule: PDUserSchedule
     
     @State private var selectedGroups: Set<String> = []
     
@@ -24,7 +24,7 @@ struct SharePersonalScheduleView: View {
                 
                 VStack(alignment: .leading) {
                     
-                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                         .frame(height: 200)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
@@ -43,16 +43,16 @@ struct SharePersonalScheduleView: View {
                     presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("저장") {
-                    updatePersonalSchedule()
+                    updateUserSchedule()
                     presentationMode.wrappedValue.dismiss()
                 }
             )
 
 
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
-                selectedGroups = Set(schedule.groupID)
+                userViewModel.fetchUsers()
+                calendarViewModel.fetchUserSchedules()
+                selectedGroups = Set(schedule.groupIDs)
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))
@@ -64,21 +64,21 @@ struct SharePersonalScheduleView: View {
         formatter.dateFormat = "yyyy년 MM월 dd일"
         return formatter.string(from: date)
     }
-    func updatePersonalSchedule() {
+    func updateUserSchedule() {
         let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
         
         guard let scheduleID = schedule.id else {
             print("오류: schedule.id가 nil입니다.")
             return
         }
-        viewModel.updatePersonalSchedule(
+        calendarViewModel.updateUserSchedule(
             scheduleID: scheduleID,
             userID: user.userID,
             name: schedule.name,
             content: schedule.content,
-            groupID: updatedGroupIDArray,
+            groupIDs: updatedGroupIDArray,
             schedule: schedule.schedule,
-            personalColor: schedule.personalColor
+            userScheduleColor: schedule.userScheduleColor
         )
     }
 

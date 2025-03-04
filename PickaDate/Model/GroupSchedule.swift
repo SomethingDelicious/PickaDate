@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct GroupSchedule: Identifiable, Codable {
+struct PDGroupSchedule: Identifiable, Codable {
     @DocumentID var id: String?
     var groupID: String             //그룹 이름
     var name: String                //그룹 일정 이름

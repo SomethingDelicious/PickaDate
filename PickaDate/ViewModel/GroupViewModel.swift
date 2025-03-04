@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 class GroupViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var groups: [Group] = []
+    @Published var groups: [PDGroup] = []
     
     // 그룹 정보 가져오기
     func fetchGroups() {
@@ -22,7 +22,7 @@ class GroupViewModel: ObservableObject {
             print("[L]그룹 가져오기 성공")
             DispatchQueue.main.async {
                 self.groups = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: Group.self)
+                    try? doc.data(as: PDGroup.self)
                 } ?? []
             }
         }

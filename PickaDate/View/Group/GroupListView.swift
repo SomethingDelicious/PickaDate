@@ -4,7 +4,7 @@ struct GroupListView: View {
     @StateObject private var viewModel = GroupViewModel()
     @State private var searchText: String = "" // 검색 텍스트
     
-    var filteredGroups: [Group] {
+    var filteredGroups: [PDGroup] {
         if searchText.isEmpty {
             return viewModel.groups
         } else {
@@ -53,7 +53,7 @@ struct GroupListView: View {
 }
 
 struct GroupRowView: View {
-    var group: Group
+    var group: PDGroup
     
     var body: some View {
         VStack(alignment: .leading) {

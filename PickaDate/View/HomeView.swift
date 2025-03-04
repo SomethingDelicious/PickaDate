@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -7,15 +6,15 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+struct HomeView: View {
+    @StateObject private var userCalendarViewModel = UserCalendarViewModel()
     @State private var selectedTab = 0
     
     //더미데이터
-    let user = User.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
+    let user = PDUser.init(userID: "1234", email: "user123@gmail.com", userName: "name123", registeredAt: Date(), joinedGroups: ["group1", "group2"])
     let groupName = "맛있는거사조"
     
-    @State private var isShowingPersonalScheduleView = false
+    @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
     var body: some View {
         ZStack {
@@ -27,7 +26,7 @@ struct ContentView: View {
                     }
                     .tag(0)
                 
-                MainCalendarView(user: user)
+                UserCalendarView(user: user)
                     .tabItem {
                         Image(systemName: "person.fill")
                         Text("개인")
@@ -40,7 +39,7 @@ struct ContentView: View {
                     }
                     .tag(2)
                 
-                GroupDateView()
+                GroupCalendarView()
                     .tabItem {
                         Image(systemName: "person.3.sequence.fill")
                         Text("그룹")
@@ -61,7 +60,7 @@ struct ContentView: View {
                     Button(action: {
                         if selectedTab == 1 {
                             print("개인 일정 추가 화면")
-                            isShowingPersonalScheduleView = true
+                            isShowingUserScheduleView = true
                         } else if selectedTab == 3 {
                             print("그룹 일정 추가 화면")
                             isShowingGroupScheduleView = true
@@ -76,10 +75,10 @@ struct ContentView: View {
                             .shadow(radius: 4)
                     }
                     //.offset(y: -30)
-                    .sheet(isPresented: $isShowingPersonalScheduleView, onDismiss: {
-                        viewModel.fetchPersonalSchedules()
+                    .sheet(isPresented: $isShowingUserScheduleView, onDismiss: {
+                        userCalendarViewModel.fetchUserSchedules()
                     }) {
-                        AddPersonalScheduleView(user: user, selectedDate: Date())
+                        AddUserScheduleView(user: user, selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
                         AddGroupScheduleView(groupName: groupName)
@@ -91,46 +90,5 @@ struct ContentView: View {
         }
         
     }
-    
-    //        NavigationView {
-    //            VStack {
-    //                List(viewModel.userTestData) { userTestData in
-    //                    HStack {
-    //                        VStack(alignment: .leading) {
-    //                            Text(userTestData.text).font(.headline)
-    //                            Text("숫자: \(userTestData.num)").font(.subheadline)
-    //                        }
-    //                        Spacer()
-    //                        Button(action: {
-    //                            if let userId = userTestData.id {
-    //                                viewModel.deleteUser(userId: userId)
-    //                            }
-    //                        }) {
-    //                            Image(systemName: "trash")
-    //                                .foregroundColor(.red)
-    //                        }
-    //                    }
-    //
-    //                }
-    //                NavigationLink(destination: PersonalScheduleView()) {
-    //                    Text("개인 일정 보기")
-    //                        .font(.headline)
-    //                        .padding()
-    //                        .frame(maxWidth: .infinity)
-    //                        .background(Color.blue)
-    //                        .foregroundColor(.white)
-    //                        .cornerRadius(10)
-    //                }
-    //                .padding()
-    //                Button("데이터 추가") {
-    //                    viewModel.addUser(text: "텍스트", num: 26)
-    //                }
-    //                .padding()
-    //            }
-    //            .navigationTitle("데이터 목록")
-    //            .onAppear {
-    //                viewModel.fetchUsers()
-    //            }
-    //        }
 }
 

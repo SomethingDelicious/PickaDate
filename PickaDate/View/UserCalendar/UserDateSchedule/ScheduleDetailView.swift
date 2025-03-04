@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,13 +11,13 @@ import FirebaseFirestore
 
 
 struct ScheduleDetailView: View {
-    let schedule: PersonalSchedule
-    let user: User
+    let schedule: PDUserSchedule
+    let user: PDUser
     @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
     @State private var isCopying = false
     @State private var isSharing = false
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     
     var body: some View {
         NavigationStack {
@@ -98,7 +97,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "paintpalette")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(schedule.personalColor)
+                        Text(schedule.userScheduleColor)
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
@@ -108,7 +107,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(schedule.groupID.isEmpty ? "없음" : schedule.groupID.joined(separator: ", "))
+                        Text(schedule.groupIDs.isEmpty ? "없음" : schedule.groupIDs.joined(separator: ", "))
                             .font(.body)
                             .foregroundColor(.black)
 
@@ -128,7 +127,7 @@ struct ScheduleDetailView: View {
                 
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
             
         }
@@ -163,7 +162,7 @@ struct ScheduleDetailView: View {
                             print("schedule.id가 nil")
                             return
                         }
-                        viewModel.deletePersonalSchedule(scheduleID: scheduleID)
+                        viewModel.deleteUserSchedule(scheduleID: scheduleID)
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
@@ -178,20 +177,20 @@ struct ScheduleDetailView: View {
             
         }
         .sheet(isPresented: $isEditing, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            viewModel.fetchUserSchedules()
         }) {
-            EditPersonalScheduleView(user: user, schedule: schedule)
+            EditUserScheduleView(user: user, schedule: schedule)
         }
         .sheet(isPresented: $isCopying, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            viewModel.fetchUserSchedules()
         }) {
-            CopyPersonalScheduleView(user: user, schedule: schedule)
+            CopyUserScheduleView(user: user, schedule: schedule)
                 .environmentObject(viewModel)
         }
         .sheet(isPresented: $isSharing, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            viewModel.fetchUserSchedules()
         }) {
-            SharePersonalScheduleView(user: user, schedule: schedule)
+            ShareUserScheduleView(user: user, schedule: schedule)
                 .environmentObject(viewModel)
         }
         

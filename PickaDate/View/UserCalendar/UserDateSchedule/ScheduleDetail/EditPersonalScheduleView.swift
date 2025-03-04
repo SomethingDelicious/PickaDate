@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,12 +7,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct EditPersonalScheduleView: View {
+struct EditUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     
-    let user: User
-    let schedule: PersonalSchedule
+    let user: PDUser
+    let schedule: PDUserSchedule
     @State private var currentDate = Date()
     
     @State private var name: String
@@ -24,13 +23,13 @@ struct EditPersonalScheduleView: View {
     @State private var selectedColor: String
     @State private var isAllDay: Bool = false
     
-    init(user: User, schedule: PersonalSchedule) {
+    init(user: PDUser, schedule: PDUserSchedule) {
         self.user = user
         self.schedule = schedule
         
         _name = State(initialValue: schedule.name)
         _content = State(initialValue: schedule.content)
-        _selectedGroups = State(initialValue: Set(schedule.groupID))
+        _selectedGroups = State(initialValue: Set(schedule.groupIDs))
         if let firstSchedule = schedule.schedule.first {
             _startDate = State(initialValue: firstSchedule.startTime)
             _endDate = State(initialValue: firstSchedule.endTime)
@@ -41,7 +40,7 @@ struct EditPersonalScheduleView: View {
             _isAllDay = State(initialValue: false)
         }
         
-        _selectedColor = State(initialValue: schedule.personalColor)
+        _selectedColor = State(initialValue: schedule.userScheduleColor)
     }
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
@@ -91,7 +90,7 @@ struct EditPersonalScheduleView: View {
                 }
                 
                 Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
@@ -123,7 +122,7 @@ struct EditPersonalScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         
@@ -136,7 +135,7 @@ struct EditPersonalScheduleView: View {
         let finalStartDate = isAllDay ? calendar.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? calendar.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        var updatedSchedule: [TimeSlotPersonal] = []
+        var updatedSchedule: [UserTimeSlot] = []
 
         if isAllDay {
             var currentDate = finalStartDate
@@ -144,11 +143,11 @@ struct EditPersonalScheduleView: View {
                 let dayStart = calendar.startOfDay(for: currentDate)
                 let dayEnd = calendar.startOfDay(for: currentDate).addingTimeInterval(86399)
 
-                updatedSchedule.append(TimeSlotPersonal(startTime: dayStart, endTime: dayEnd, isAllDay: true))
+                updatedSchedule.append(UserTimeSlot(startTime: dayStart, endTime: dayEnd, isAllDay: true))
                 currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
             }
         } else {
-            updatedSchedule.append(TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
+            updatedSchedule.append(UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
         }
 
         let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
@@ -158,47 +157,16 @@ struct EditPersonalScheduleView: View {
             return
         }
 
-        viewModel.updatePersonalSchedule(
+        viewModel.updateUserSchedule(
             scheduleID: scheduleID,
             userID: user.userID,
             name: name,
             content: content,
-            groupID: updatedGroupIDArray,
+            groupIDs: updatedGroupIDArray,
             schedule: updatedSchedule,
-            personalColor: selectedColor
+            userScheduleColor: selectedColor
         )
 
         presentationMode.wrappedValue.dismiss()
     }
-
 }
-//struct MultiSelectGroupView: View {
-//    let userGroups: [String]
-//    @Binding var selectedGroups: Set<String>
-//    
-//    var body: some View {
-//        List {
-//            ForEach(userGroups, id: \.self) { group in
-//                HStack {
-//                    Text(group)
-//                    Spacer()
-//                    if selectedGroups.contains(group) {
-//                        Image(systemName: "checkmark.circle.fill")
-//                            .foregroundColor(.blue)
-//                    } else {
-//                        Image(systemName: "circle")
-//                            .foregroundColor(.gray)
-//                    }
-//                }
-//                .contentShape(Rectangle())
-//                .onTapGesture {
-//                    if selectedGroups.contains(group) {
-//                        selectedGroups.remove(group)
-//                    } else {
-//                        selectedGroups.insert(group)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}

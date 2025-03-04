@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,15 +7,15 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct PersonalDateScheduleView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+struct UserDateScheduleView: View {
+    @StateObject private var viewModel = UserCalendarViewModel()
     @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     
     
     var selectedDate: Date
-    var schedules: [PersonalSchedule]
-    let user: User
+    var schedules: [PDUserSchedule]
+    let user: PDUser
     
     var body: some View {
         NavigationView {
@@ -36,7 +35,7 @@ struct PersonalDateScheduleView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                                 
-                                Text("그룹: \(schedule.groupID.joined(separator: ", "))")
+                                Text("그룹: \(schedule.groupIDs.joined(separator: ", "))")
                                     .font(.caption)
                                     .foregroundColor(.white)
                             }
@@ -70,15 +69,15 @@ struct PersonalDateScheduleView: View {
                             .foregroundStyle(.black)
                     }
                     .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
-                        viewModel.fetchPersonalSchedules()
+                        viewModel.fetchUserSchedules()
                     }) {
-                        AddPersonalScheduleView(user: user, selectedDate: selectedDate)
+                        AddUserScheduleView(user: user, selectedDate: selectedDate)
                     }
                     
                 }
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         

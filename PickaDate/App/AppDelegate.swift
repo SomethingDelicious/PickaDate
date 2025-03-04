@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        FirebaseApp.configure()
+        FirebaseApp.configure() // 파이어베이스 초기화
         
         // 앱의 시작 지점에서 에뮬레이터 설정
         #if DEBUG
@@ -35,13 +35,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         Auth.auth().useEmulator(withHost: "localhost", port: 9099) // Authentication 에뮬레이터, 직접 적용됨
         // let storage = Storage.storage()
         Storage.storage().useEmulator(withHost: "localhost", port: 9199) // Storage 에뮬레이터, 직접 적용됨
-        
-//        #else
-//        // 프로덕션 환경 설정, 릴리즈 모드(실제 배포)일 때만 실행되는 코드
-//        let settings = Firestore.firestore().settings
-//        settings.isPersistenceEnabled = true      // 실제 환경에서 캐싱 활성화
-//        settings.cacheSizeBytes = FirestoreCacheSizeBytes.MB_100  // 캐시 크기 설정 (기본값: 40MB)
-//        Firestore.firestore().settings = settings // 설정 적용 필요
         #endif
         
         return true

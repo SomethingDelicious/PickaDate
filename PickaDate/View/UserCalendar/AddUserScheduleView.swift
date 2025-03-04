@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -19,11 +18,12 @@ extension EnvironmentValues {
     }
 }
 
-struct AddPersonalScheduleView: View {
+struct AddUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     
-    let user: User
+    let user: PDUser
     let selectedDate: Date
     
     @State private var name: String = ""
@@ -46,7 +46,7 @@ struct AddPersonalScheduleView: View {
         "brown": .brown
     ]
     
-    init(user: User, selectedDate: Date) {
+    init(user: PDUser, selectedDate: Date) {
         self.user = user
         self.selectedDate = selectedDate
         self._startDate = State(initialValue: selectedDate)
@@ -90,7 +90,7 @@ struct AddPersonalScheduleView: View {
                 
                 
                 Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
@@ -122,8 +122,8 @@ struct AddPersonalScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                userViewModel.fetchUsers()
+                calendarViewModel.fetchUserSchedules()
             }
         }
         
@@ -135,11 +135,11 @@ struct AddPersonalScheduleView: View {
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
+        let schedule = [UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate)]
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupID: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
+        calendarViewModel.addUserSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }
