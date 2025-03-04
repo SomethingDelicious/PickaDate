@@ -89,7 +89,7 @@ struct DayCellBoundsKey: PreferenceKey {
     }
 }
 struct UserCalendarView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
     @State private var currentMonth: Date = Date() //월
@@ -289,7 +289,8 @@ private struct DayCell: View {
 }
 
 private struct CalendarHeaderView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     @Binding var currentMonth: Date
     @Binding var selectedYear: Int
     @Binding var selectedMonth: Int
@@ -382,8 +383,8 @@ private struct CalendarHeaderView: View {
         }
         .padding()
         .sheet(isPresented: $isChoosing, onDismiss: {
-            viewModel.fetchUserSchedules()
-            viewModel.fetchUsers()
+            calendarViewModel.fetchUserSchedules()
+            userViewModel.fetchUsers()
         }) {
             ChooseShowingCalendarView(
                 user: user,

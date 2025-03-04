@@ -9,7 +9,8 @@ import FirebaseFirestore
 
 struct ChooseShowingCalendarView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     
     let user: PDUser
     
@@ -61,8 +62,8 @@ struct ChooseShowingCalendarView: View {
             
             
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUsers()
+                calendarViewModel.fetchUserSchedules()
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))

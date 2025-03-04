@@ -8,7 +8,7 @@ import SwiftUI
 import FirebaseFirestore
 
 struct UserDateScheduleView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     

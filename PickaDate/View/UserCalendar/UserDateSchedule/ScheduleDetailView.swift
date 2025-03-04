@@ -17,7 +17,7 @@ struct ScheduleDetailView: View {
     @State private var isEditing = false
     @State private var isCopying = false
     @State private var isSharing = false
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     
     var body: some View {
         NavigationStack {

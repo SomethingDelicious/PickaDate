@@ -9,7 +9,8 @@ import FirebaseFirestore
 
 struct ShareUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     
     let user: PDUser
     let schedule: PDUserSchedule
@@ -49,8 +50,8 @@ struct ShareUserScheduleView: View {
 
 
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUsers()
+                calendarViewModel.fetchUserSchedules()
                 selectedGroups = Set(schedule.groupIDs)
             }
         }
@@ -70,7 +71,7 @@ struct ShareUserScheduleView: View {
             print("오류: schedule.id가 nil입니다.")
             return
         }
-        viewModel.updateUserSchedule(
+        calendarViewModel.updateUserSchedule(
             scheduleID: scheduleID,
             userID: user.userID,
             name: schedule.name,

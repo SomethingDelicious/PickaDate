@@ -13,6 +13,7 @@ class UserCalendarViewModel: ObservableObject {
     @Published var userData: [PDUser] = []
     @Published var userSchedule: [PDUserSchedule] = []
     
+    // 유저스케쥴 가져오기
     func fetchUserSchedules() {
         fsDB.collection("userSchedules").getDocuments { snapshot, error in
             if let error = error {
@@ -28,6 +29,7 @@ class UserCalendarViewModel: ObservableObject {
         }
     }
     
+    // 유저스케쥴 추가하기
     func addUserSchedule(userID: String, name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
         let scheduleData = schedule.map { slot in
             return [
@@ -56,6 +58,8 @@ class UserCalendarViewModel: ObservableObject {
             }
         }
     }
+    
+    // 유저스케쥴 업데이트하기
     func updateUserSchedule(scheduleID: String, userID: String, name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
         let scheduleData = schedule.map { slot in
             return [
@@ -86,7 +90,7 @@ class UserCalendarViewModel: ObservableObject {
         }
     }
     
-    
+    // 유저스케쥴 삭제하기
     func deleteUserSchedule(scheduleID: String) {
         fsDB.collection("userSchedule").document(scheduleID).delete { error in
             if let error = error {

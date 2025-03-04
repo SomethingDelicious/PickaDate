@@ -20,7 +20,8 @@ extension EnvironmentValues {
 
 struct AddUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var calendarViewModel = UserCalendarViewModel()
     
     let user: PDUser
     let selectedDate: Date
@@ -121,8 +122,8 @@ struct AddUserScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUsers()
+                calendarViewModel.fetchUserSchedules()
             }
         }
         
@@ -138,7 +139,7 @@ struct AddUserScheduleView: View {
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        viewModel.addUserSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
+        calendarViewModel.addUserSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

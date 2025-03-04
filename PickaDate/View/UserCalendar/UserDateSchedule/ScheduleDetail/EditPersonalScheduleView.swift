@@ -9,7 +9,7 @@ import FirebaseFirestore
 
 struct EditUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var viewModel = UserCalendarViewModel()
     
     let user: PDUser
     let schedule: PDUserSchedule

@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+    @StateObject private var userCalendarViewModel = UserCalendarViewModel()
     @State private var selectedTab = 0
     
     //더미데이터
@@ -76,7 +76,7 @@ struct HomeView: View {
                     }
                     //.offset(y: -30)
                     .sheet(isPresented: $isShowingUserScheduleView, onDismiss: {
-                        viewModel.fetchUserSchedules()
+                        userCalendarViewModel.fetchUserSchedules()
                     }) {
                         AddUserScheduleView(user: user, selectedDate: Date())
                     }
