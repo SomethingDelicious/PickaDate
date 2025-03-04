@@ -14,7 +14,7 @@ struct HomeView: View {
     let user = PDUser.init(userID: "1234", email: "user123@gmail.com", userName: "name123", registeredAt: Date(), joinedGroups: ["group1", "group2"])
     let groupName = "맛있는거사조"
     
-    @State private var isShowingPersonalScheduleView = false
+    @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
     var body: some View {
         ZStack {
@@ -26,7 +26,7 @@ struct HomeView: View {
                     }
                     .tag(0)
                 
-                PersonalCalendarView(user: user)
+                UserCalendarView(user: user)
                     .tabItem {
                         Image(systemName: "person.fill")
                         Text("개인")
@@ -60,7 +60,7 @@ struct HomeView: View {
                     Button(action: {
                         if selectedTab == 1 {
                             print("개인 일정 추가 화면")
-                            isShowingPersonalScheduleView = true
+                            isShowingUserScheduleView = true
                         } else if selectedTab == 3 {
                             print("그룹 일정 추가 화면")
                             isShowingGroupScheduleView = true
@@ -75,10 +75,10 @@ struct HomeView: View {
                             .shadow(radius: 4)
                     }
                     //.offset(y: -30)
-                    .sheet(isPresented: $isShowingPersonalScheduleView, onDismiss: {
-                        viewModel.fetchPersonalSchedules()
+                    .sheet(isPresented: $isShowingUserScheduleView, onDismiss: {
+                        viewModel.fetchUserSchedules()
                     }) {
-                        AddPersonalScheduleView(user: user, selectedDate: Date())
+                        AddUserScheduleView(user: user, selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
                         AddGroupScheduleView(groupName: groupName)

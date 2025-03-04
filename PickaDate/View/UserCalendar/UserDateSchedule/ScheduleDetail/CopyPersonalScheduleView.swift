@@ -7,12 +7,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct CopyPersonalScheduleView: View {
+struct CopyUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: PDUser
-    let schedule: PDPersonalSchedule
+    let schedule: PDUserSchedule
     @State private var selectedDates: Set<Date> = []
     @State private var currentMonth: Date = Date()
     
@@ -161,23 +161,23 @@ struct CopyPersonalScheduleView: View {
         }
         print("newDates: \(newDates)")
         for date in newDates {
-            let newTimeSlots = schedule.schedule.map { timeSlot -> TimeSlotPersonal in
+            let newTimeSlots = schedule.schedule.map { timeSlot -> UserTimeSlot in
                 let originalStartTime = timeSlot.startTime
                 let timeOffset = originalStartTime.timeIntervalSince(Calendar.current.startOfDay(for: originalStartTime))
                 
                 let newStartTime = Calendar.current.startOfDay(for: date).addingTimeInterval(timeOffset)
                 let newEndTime = newStartTime.addingTimeInterval(timeSlot.endTime.timeIntervalSince(originalStartTime))
                 
-                return TimeSlotPersonal(startTime: newStartTime, endTime: newEndTime, isAllDay: timeSlot.isAllDay)
+                return UserTimeSlot(startTime: newStartTime, endTime: newEndTime, isAllDay: timeSlot.isAllDay)
             }
             
-            viewModel.addPersonalSchedule(
+            viewModel.addUserSchedule(
                 userID: schedule.userID,
                 name: schedule.name,
                 content: schedule.content,
                 groupIDs: schedule.groupIDs,
                 schedule: newTimeSlots,
-                personalColor: schedule.personalColor
+                userScheduleColor: schedule.userScheduleColor
             )
         }
         

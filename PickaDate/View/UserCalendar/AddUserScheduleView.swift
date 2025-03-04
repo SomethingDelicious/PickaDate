@@ -18,7 +18,7 @@ extension EnvironmentValues {
     }
 }
 
-struct AddPersonalScheduleView: View {
+struct AddUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
@@ -122,7 +122,7 @@ struct AddPersonalScheduleView: View {
             }
             .onAppear {
                 viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         
@@ -134,11 +134,11 @@ struct AddPersonalScheduleView: View {
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
+        let schedule = [UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate)]
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
+        viewModel.addUserSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

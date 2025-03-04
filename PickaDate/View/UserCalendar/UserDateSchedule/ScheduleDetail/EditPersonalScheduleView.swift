@@ -7,12 +7,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct EditPersonalScheduleView: View {
+struct EditUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: PDUser
-    let schedule: PDPersonalSchedule
+    let schedule: PDUserSchedule
     @State private var currentDate = Date()
     
     @State private var name: String
@@ -23,7 +23,7 @@ struct EditPersonalScheduleView: View {
     @State private var selectedColor: String
     @State private var isAllDay: Bool = false
     
-    init(user: PDUser, schedule: PDPersonalSchedule) {
+    init(user: PDUser, schedule: PDUserSchedule) {
         self.user = user
         self.schedule = schedule
         
@@ -40,7 +40,7 @@ struct EditPersonalScheduleView: View {
             _isAllDay = State(initialValue: false)
         }
         
-        _selectedColor = State(initialValue: schedule.personalColor)
+        _selectedColor = State(initialValue: schedule.userScheduleColor)
     }
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
@@ -122,7 +122,7 @@ struct EditPersonalScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         
@@ -135,7 +135,7 @@ struct EditPersonalScheduleView: View {
         let finalStartDate = isAllDay ? calendar.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? calendar.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        var updatedSchedule: [TimeSlotPersonal] = []
+        var updatedSchedule: [UserTimeSlot] = []
 
         if isAllDay {
             var currentDate = finalStartDate
@@ -143,11 +143,11 @@ struct EditPersonalScheduleView: View {
                 let dayStart = calendar.startOfDay(for: currentDate)
                 let dayEnd = calendar.startOfDay(for: currentDate).addingTimeInterval(86399)
 
-                updatedSchedule.append(TimeSlotPersonal(startTime: dayStart, endTime: dayEnd, isAllDay: true))
+                updatedSchedule.append(UserTimeSlot(startTime: dayStart, endTime: dayEnd, isAllDay: true))
                 currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
             }
         } else {
-            updatedSchedule.append(TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
+            updatedSchedule.append(UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
         }
 
         let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
@@ -157,14 +157,14 @@ struct EditPersonalScheduleView: View {
             return
         }
 
-        viewModel.updatePersonalSchedule(
+        viewModel.updateUserSchedule(
             scheduleID: scheduleID,
             userID: user.userID,
             name: name,
             content: content,
-            groupID: updatedGroupIDArray,
+            groupIDs: updatedGroupIDArray,
             schedule: updatedSchedule,
-            personalColor: selectedColor
+            userScheduleColor: selectedColor
         )
 
         presentationMode.wrappedValue.dismiss()

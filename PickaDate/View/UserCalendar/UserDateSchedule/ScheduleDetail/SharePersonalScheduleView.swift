@@ -7,12 +7,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct SharePersonalScheduleView: View {
+struct ShareUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FirestoreViewModel()
     
     let user: PDUser
-    let schedule: PDPersonalSchedule
+    let schedule: PDUserSchedule
     
     @State private var selectedGroups: Set<String> = []
     
@@ -42,7 +42,7 @@ struct SharePersonalScheduleView: View {
                     presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("저장") {
-                    updatePersonalSchedule()
+                    updateUserSchedule()
                     presentationMode.wrappedValue.dismiss()
                 }
             )
@@ -50,7 +50,7 @@ struct SharePersonalScheduleView: View {
 
             .onAppear {
                 viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
                 selectedGroups = Set(schedule.groupIDs)
             }
         }
@@ -63,21 +63,21 @@ struct SharePersonalScheduleView: View {
         formatter.dateFormat = "yyyy년 MM월 dd일"
         return formatter.string(from: date)
     }
-    func updatePersonalSchedule() {
+    func updateUserSchedule() {
         let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
         
         guard let scheduleID = schedule.id else {
             print("오류: schedule.id가 nil입니다.")
             return
         }
-        viewModel.updatePersonalSchedule(
+        viewModel.updateUserSchedule(
             scheduleID: scheduleID,
             userID: user.userID,
             name: schedule.name,
             content: schedule.content,
-            groupID: updatedGroupIDArray,
+            groupIDs: updatedGroupIDArray,
             schedule: schedule.schedule,
-            personalColor: schedule.personalColor
+            userScheduleColor: schedule.userScheduleColor
         )
     }
 

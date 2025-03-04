@@ -62,7 +62,7 @@ struct ChooseShowingCalendarView: View {
             
             .onAppear {
                 viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))

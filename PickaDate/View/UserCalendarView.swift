@@ -88,7 +88,7 @@ struct DayCellBoundsKey: PreferenceKey {
         value.merge(nextValue()) { $1 }
     }
 }
-struct PersonalCalendarView: View {
+struct UserCalendarView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
@@ -230,9 +230,9 @@ struct PersonalCalendarView: View {
                 
             }
             .sheet(isPresented: $isShowingDetailView, onDismiss: {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }) {
-                let selectedSchedules = viewModel.personalSchedule.filter { schedule in
+                let selectedSchedules = viewModel.userSchedule.filter { schedule in
                     schedule.schedule.contains { timeSlot in
                         let startDate = convertToDate(timeSlot.startTime)
                         let endDate = convertToDate(timeSlot.endTime)
@@ -245,14 +245,14 @@ struct PersonalCalendarView: View {
                         )
                     }
                 }
-                PersonalDateScheduleView(
+                UserDateScheduleView(
                     selectedDate: selectedDate,
                     schedules: selectedSchedules,
                     user: user
                 )
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
             
         }
@@ -382,7 +382,7 @@ private struct CalendarHeaderView: View {
         }
         .padding()
         .sheet(isPresented: $isChoosing, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            viewModel.fetchUserSchedules()
             viewModel.fetchUsers()
         }) {
             ChooseShowingCalendarView(
@@ -408,7 +408,7 @@ private struct WeekdayHeaderView: View {
 }
 
 // 날짜 관련 기능, 일정 생성 및 트랙 배치 등 주요 로직들을 여기에 정의합니다.
-extension PersonalCalendarView {
+extension UserCalendarView {
     
     // (A) 개인 일정과 그룹 일정을 Event 배열로 변환
     // Firestore의 Timestamp를 Date로 변환하는 convertToDate 함수를 활용합니다.
@@ -416,7 +416,7 @@ extension PersonalCalendarView {
         var result: [Event] = []
         
         if selectedCalendars.contains("개인 캘린더") {
-            for schedule in viewModel.personalSchedule {
+            for schedule in viewModel.userSchedule {
                 for timeSlot in schedule.schedule {
                     let start = convertToDate(timeSlot.startTime)
                     let end   = convertToDate(timeSlot.endTime)

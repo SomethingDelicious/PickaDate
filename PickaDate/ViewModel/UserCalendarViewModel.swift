@@ -1,67 +1,20 @@
 //
-//  FirestoreViewModel.swift
+//  UserCalendarViewModel.swift
 //  PickaDate
 //
-//  Created by 김태건 on 2/21/25.
+//  Created by NoelMacMini on 3/4/25.
 //
 
 import SwiftUI
 import FirebaseFirestore
 
-class FirestoreViewModel: ObservableObject {
+class UserCalendarViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
     @Published var userData: [PDUser] = []
     @Published var userSchedule: [PDUserSchedule] = []
     
-    
-    //테스트용
-    func fetchUsers() {
-        fsDB.collection("users").getDocuments { snapshot, error in
-            if let error = error {
-                print("[E]데이터 가져오기 실패: \(error.localizedDescription)")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                print("[L]데이터 가져오기 성공")
-                self.userData = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: PDUser.self)
-                } ?? []
-            }
-        }
-    }
-    
-    //테스트용
-    func addUser(text: String, num: Int) {
-        let userData: [String: Any] = [
-            "text": text,
-            "num": num,
-            "createdAt": FieldValue.serverTimestamp()
-        ]
-        
-        fsDB.collection("userTestData").document(text).setData(userData) { error in
-            if let error = error {
-                print("[E]추가 실패: \(error.localizedDescription)")
-            } else {
-                print("[L]문서 추가 성공")
-                self.fetchUsers()
-            }
-        }
-    }
-    
-    //테스트용
-    func deleteUser(userID: String) {
-        fsDB.collection("userTestData").document(userID).delete { error in
-            if let error = error {
-                print("[E]삭제 실패: \(error.localizedDescription)")
-            } else {
-                print("[L]삭제 성공")
-                self.fetchUsers()
-            }
-        }
-    }
     func fetchUserSchedules() {
-        fsDB.collection("userSchedule").getDocuments { snapshot, error in
+        fsDB.collection("userSchedules").getDocuments { snapshot, error in
             if let error = error {
                 print("[E]데이터 가져오기 실패: \(error.localizedDescription)")
                 return
@@ -145,4 +98,3 @@ class FirestoreViewModel: ObservableObject {
         }
     }
 }
-

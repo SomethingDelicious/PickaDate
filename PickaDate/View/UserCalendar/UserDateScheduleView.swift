@@ -7,14 +7,14 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct PersonalDateScheduleView: View {
+struct UserDateScheduleView: View {
     @StateObject private var viewModel = FirestoreViewModel()
     @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     
     
     var selectedDate: Date
-    var schedules: [PDPersonalSchedule]
+    var schedules: [PDUserSchedule]
     let user: PDUser
     
     var body: some View {
@@ -69,15 +69,15 @@ struct PersonalDateScheduleView: View {
                             .foregroundStyle(.black)
                     }
                     .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
-                        viewModel.fetchPersonalSchedules()
+                        viewModel.fetchUserSchedules()
                     }) {
-                        AddPersonalScheduleView(user: user, selectedDate: selectedDate)
+                        AddUserScheduleView(user: user, selectedDate: selectedDate)
                     }
                     
                 }
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                viewModel.fetchUserSchedules()
             }
         }
         
