@@ -107,7 +107,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(schedule.groupID.isEmpty ? "없음" : schedule.groupID.joined(separator: ", "))
+                        Text(schedule.groupIDs.isEmpty ? "없음" : schedule.groupIDs.joined(separator: ", "))
                             .font(.body)
                             .foregroundColor(.black)
 

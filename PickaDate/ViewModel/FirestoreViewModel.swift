@@ -10,21 +10,21 @@ import FirebaseFirestore
 
 class FirestoreViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var userTestData: [PDUserTest] = []
+    @Published var userData: [PDUser] = []
     @Published var personalSchedule: [PDPersonalSchedule] = []
     
     
     //테스트용
     func fetchUsers() {
-        fsDB.collection("userTestData").getDocuments { snapshot, error in
+        fsDB.collection("users").getDocuments { snapshot, error in
             if let error = error {
                 print("[E]데이터 가져오기 실패: \(error.localizedDescription)")
                 return
             }
             
             DispatchQueue.main.async {
-                self.userTestData = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: PDUserTest.self)
+                self.userData = snapshot?.documents.compactMap { doc in
+                    try? doc.data(as: PDUser.self)
                 } ?? []
             }
         }
@@ -49,8 +49,8 @@ class FirestoreViewModel: ObservableObject {
     }
     
     //테스트용
-    func deleteUser(userId: String) {
-        fsDB.collection("userTestData").document(userId).delete { error in
+    func deleteUser(userID: String) {
+        fsDB.collection("userTestData").document(userID).delete { error in
             if let error = error {
                 print("[E]삭제 실패: \(error.localizedDescription)")
             } else {
@@ -74,7 +74,7 @@ class FirestoreViewModel: ObservableObject {
         }
     }
     
-    func addPersonalSchedule(userID: String, name: String, content: String, groupID: [String], schedule: [TimeSlotPersonal], personalColor: String) {
+    func addPersonalSchedule(userID: String, name: String, content: String, groupIDs: [String], schedule: [TimeSlotPersonal], personalColor: String) {
         let scheduleData = schedule.map { slot in
             return [
                 "startTime": slot.startTime,
@@ -89,7 +89,7 @@ class FirestoreViewModel: ObservableObject {
             "content": content,
             "createdAt": FieldValue.serverTimestamp(),
             "schedule": scheduleData,
-            "groupID": groupID,
+            "groupIDs": groupIDs,
             "personalColor" : personalColor
         ]
         
@@ -144,8 +144,8 @@ class FirestoreViewModel: ObservableObject {
         }
     }
     
-    //    func updateUser(userId: String, newName: String) {
-    //        fsDB.collection("users").document(userId).updateData([
+    //    func updateUser(userID: String, newName: String) {
+    //        fsDB.collection("users").document(userID).updateData([
     //            "text": newName
     //        ]) { error in
     //            if let error = error {

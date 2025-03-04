@@ -89,7 +89,7 @@ struct AddPersonalScheduleView: View {
                 
                 
                 Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
@@ -138,7 +138,7 @@ struct AddPersonalScheduleView: View {
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupID: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
+        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

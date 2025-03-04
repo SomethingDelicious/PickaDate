@@ -175,7 +175,7 @@ struct CopyPersonalScheduleView: View {
                 userID: schedule.userID,
                 name: schedule.name,
                 content: schedule.content,
-                groupID: schedule.groupID,
+                groupIDs: schedule.groupIDs,
                 schedule: newTimeSlots,
                 personalColor: schedule.personalColor
             )

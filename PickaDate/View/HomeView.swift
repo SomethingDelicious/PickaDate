@@ -11,7 +11,7 @@ struct HomeView: View {
     @State private var selectedTab = 0
     
     //더미데이터
-    let user = PDUser.init(userID: "1234", userPW: "password", registeredAt: Date(), joinGroup: ["group1", "group2"])
+    let user = PDUser.init(userID: "1234", email: "user123@gmail.com", userName: "name123", registeredAt: Date(), joinedGroups: ["group1", "group2"])
     let groupName = "맛있는거사조"
     
     @State private var isShowingPersonalScheduleView = false

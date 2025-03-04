@@ -35,7 +35,7 @@ struct PersonalDateScheduleView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                                 
-                                Text("그룹: \(schedule.groupID.joined(separator: ", "))")
+                                Text("그룹: \(schedule.groupIDs.joined(separator: ", "))")
                                     .font(.caption)
                                     .foregroundColor(.white)
                             }

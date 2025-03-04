@@ -27,16 +27,17 @@ class AuthService: ObservableObject {
     }
     
     // 회원가입
-    func signUp(appId: String, email: String, password: String) async throws {
+    func signUp(userID: String, email: String, userName: String, password: String) async throws {
         do {
             // 1. Firebase Auth로 사용자 생성
             let authResult = try await auth.createUser(withEmail: email, password: password)
             
             // 2. Firestore에 추가 사용자 정보 저장
             try await db.collection("users").document(authResult.user.uid).setData([
-                "appId": appId,
+                "userID": userID,
                 "email": email,
-                "createdAt": Date()
+                "userName": userName,
+                "registeredAt": Date(),
             ])
             
             // 3. 현재 사용자 설정
@@ -48,10 +49,10 @@ class AuthService: ObservableObject {
     }
     
     // 로그인
-    func signIn(appId: String, password: String) async throws {
-        // 1. appId로 사용자의 이메일 찾기
+    func signIn(userID: String, password: String) async throws {
+        // 1. userID로 사용자의 이메일 찾기
         let querySnapshot = try await db.collection("users")
-            .whereField("appId", isEqualTo: appId)
+            .whereField("userID", isEqualTo: userID)
             .getDocuments()
         
         guard let document = querySnapshot.documents.first,

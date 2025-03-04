@@ -13,8 +13,9 @@ struct SignUpView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authService: AuthService
     
-    @State private var appId = ""          // 아이디
+    @State private var userID = ""         // 아이디
     @State private var email = ""          // 이메일
+    @State private var userName = ""       // 유저네임
     @State private var password = ""       // 비밀번호
     @State private var passwordCheck = ""  // 비밀번호 확인
     
@@ -31,14 +32,18 @@ struct SignUpView: View {
     private var isValidPassword: Bool {
         password.count >= 6  // 최소 6자 이상
     }
-    private var isValidAppId: Bool {
-        appId.count >= 4  // 최소 4자 이상
+    private var isValidUserID: Bool {
+        userID.count >= 4  // 최소 4자 이상
+    }
+    private var isValidUserName: Bool {
+        userID.count >= 2  // 최소 2자 이상
     }
         
     // 전체 입력 유효성 검사
     private var isValidInput: Bool {
-        !appId.isEmpty &&
+        !userID.isEmpty &&
         !email.isEmpty &&
+        !userName.isEmpty &&
         !password.isEmpty &&
         password == passwordCheck
     }
@@ -49,11 +54,11 @@ struct SignUpView: View {
             ZStack {
                 VStack(spacing: 20) {
                     // 아이디 입력 필드
-                    TextField("아이디", text: $appId)
+                    TextField("아이디", text: $userID)
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.never)
                         .disabled(isLoading)
-                    if !isValidAppId && !appId.isEmpty {
+                    if !isValidUserID && !userID.isEmpty {
                         Text("아이디는 최소 4자 이상이어야 합니다")
                             .foregroundColor(.red)
                             .font(.caption)
@@ -67,6 +72,18 @@ struct SignUpView: View {
                         .disabled(isLoading)
                     if !isValidEmail && !email.isEmpty {
                         Text("유효한 이메일 주소를 입력해주세요")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+                    
+                    // 유저네임 입력 필드
+                    TextField("닉네임", text: $userName)
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.default)
+                        .disabled(isLoading)
+                    if !isValidUserName && !userName.isEmpty {
+                        Text("닉네임은 최소 2자 이상이어야 합니다")
                             .foregroundColor(.red)
                             .font(.caption)
                     }
@@ -140,7 +157,7 @@ struct SignUpView: View {
     private func signUp() async {
         isLoading = true
         do {
-            try await authService.signUp(appId: appId, email: email, password: password)
+            try await authService.signUp(userID: userID, email: email, userName: userName, password: password)
             print("회원가입 성공")
             dismiss() // 성공 시 이전 화면(로그인 화면)으로 돌아감
         } catch {

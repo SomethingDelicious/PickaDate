@@ -11,7 +11,7 @@ import SwiftUI
 struct LoginView: View {
     // MARK: - Properties
     // @State private var email = ""    // 이메일 입력값
-    @State private var appId = ""    // 아이디 입력값
+    @State private var userID = ""    // 아이디 입력값
     @State private var password = "" // 비밀번호 입력값
     @EnvironmentObject private var authService: AuthService
     
@@ -21,8 +21,8 @@ struct LoginView: View {
     @State private var errorMessage = ""
     
     // 입력 유효성 검사
-    private var isValidAppId: Bool {
-        appId.count >= 4 // 최소 4자 이상
+    private var isValidUserID: Bool {
+        userID.count >= 4 // 최소 4자 이상
     }
     private var isValidPassword: Bool {
         password.count >= 6 // 최소 6자 이상
@@ -30,7 +30,7 @@ struct LoginView: View {
     
     // 전체 입력 유효성 검사
     private var isValidInput: Bool {
-        isValidAppId && isValidPassword
+        isValidUserID && isValidPassword
     }
     
     // MARK: - Body
@@ -50,11 +50,11 @@ struct LoginView: View {
                     //                    .keyboardType(.emailAddress)              // 이메일 키보드
                     
                     // 아이디 입력 필드
-                    TextField("아이디", text: $appId)
+                    TextField("아이디", text: $userID)
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.never) // 자동 대문자 비활성화
                         .disabled(isLoading)
-                    if !isValidAppId && !appId.isEmpty {
+                    if !isValidUserID && !userID.isEmpty {
                         Text("아이디는 최소 4자 이상이어야 합니다")
                             .foregroundColor(.red)
                             .font(.caption)
@@ -115,7 +115,7 @@ struct LoginView: View {
     private func login() async {
         isLoading = true
         do {
-            try await authService.signIn(appId: appId, password: password)
+            try await authService.signIn(userID: userID, password: password)
             // 로그인 성공 시 처리 (예. 메인 화면으로 이동)
         } catch {
             errorMessage = error.localizedDescription

@@ -23,7 +23,7 @@ struct SharePersonalScheduleView: View {
                 
                 VStack(alignment: .leading) {
                     
-                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                         .frame(height: 200)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
@@ -51,7 +51,7 @@ struct SharePersonalScheduleView: View {
             .onAppear {
                 viewModel.fetchUsers()
                 viewModel.fetchPersonalSchedules()
-                selectedGroups = Set(schedule.groupID)
+                selectedGroups = Set(schedule.groupIDs)
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))

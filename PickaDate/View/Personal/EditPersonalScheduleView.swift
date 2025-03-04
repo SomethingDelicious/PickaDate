@@ -29,7 +29,7 @@ struct EditPersonalScheduleView: View {
         
         _name = State(initialValue: schedule.name)
         _content = State(initialValue: schedule.content)
-        _selectedGroups = State(initialValue: Set(schedule.groupID))
+        _selectedGroups = State(initialValue: Set(schedule.groupIDs))
         if let firstSchedule = schedule.schedule.first {
             _startDate = State(initialValue: firstSchedule.startTime)
             _endDate = State(initialValue: firstSchedule.endTime)
@@ -90,7 +90,7 @@ struct EditPersonalScheduleView: View {
                 }
                 
                 Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
+                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
                                 }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
@@ -169,35 +169,4 @@ struct EditPersonalScheduleView: View {
 
         presentationMode.wrappedValue.dismiss()
     }
-
 }
-//struct MultiSelectGroupView: View {
-//    let userGroups: [String]
-//    @Binding var selectedGroups: Set<String>
-//    
-//    var body: some View {
-//        List {
-//            ForEach(userGroups, id: \.self) { group in
-//                HStack {
-//                    Text(group)
-//                    Spacer()
-//                    if selectedGroups.contains(group) {
-//                        Image(systemName: "checkmark.circle.fill")
-//                            .foregroundColor(.blue)
-//                    } else {
-//                        Image(systemName: "circle")
-//                            .foregroundColor(.gray)
-//                    }
-//                }
-//                .contentShape(Rectangle())
-//                .onTapGesture {
-//                    if selectedGroups.contains(group) {
-//                        selectedGroups.remove(group)
-//                    } else {
-//                        selectedGroups.insert(group)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}

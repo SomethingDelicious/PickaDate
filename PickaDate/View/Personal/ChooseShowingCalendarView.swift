@@ -31,7 +31,7 @@ struct ChooseShowingCalendarView: View {
                     ))
                     .padding(.horizontal)
 
-                    ForEach(user.joinGroup, id: \.self) { group in
+                    ForEach(user.joinedGroups, id: \.self) { group in
                         Toggle(group, isOn: Binding(
                             get: { selectedCalendars.contains(group) },
                             set: { isSelected in

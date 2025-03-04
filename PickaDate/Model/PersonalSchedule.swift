@@ -8,17 +8,6 @@
 import SwiftUI
 import FirebaseFirestore
 
-let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
-let colorMap: [String: Color] = [
-    "red": .red,
-    "orange": .orange,
-    "yellow": .yellow,
-    "green": .green,
-    "blue": .blue,
-    "purple": .purple,
-    "brown": .brown
-]
-
 struct PDPersonalSchedule: Identifiable, Codable {
     @DocumentID var id: String?
     var userID: String          //사용자 ID
@@ -26,7 +15,7 @@ struct PDPersonalSchedule: Identifiable, Codable {
     var content: String         //개인 일정 내용
     var createdAt: Timestamp         //일정 생성 날짜
     var schedule: [TimeSlotPersonal]    //개인 일정 날짜, 시간
-    var groupID: [String]         //개인 일정을 공유한 그룹
+    var groupIDs: [String]         //개인 일정을 공유한 그룹
     var personalColor: String
     
     var color: Color {
