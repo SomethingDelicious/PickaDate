@@ -39,17 +39,17 @@ struct HomeView: View {
                     }
                     .tag(2)
                 
-                GroupCalendarView()
+                GroupView()
                     .tabItem {
                         Image(systemName: "person.3.sequence.fill")
                         Text("그룹")
                     }
                     .tag(3)
                 
-                PostView()
+                SettingView()
                     .tabItem {
-                        Image(systemName: "bell.fill")
-                        Text("게시판")
+                        Image(systemName: "gearshape.fill")
+                        Text("설정")
                     }
                     .tag(4)
             }
