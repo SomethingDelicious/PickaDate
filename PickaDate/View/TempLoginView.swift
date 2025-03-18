@@ -8,7 +8,7 @@
 import SwiftUI
 
 // 임시 로그인 화면
-struct LoginView: View {
+struct TempLoginView: View {
     // MARK: - Properties
     // @State private var email = ""    // 이메일 입력값
     @State private var userID = ""    // 아이디 입력값

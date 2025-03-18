@@ -8,7 +8,7 @@
 import SwiftUI
 
 // 임시 회원가입 화면
-struct SignUpView: View {
+struct TempSignUpView: View {
     // MARK: - Properties
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authService: AuthService
