@@ -50,7 +50,9 @@ struct ShareUserScheduleView: View {
 
 
             .onAppear {
-                userViewModel.fetchUsers()
+                Task{
+                    try await userViewModel.fetchCurrentUser()
+                }
                 calendarViewModel.fetchUserSchedules()
                 selectedGroups = Set(schedule.groupIDs)
             }

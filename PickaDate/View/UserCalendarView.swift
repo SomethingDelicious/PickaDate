@@ -247,12 +247,12 @@ struct UserCalendarView: View {
                 }
                 UserDateScheduleView(
                     selectedDate: selectedDate,
-                    schedules: selectedSchedules,
+                    userSchedules: selectedSchedules,
                     user: user
                 )
             }
             .onAppear {
-                viewModel.fetchUserSchedules()
+                    viewModel.fetchUserSchedules()
             }
             
         }
@@ -384,7 +384,9 @@ private struct CalendarHeaderView: View {
         .padding()
         .sheet(isPresented: $isChoosing, onDismiss: {
             calendarViewModel.fetchUserSchedules()
-            userViewModel.fetchUsers()
+            Task {
+                try await userViewModel.fetchCurrentUser()
+            }
         }) {
             ChooseShowingCalendarView(
                 user: user,

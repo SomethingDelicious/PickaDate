@@ -14,17 +14,17 @@ struct UserDateScheduleView: View {
     
     
     var selectedDate: Date
-    var schedules: [PDUserSchedule]
+    var userSchedules: [PDUserSchedule]
     let user: PDUser
     
     var body: some View {
         NavigationView {
             VStack {
-                if schedules.isEmpty {
+                if userSchedules.isEmpty {
                     Text("일정이 없습니다.")
                         .foregroundColor(.gray)
                 } else {
-                    List(schedules, id: \.id) { schedule in
+                    List(userSchedules, id: \.id) { schedule in
                         NavigationLink(destination: ScheduleDetailView(schedule: schedule, user: user)) {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(schedule.name)

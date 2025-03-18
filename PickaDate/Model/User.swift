@@ -15,6 +15,7 @@ struct PDUser: Identifiable, Codable {
     var userName: String        // 유저네임
     var registeredAt: Date      //가입 날짜
     var joinedGroups: [String]     //참여 그룹
+    var onGroup: String            // 현재 설정 중인 그룹
     var userID: String {          // 유저 uid
         return id ?? ""
     }

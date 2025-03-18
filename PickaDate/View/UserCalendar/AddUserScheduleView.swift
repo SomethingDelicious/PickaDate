@@ -122,7 +122,9 @@ struct AddUserScheduleView: View {
                 }
             }
             .onAppear {
-                userViewModel.fetchUsers()
+                Task {
+                    try await userViewModel.fetchCurrentUser()
+                }
                 calendarViewModel.fetchUserSchedules()
             }
         }
