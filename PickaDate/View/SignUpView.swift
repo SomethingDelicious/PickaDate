@@ -8,10 +8,17 @@
 import SwiftUI
 
 struct SignUpView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var authService: AuthService
+    
     @State private var email = ""
     @State private var password = ""
     @State private var fullname = ""
     @State private var username = ""
+    @State private var isLoading = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
     var body: some View {
         VStack {
             Spacer()
@@ -27,6 +34,8 @@ struct SignUpView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .padding(.horizontal, 24)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
                 
                 SecureField("Enter your password", text: $password)
                     .font(.subheadline)
@@ -41,6 +50,7 @@ struct SignUpView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .padding(.horizontal, 24)
+                    .autocapitalization(.none)
                 
                 TextField("Enter your username", text: $username)
                     .font(.subheadline)
@@ -48,10 +58,13 @@ struct SignUpView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .padding(.horizontal, 24)
+                    .autocapitalization(.none)
             }
-            Button {
-                
-            } label: {
+            Button (action: {
+                Task {
+                    await signUp()
+                }
+            }) {
                 Text("Sign Up")
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -61,6 +74,7 @@ struct SignUpView: View {
                     .cornerRadius(8)
             }
             .padding(.vertical)
+            .disabled(isLoading)
             
             Spacer()
             
@@ -80,6 +94,20 @@ struct SignUpView: View {
             }
             .padding(.vertical, 16)
         }
+    }
+    
+    // MARK: - Methods
+    private func signUp() async {
+        isLoading = true
+        do {
+            try await authService.signUp(email: email, fullName: fullname, userName: username, password: password)
+            print("회원가입 성공: \(email)")
+            dismiss() // 성공 시 이전 화면(로그인 화면)으로 돌아감
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+        isLoading = false
     }
 }
 

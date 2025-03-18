@@ -26,16 +26,30 @@ class AuthService: ObservableObject {
         #endif
     }
     
+    enum AuthError: Error, LocalizedError {
+        case userNotFound
+        case invalidUserData
+        
+        var errorDescription: String? {
+            switch self {
+            case .userNotFound:
+                return "사용자 정보를 찾을 수 없습니다."
+            case .invalidUserData:
+                return "사용자 정보 구조가 올바르지 않습니다."
+            }
+        }
+    }
+    
     // 회원가입
-    func signUp(userID: String, email: String, userName: String, password: String) async throws {
+    func signUp(email: String, fullName: String, userName: String, password: String) async throws {
         do {
             // 1. Firebase Auth로 사용자 생성
             let authResult = try await auth.createUser(withEmail: email, password: password)
             
             // 2. Firestore에 추가 사용자 정보 저장
             try await db.collection("users").document(authResult.user.uid).setData([
-                "userID": userID,
                 "email": email,
+                "fullName": fullName,
                 "userName": userName,
                 "registeredAt": Date(),
             ])
@@ -49,20 +63,18 @@ class AuthService: ObservableObject {
     }
     
     // 로그인
-    func signIn(userID: String, password: String) async throws {
-        // 1. userID로 사용자의 이메일 찾기
-        let querySnapshot = try await db.collection("users")
-            .whereField("userID", isEqualTo: userID)
-            .getDocuments()
+    func signIn(email: String, password: String) async throws {
+        // Firebase Authentication에 로그인 요청
+        let authResult = try await auth.signIn(withEmail: email, password: password)
+        self.user = authResult.user
         
-        guard let document = querySnapshot.documents.first,
-              let email = document.data()["email"] as? String else {
-            throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "사용자를 찾을 수 없습니다."])
+        // 로그인 성공 후 사용자 정보 가져오기
+        let uid = authResult.user.uid
+        let userDoc = try await db.collection("users").document(uid).getDocument()
+        
+        guard userDoc.exists else {
+            throw AuthError.userNotFound
         }
-        
-        // 2. 찾은 이메일로 로그인
-        let user = try await auth.signIn(withEmail: email, password: password).user
-        self.user = user
     }
     
     // 로그아웃

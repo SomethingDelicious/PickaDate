@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 struct PDUserSchedule: Identifiable, Codable {
     @DocumentID var id: String?
-    var userID: String          //사용자 ID
+    var userID: String          //사용자 uid
     var name: String            //개인 일정 이름
     var content: String         //개인 일정 내용
     var createdAt: Timestamp         //일정 생성 날짜

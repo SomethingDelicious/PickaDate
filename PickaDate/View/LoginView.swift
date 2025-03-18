@@ -9,8 +9,13 @@
 import SwiftUI
 
 struct LoginView: View {
+    @EnvironmentObject private var authService: AuthService
     @State private var email = ""
     @State private var password = ""
+    
+    @State private var isLoading = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -29,6 +34,7 @@ struct LoginView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .padding(.horizontal, 24)
+                        .autocapitalization(.none)
                     
                     SecureField("Enter your password", text: $password)
                         .font(.subheadline)
@@ -51,9 +57,11 @@ struct LoginView: View {
                 }
                 .padding(.bottom)
                 
-                Button {
-                    // 로그인 로직 추가
-                } label: {
+                Button (action: {
+                    Task {
+                        await login()
+                    }
+                }) {
                     Text("Login")
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -89,7 +97,7 @@ struct LoginView: View {
                 Divider()
                 
                 NavigationLink {
-                    Text("Registration View")
+                    SignUpView()
                 } label: {
                     HStack(spacing: 3) {
                         Text("Don't have an account?")
@@ -102,6 +110,19 @@ struct LoginView: View {
                 .padding(.vertical, 16)
             }
         }
+    }
+    
+    // MARK: - Methods
+    private func login() async {
+        isLoading = true
+        do {
+            try await authService.signIn(email: email, password: password)
+            // 로그인 성공 시 홈 화면으로 이동)
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+        isLoading = false
     }
 }
 

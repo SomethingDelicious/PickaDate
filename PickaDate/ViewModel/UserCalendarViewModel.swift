@@ -71,7 +71,7 @@ class UserCalendarViewModel: ObservableObject {
         }
         
         let updatedSchedule: [String: Any] = [
-            "userID": userID,   // 기존 데이터와 일관성 유지
+            "userID": userID,   // 유저 uid
             "name": name,
             "content": content,
             "updatedAt": FieldValue.serverTimestamp(), // 수정된 시간 기록
