@@ -13,6 +13,27 @@ class UserCalendarViewModel: ObservableObject {
     @Published var userData: [PDUser] = []
     @Published var userSchedule: [PDUserSchedule] = []
     
+    // 유저 정보 가져오기
+    func fetchUserData(userID: String) {
+        fsDB.collection("users").document(userID).getDocument { [weak self] document, error in
+            if let error = error {
+                print("[E] 사용자 정보 가져오기 실패: \(error.localizedDescription)")
+                return
+            }
+            
+            do {
+                if let userData = try document?.data(as: PDUser.self) {
+                    DispatchQueue.main.async {
+                        self?.userData = [userData]
+                        print("[L] 사용자 정보 가져오기 성공: \(userData.userName)")
+                    }
+                }
+            } catch {
+                print("[E] 사용자 정보 디코딩 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     // 유저스케쥴 가져오기
     func fetchUserSchedules() {
         fsDB.collection("userSchedules").getDocuments { snapshot, error in

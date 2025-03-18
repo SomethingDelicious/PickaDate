@@ -14,6 +14,8 @@ import FirebaseFirestore
 @MainActor
 class AuthService: ObservableObject {
     @Published var user: User?
+    @Published var currentUserID: String = ""
+    
     private let auth = Auth.auth()
     private let db = Firestore.firestore()
     
@@ -67,6 +69,7 @@ class AuthService: ObservableObject {
         // Firebase Authentication에 로그인 요청
         let authResult = try await auth.signIn(withEmail: email, password: password)
         self.user = authResult.user
+        self.currentUserID = authResult.user.uid // uid 저장
         
         // 로그인 성공 후 사용자 정보 가져오기
         let uid = authResult.user.uid
@@ -82,6 +85,7 @@ class AuthService: ObservableObject {
         do {
             try auth.signOut()
             self.user = nil
+            self.currentUserID = ""
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
