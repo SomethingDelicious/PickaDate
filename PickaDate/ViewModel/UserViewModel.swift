@@ -105,7 +105,7 @@ class UserViewModel: ObservableObject {
              "userScheduleColor" : userScheduleColor
          ]
          
-         fsDB.collection("userSchedule").document().setData(userSchedule) { error in
+         fsDB.collection("userSchedules").document().setData(userSchedule) { error in
              if let error = error {
                  print("[E] 추가 실패: \(error.localizedDescription)")
              } else {

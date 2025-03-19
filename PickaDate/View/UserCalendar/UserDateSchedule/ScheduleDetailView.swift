@@ -87,7 +87,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "calendar")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(user.userID)
+                        Text(user.userName)
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
