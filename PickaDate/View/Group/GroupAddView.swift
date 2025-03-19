@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct GroupAddView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var userViewModel: UserViewModel
     @State private var groupName: String = ""
     @State private var leader: String = ""
@@ -173,8 +174,10 @@ struct GroupAddView: View {
                         if !allMembers.contains(currentUser.userName) {
                             allMembers.append(currentUser.userName)
                         }
-                        
+
                         viewModel.addGroup(groupName: groupName, leader: currentUser.userName, members: allMembers)
+                        
+                        dismiss()
                     }
                 }, label: {
                     Text("저장")
