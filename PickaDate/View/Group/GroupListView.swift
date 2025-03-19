@@ -11,7 +11,7 @@ struct GroupListView: View {
             return viewModel.groups.filter { group in
                 group.groupName.lowercased().contains(searchText.lowercased()) ||
                 group.leader.lowercased().contains(searchText.lowercased()) ||
-                group.member.contains { $0.lowercased().contains(searchText.lowercased()) }
+                group.members.contains { $0.lowercased().contains(searchText.lowercased()) }
             }
         }
     }
@@ -61,7 +61,7 @@ struct GroupRowView: View {
                 .font(.headline)
             Text("Leader: \(group.leader)")
                 .font(.subheadline)
-            Text("Members: \(group.member.joined(separator: ", "))")
+            Text("Members: \(group.members.joined(separator: ", "))")
                 .font(.body)
         }
         .padding()

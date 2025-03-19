@@ -218,10 +218,10 @@ struct ProposeGroupScheduleView: View {
     }
     
     // 그룹 이름 가져오기
-    private func fetchGroupName() {
+    func fetchGroupName() {
         groupViewModel.fsDB.collection("groups").document(groupID).getDocument { snapshot, error in
             if let document = snapshot, document.exists,
-               let group = try? document.data(as: Group.self) {
+               let group = try? document.data(as: PDGroup.self) {
                 DispatchQueue.main.async {
                     self.groupName = group.groupID
                 }

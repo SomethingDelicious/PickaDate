@@ -208,7 +208,7 @@ class GroupScheduleViewModel: ObservableObject {
             
             // 그룹 멤버들의 일정 가져오기
             self.fsDB.collection("userSchedules")
-                .whereField("userID", in: group.member)
+                .whereField("userID", in: group.members)
                 .getDocuments { snapshot, error in
                     if let error = error {
                         print("[E]멤버 일정 가져오기 실패: \(error.localizedDescription)")
@@ -244,7 +244,7 @@ class GroupScheduleViewModel: ObservableObject {
                 return
             }
             
-            let members = group.member
+            let members = group.members
             
             // 해당 월의 모든 날짜 구하기
             let calendar = Calendar.current

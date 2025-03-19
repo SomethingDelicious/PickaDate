@@ -10,15 +10,13 @@ import SwiftUI
 struct GroupAddView: View {
     @State private var groupName: String = ""
     @State private var leader: String = ""
-    @State private var member: [String] = []
+    @State private var members: [String] = []
     
     @State var showImagePicker = false
     @State var selectedUIImage: UIImage?
     @State var image: Image?
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
-    @State private var isSelected: Bool = false
-    // 테스트로 유저가 20명있다고 가정하고 추가한 것
-    @State private var selectedItems: [Bool] = Array(repeating: false, count: 20)
+    @State private var showUserSearch = false
     
     @StateObject private var viewModel = GroupViewModel()
     
@@ -33,6 +31,8 @@ struct GroupAddView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             Spacer()
+            
+            // 그룹 이미지 섹션
             Button(action: {
                 showImagePicker = true
             }) {
@@ -59,7 +59,9 @@ struct GroupAddView: View {
                 ImagePicker(image: $selectedUIImage)
             }
             Spacer()
+            
             VStack {
+                // 그룹 이름 입력
                 Text("그룹 이름")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
@@ -74,6 +76,7 @@ struct GroupAddView: View {
                         UITextField.appearance().clearButtonMode = .whileEditing
                     }
                 
+                // 그룹장 이름 입력
                 Text("그룹장 이름")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
@@ -88,49 +91,79 @@ struct GroupAddView: View {
                         UITextField.appearance().clearButtonMode = .whileEditing
                     }
                 
+                // 그룹원 추가 섹션
                 Text("그룹원 추가")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
                     .foregroundStyle(.gray)
                 
+                // 선택된 그룹원 목록
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .center) {
+                        // 그룹원 추가 버튼
+                        Button(action: {
+                            // 사용자 검색 시트 표시
+                            showUserSearch = true
+                        }) {
+                            VStack {
+                                Image(systemName: "person.badge.plus")
+                                    .font(.system(size: 24))
+                                Text("추가")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.blue)
+                            .frame(width: 70, height: 70)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                        }
                         
-                        ForEach(0..<20) { num in
-                            Button(action: {
-                                selectedItems[num] = !selectedItems[num]
-                                member.append("홍길동\(num)")
-                            }, label: {
-                                // 예제 데이터 입니다.
-                                Text("홍길동\(num)")
+                        // 선택된 멤버 표시
+                        ForEach(members, id: \.self) { member in
+                            VStack {
+                                Text(member)
                                     .foregroundStyle(.black)
                                     .padding(8)
                                     .overlay(
                                         Capsule()
-                                            .fill(selectedItems[num] ? Color.green.opacity(0.4) : Color.clear)
+                                            .stroke(Color.green, lineWidth: 1)
                                     )
-                                    .animation(.easeInOut, value: selectedItems[num])
-                            })
+                                
+                                // 삭제 버튼
+                                Button(action: {
+                                    if let index = members.firstIndex(of: member) {
+                                        members.remove(at: index)
+                                    }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.red)
+                                        .font(.system(size: 18))
+                                }
+                            }
                         }
-                        
+                            
                     }
                 }
                 .padding()
+                
+                // 저장 버튼
                 Button(action: {
-                    viewModel.addGroup(groupName: groupName, leader: leader, member: member)
+                    viewModel.addGroup(groupName: groupName, leader: leader, members: members)
                 }, label: {
                     Text("저장")
                         .foregroundStyle(.white)
                         .frame(width: 400, height: 50)
-                        .background((groupName == "" || leader == "" || member.isEmpty) ? Color.gray : Color.green)
+                        .background((groupName == "" || leader == "" || members.isEmpty) ? Color.gray : Color.green)
                         .cornerRadius(10)
                         .padding()
                 })
-                .disabled(groupName == "" && leader == "" && member.isEmpty)
-
+                .disabled(groupName == "" && leader == "")
+            }
+        } // VStack1
+        .sheet(isPresented: $showUserSearch) {
+            NavigationView {
+                UserSearchComponent(selectedMembers: $members)
             }
         }
-        
     }
 }
 
