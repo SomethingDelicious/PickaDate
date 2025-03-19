@@ -47,17 +47,21 @@ class AuthService: ObservableObject {
         do {
             // 1. Firebase Auth로 사용자 생성
             let authResult = try await auth.createUser(withEmail: email, password: password)
+            let uid = authResult.user.uid
             
             // 2. Firestore에 추가 사용자 정보 저장
-            try await db.collection("users").document(authResult.user.uid).setData([
+            try await db.collection("users").document(uid).setData([
                 "email": email,
                 "fullName": fullName,
                 "userName": userName,
                 "registeredAt": Date(),
+                "joinedGroups": [],
+                "onGroup": ""
             ])
             
             // 3. 현재 사용자 설정
             self.user = authResult.user
+            self.currentUserID = uid
             
         } catch {
             throw error

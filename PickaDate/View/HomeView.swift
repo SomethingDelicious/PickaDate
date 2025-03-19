@@ -11,7 +11,7 @@ struct HomeView: View {
     @State private var selectedTab = 0
     @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
-
+    
     let groupName = "맛있는거사조"
     
     var body: some View {
@@ -85,8 +85,21 @@ struct HomeView: View {
                 }
             }
             .padding(.bottom, 10)
+        } // ZStack
+        .onAppear {
+            Task {
+                if userViewModel.currentUser == nil {
+                    do {
+                        print("HomeView: 사용자 정보 가져오기 시도")
+                        try await userViewModel.fetchCurrentUser()
+                    } catch {
+                        print("[E] HomeView에서 사용자 정보 가져오기 실패: \(error.localizedDescription)")
+                    }
+                } else {
+                    print("HomeView: 이미 사용자 정보 있음")
+                    userViewModel.fetchUserSchedules()
+                }
+            }
         }
-        
     }
 }
-

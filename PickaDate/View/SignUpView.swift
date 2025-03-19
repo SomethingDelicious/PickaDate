@@ -102,7 +102,10 @@ struct SignUpView: View {
         do {
             try await authService.signUp(email: email, fullName: fullname, userName: username, password: password)
             print("회원가입 성공: \(email)")
-            dismiss() // 성공 시 이전 화면(로그인 화면)으로 돌아감
+            
+            try await authService.signIn(email: email, password: password)
+            
+            dismiss()
         } catch {
             errorMessage = error.localizedDescription
             showError = true
