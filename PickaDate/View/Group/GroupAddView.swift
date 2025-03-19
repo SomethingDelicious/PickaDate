@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct GroupAddView: View {
+    @EnvironmentObject private var userViewModel: UserViewModel
     @State private var groupName: String = ""
     @State private var leader: String = ""
     @State private var members: [String] = []
@@ -16,7 +17,7 @@ struct GroupAddView: View {
     @State var selectedUIImage: UIImage?
     @State var image: Image?
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
-    @State private var showUserSearch = false
+    @State private var showUserSearch = false // 사용자 검색 시트 상태
     
     @StateObject private var viewModel = GroupViewModel()
     
@@ -76,20 +77,22 @@ struct GroupAddView: View {
                         UITextField.appearance().clearButtonMode = .whileEditing
                     }
                 
-                // 그룹장 이름 입력
+                // 그룹장 정보 표시 (초기 설정: 현재 로그인한 사용자)
                 Text("그룹장 이름")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 30)
                     .foregroundStyle(.gray)
                 
-                TextField("", text: $leader)
-                    .frame(width: 350, height: 50)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding()
-                    .onAppear {
-                        UITextField.appearance().clearButtonMode = .whileEditing
-                    }
+                HStack {
+                    Text(userViewModel.currentUser?.userName ?? "로그인 필요")
+                        .padding(.horizontal)
+                        .padding(.leading, 20)
+                        .foregroundColor(.blue)
+                }
+                .frame(width: 350, height: 50)
+                .background(Color.blue.opacity(0.05))
+                .cornerRadius(10)
+                .padding()
                 
                 // 그룹원 추가 섹션
                 Text("그룹원 추가")
@@ -115,6 +118,23 @@ struct GroupAddView: View {
                             .frame(width: 70, height: 70)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(10)
+                        }
+                        
+                        // 현재 로그인한 사용자 표시
+                        if let currentUser = userViewModel.currentUser {
+                            VStack {
+                                Text(currentUser.userName)
+                                    .foregroundStyle(.black)
+                                    .padding(8)
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(Color.blue, lineWidth: 1)
+                                    )
+                                
+                                Text("리더")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
                         }
                         
                         // 선택된 멤버 표시
@@ -147,21 +167,38 @@ struct GroupAddView: View {
                 
                 // 저장 버튼
                 Button(action: {
-                    viewModel.addGroup(groupName: groupName, leader: leader, members: members)
+                    // 그룹 추가
+                    if let currentUser = userViewModel.currentUser {
+                        var allMembers = members
+                        if !allMembers.contains(currentUser.userName) {
+                            allMembers.append(currentUser.userName)
+                        }
+                        
+                        viewModel.addGroup(groupName: groupName, leader: currentUser.userName, members: allMembers)
+                    }
                 }, label: {
                     Text("저장")
                         .foregroundStyle(.white)
                         .frame(width: 400, height: 50)
-                        .background((groupName == "" || leader == "" || members.isEmpty) ? Color.gray : Color.green)
+                        .background((groupName == "" || userViewModel.currentUser == nil) ? Color.gray : Color.green)
                         .cornerRadius(10)
                         .padding()
                 })
-                .disabled(groupName == "" && leader == "")
+                .disabled(groupName.isEmpty || userViewModel.currentUser == nil)
             }
         } // VStack1
         .sheet(isPresented: $showUserSearch) {
             NavigationView {
                 UserSearchComponent(selectedMembers: $members)
+                    .environmentObject(userViewModel) // UserViewModel 전달
+            }
+        }
+        .onAppear {
+            // 화면이 나타날 때 사용자 정보 확인
+            if userViewModel.currentUser == nil {
+                Task {
+                    try? await userViewModel.fetchCurrentUser()
+                }
             }
         }
     }

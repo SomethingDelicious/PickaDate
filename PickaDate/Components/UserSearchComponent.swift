@@ -10,6 +10,7 @@ import FirebaseFirestore
 
 struct UserSearchComponent: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Binding var selectedMembers: [String] // 선택된 멤버 목록
     
     @State private var searchText = ""
@@ -26,9 +27,9 @@ struct UserSearchComponent: View {
                     .foregroundColor(.gray)
                 TextField("사용자 이름으로 검색", text: $searchText)
                     .autocapitalization(.none)
-                    .onChange(of: searchText) { newValue in
-                        if !newValue.isEmpty {
-                            searchUsers(userName: newValue)
+                    .onChange(of: searchText) {
+                        if !searchText.isEmpty {
+                            searchUsers(userName: searchText)
                         } else {
                             searchResults = []
                         }
@@ -102,13 +103,14 @@ struct UserSearchComponent: View {
     }
     
     // 사용자 검색 함수
+    // TODO: 뷰모델로 옮기기
     private func searchUsers(userName: String) {
         isSearching = true
         
         fsDB.collection("users")
             .whereField("userName", isGreaterThanOrEqualTo: userName)
             .whereField("userName", isLessThanOrEqualTo: userName + "\u{f8ff}")
-            .limit(to: 10) // 검색 결과 제한
+            .limit(to: 20) // 검색 결과 제한
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("[E] 사용자 검색 실패: \(error.localizedDescription)")
@@ -117,9 +119,18 @@ struct UserSearchComponent: View {
                 }
                 
                 DispatchQueue.main.async {
-                    searchResults = snapshot?.documents.compactMap { doc in
-                        try? doc.data(as: PDUser.self)
+                    // 검색 결과에서 현재 사용자만 제외
+                    searchResults = snapshot?.documents.compactMap { doc -> PDUser? in
+                        if let user = try? doc.data(as: PDUser.self) {
+                            // 현재 로그인한 사용자만 제외
+                            if user.userID == userViewModel.currentUser?.userID {
+                                return nil
+                            }
+                            return user
+                        }
+                        return nil
                     } ?? []
+                    
                     isSearching = false
                     print("[L] 사용자 검색 성공: \(searchResults.count)명")
                 }

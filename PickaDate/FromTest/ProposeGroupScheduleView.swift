@@ -192,10 +192,10 @@ struct ProposeGroupScheduleView: View {
                 groupViewModel.fetchGroupMembers(groupID: groupID)
                 fetchGroupName()
             }
-            .onChange(of: selectedDates) { _ in
+            .onChange(of: selectedDates) {
                 updateScheduleDateItems()
             }
-            .onChange(of: isTimeFixed) { _ in
+            .onChange(of: isTimeFixed) {
                 if isTimeFixed {
                     updateScheduleDateItems()
                 }
