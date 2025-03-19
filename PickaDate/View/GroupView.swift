@@ -30,7 +30,7 @@ struct GroupView: View {
                 }
                 
                 // 그룹 캘린더
-                NavigationLink(destination: GroupCalendarView()) {
+                NavigationLink(destination: GroupScheduleView()) {
                     HStack {
                         Image(systemName: "calendar")
                             .foregroundStyle(.blue)
