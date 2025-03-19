@@ -24,7 +24,7 @@ struct AddUserScheduleView: View {
     
     let selectedDate: Date
     
-    @State private var name: String = ""
+    @State private var title: String = ""
     @State private var content: String = ""
     @State private var selectedGroups: Set<String> = []
     @State private var startDate: Date
@@ -54,7 +54,7 @@ struct AddUserScheduleView: View {
         NavigationView {
             Form {
                 Section(header: Text("일정 정보").foregroundColor(.black)) {
-                    TextField("일정 이름", text: $name)
+                    TextField("일정 이름", text: $title)
                         .foregroundColor(.black)
                     
                     TextField("내용", text: $content)
@@ -128,7 +128,7 @@ struct AddUserScheduleView: View {
         
     }
     private func addSchedule() {
-        guard !name.isEmpty, !content.isEmpty else { return }
+        guard !title.isEmpty, !content.isEmpty else { return }
         guard userViewModel.currentUser != nil else { return }
         
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
@@ -138,7 +138,7 @@ struct AddUserScheduleView: View {
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        userViewModel.addUserSchedule(name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
+        userViewModel.addUserSchedule(title: title, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

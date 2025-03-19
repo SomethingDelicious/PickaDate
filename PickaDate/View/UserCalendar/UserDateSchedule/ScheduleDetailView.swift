@@ -22,7 +22,7 @@ struct ScheduleDetailView: View {
         NavigationStack {
             VStack {
                 VStack(alignment: .center) {
-                    Text(schedule.name)
+                    Text(schedule.title)
                         .font(.largeTitle)
                         .bold()
                         .foregroundColor(schedule.color)

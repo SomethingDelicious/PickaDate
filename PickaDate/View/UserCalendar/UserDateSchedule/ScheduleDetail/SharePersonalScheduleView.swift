@@ -68,7 +68,7 @@ struct ShareUserScheduleView: View {
         }
         userViewModel.updateUserSchedule(
             scheduleID: scheduleID,
-            name: schedule.name,
+            title: schedule.title,
             content: schedule.content,
             groupIDs: updatedGroupIDArray,
             schedule: schedule.schedule,

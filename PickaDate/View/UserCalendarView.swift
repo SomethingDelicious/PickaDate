@@ -128,7 +128,7 @@ struct UserCalendarView: View {
                                         ZStack {
                                             RoundedRectangle(cornerRadius: 4)
                                                 .fill(event.color)
-                                            Text(event.name)
+                                            Text(event.title)
                                                 .font(.caption)
                                                 .foregroundColor(.white)
                                                 .lineLimit(1)
@@ -183,7 +183,7 @@ struct UserCalendarView: View {
 // ArrangedEvent: 이벤트를 겹치지 않도록 트랙(줄)을 배정한 후 실제 그릴 때 사용하는 구조체입니다.
 struct Event: Identifiable {
     let id = UUID()
-    let name: String
+    let title: String
     let startDate: Date
     let endDate: Date
     let color: Color
@@ -192,7 +192,7 @@ struct Event: Identifiable {
 
 struct ArrangedEvent: Identifiable {
     let id = UUID()
-    let name: String
+    let title: String
     let startDate: Date
     let endDate: Date
     let color: Color
@@ -381,7 +381,7 @@ extension UserCalendarView {
                     let end   = convertToDate(timeSlot.endTime)
                     
                     let event = Event(
-                        name: schedule.name,
+                        title: schedule.title,
                         startDate: start,
                         endDate: end,
                         color: schedule.color,
@@ -400,7 +400,7 @@ extension UserCalendarView {
                     let color = Color.self
                     
                     let event = Event(
-                        name: schedule.name,
+                        title: schedule.title,
                         startDate: start,
                         endDate: end,
                         color: schedule.color,
@@ -440,7 +440,7 @@ extension UserCalendarView {
                     tracks[trackIndex].append(e)
                     arranged.append(
                         ArrangedEvent(
-                            name: e.name,
+                            title: e.title,
                             startDate: e.startDate,
                             endDate: e.endDate,
                             color: e.color,
@@ -457,7 +457,7 @@ extension UserCalendarView {
                 let newTrackIndex = tracks.count - 1
                 arranged.append(
                     ArrangedEvent(
-                        name: e.name,
+                        title: e.title,
                         startDate: e.startDate,
                         endDate: e.endDate,
                         color: e.color,
@@ -541,46 +541,4 @@ extension UserCalendarView {
     }
 }
 
-let dummyGroupSchedules: [PDGroupSchedule] = [
-    PDGroupSchedule(
-        groupID: "group1",
-        name: "운동하기",
-        content: "헬스장에서 1시간 운동",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ],
-        groupColor: "red"
-        
-    ),
-    PDGroupSchedule(
-        groupID: "group1",
-        name: "동아리 회의",
-        content: "다음 프로젝트 계획 회의",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
-        ],
-        groupColor: "green"
-    ),
-    PDGroupSchedule(
-        groupID: "group2",
-        name: "알고리즘 스터디",
-        content: "백준 문제 풀이",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ],
-        groupColor: "blue"
-    ),
-    PDGroupSchedule(
-        groupID: "group2",
-        name: "동아리 회의",
-        content: "다음 프로젝트 계획 회의",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
-        ]
-        ,groupColor: "orange"
-    )
-]
+let dummyGroupSchedules: [PDGroupSchedule] = []

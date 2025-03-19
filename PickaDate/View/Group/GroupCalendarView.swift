@@ -79,7 +79,7 @@ struct GroupCalendarView: View {
             .navigationTitle("그룹 일정")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                viewModel.fetchGroupSchedules()
+                // viewModel.fetchGroupSchedules()
             } // GeometryReader1/onAppear
         } // NavigationStack1
     } // Body
@@ -100,7 +100,7 @@ struct GroupCalendarView: View {
                 if !schedules.isEmpty {
                     VStack {
                         ForEach(schedules) { schedule in
-                            Text(schedule.name)
+                            Text(schedule.title)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(.white)
@@ -272,7 +272,7 @@ struct GroupCalendarView: View {
     }
     // 확인한 날짜에 해당하는 일정들을 가져오는 메서드
     private func getSchedulesForDate(_ date: Date) -> [PDGroupSchedule] {
-        viewModel.groupSchedule.filter { schedule in
+        viewModel.groupSchedules.filter { schedule in
             schedule.schedule.contains { timeSlot in
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
@@ -292,7 +292,7 @@ struct GroupCalendarView: View {
 }
 
 
-// MARK: - Preview
-#Preview {
-    GroupCalendarView()
-}
+//// MARK: - Preview
+//#Preview {
+//    GroupCalendarView()
+//}

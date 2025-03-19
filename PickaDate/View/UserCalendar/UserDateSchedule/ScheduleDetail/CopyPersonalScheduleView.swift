@@ -173,7 +173,7 @@ struct CopyUserScheduleView: View {
             }
             
             userViewModel.addUserSchedule(
-                name: schedule.name,
+                title: schedule.title,
                 content: schedule.content,
                 groupIDs: schedule.groupIDs,
                 schedule: newTimeSlots,

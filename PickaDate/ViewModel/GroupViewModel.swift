@@ -13,6 +13,7 @@ class GroupViewModel: ObservableObject {
     let fsDB = Firestore.firestore()
     @Published var groups: [PDGroup] = []
     @Published var currentGroup: PDGroup? // 현재 선택된 그룹
+    @Published var groupMembers: [String] = [] // 그룹 멤버 목록
     
     // 그룹 정보 가져오기
     func fetchGroups() {
@@ -40,7 +41,7 @@ class GroupViewModel: ObservableObject {
         
         // 사용자가 속한 그룹만 가져오기
         fsDB.collection("groups")
-            .whereField("member", arrayContains: userID)
+            .whereField("members", arrayContains: userID)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("[E]사용자 그룹 가져오기 실패: \(error.localizedDescription)")
@@ -86,6 +87,9 @@ class GroupViewModel: ObservableObject {
     func setCurrentGroup(_ group: PDGroup) {
         self.currentGroup = group
         
+        // 현재 그룹의 멤버 정보 가져오기
+        fetchGroupMembers(groupID: group.groupID)
+        
         // 사용자의 onGroup 필드 업데이트
         updateUserOnGroup(group.groupID)
         
@@ -114,26 +118,20 @@ class GroupViewModel: ObservableObject {
     // MARK: - 멤버 관리 메서드
     // 그룹 멤버 목록 가져오기
     func fetchGroupMembers(groupID: String) {
-        fsDB.collection("groups").document(groupID).getDocument { [weak self] snapshot, error in
-            guard let self = self else { return }
-            
+        // 그룹 문서 가져오기
+        fsDB.collection("groups").document(groupID).getDocument { snapshot, error in
             if let error = error {
                 print("[E]그룹 정보 가져오기 실패: \(error.localizedDescription)")
                 return
             }
             
-            guard let document = snapshot, document.exists,
-                  let group = try? document.data(as: PDGroup.self) else {
-                print("[E]그룹 정보 없음")
-                return
-            }
-            
-            // 업데이트는 메인 스레드에서
-            DispatchQueue.main.async {
-                if let index = self.groups.firstIndex(where: { $0.groupID == groupID }) {
-                    self.groups[index] = group
-                } else {
-                    self.groups.append(group)
+            if let document = snapshot, document.exists {
+                // 멤버 배열 추출
+                if let members = document.data()?["member"] as? [String] {
+                    DispatchQueue.main.async {
+                        self.groupMembers = members
+                        print("[L]그룹 멤버 가져오기 성공: \(members.count)명")
+                    }
                 }
             }
         }
@@ -141,11 +139,15 @@ class GroupViewModel: ObservableObject {
     
     // 해당 그룹의 멤버 목록 반환
     func getGroupMembers(groupID: String) -> [String] {
-        if let group = groups.first(where: { $0.groupID == groupID }) {
-            return group.members
+        if groupID == currentGroup?.groupID {
+            return groupMembers
+        } else {
+            // 캐시된 그룹이 아니면 빈 배열 반환 (비동기적으로 fetchGroupMembers 호출 필요)
+            return []
         }
-        return []
     }
+    
+    // ---------------------
     
     // 멤버 추가하기
     func addMemberToGroup(groupID: String, memberID: String) {

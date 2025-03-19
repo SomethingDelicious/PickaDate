@@ -26,7 +26,7 @@ struct UserDateScheduleView: View {
                     List(userSchedules, id: \.id) { schedule in
                         NavigationLink(destination: ScheduleDetailView(schedule: schedule)) {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(schedule.name)
+                                Text(schedule.title)
                                     .font(.headline)
                                     .foregroundColor(.white)
                                 

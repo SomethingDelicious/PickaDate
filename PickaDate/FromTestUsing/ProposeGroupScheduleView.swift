@@ -19,7 +19,7 @@ struct ScheduleDateItem: Identifiable {
 struct ProposeGroupScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var groupViewModel = GroupViewModel()
-    @StateObject private var scheduleViewModel = GroupScheduleViewModel()
+    @StateObject private var scheduleViewModel = GroupCalendarViewModel()
     
     let userID: String  // 현재 사용자 ID
     let groupID: String // 그룹 ID
@@ -140,7 +140,7 @@ struct ProposeGroupScheduleView: View {
                     }
                 }
                     
-                
+                // 섹션 4: 색상 선택
                 Section(header: Text("색상 선택")) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
@@ -161,6 +161,7 @@ struct ProposeGroupScheduleView: View {
                     }
                 }
                 
+                // 섹션 5: 제안 버튼
                 Section {
                     Button(action: proposeSchedule) {
                         if isLoading {
@@ -189,7 +190,10 @@ struct ProposeGroupScheduleView: View {
                 }
             }
             .onAppear {
+                // 그룹 멤버 목록 가져오기
                 groupViewModel.fetchGroupMembers(groupID: groupID)
+                
+                // 그룹 이름 가져오기
                 fetchGroupName()
             }
             .onChange(of: selectedDates) {
@@ -221,9 +225,10 @@ struct ProposeGroupScheduleView: View {
     func fetchGroupName() {
         groupViewModel.fsDB.collection("groups").document(groupID).getDocument { snapshot, error in
             if let document = snapshot, document.exists,
-               let group = try? document.data(as: PDGroup.self) {
+               let data = document.data(),
+               let name = data["groupName"] as? String {
                 DispatchQueue.main.async {
-                    self.groupName = group.groupID
+                    self.groupName = name
                 }
             }
         }
@@ -249,10 +254,10 @@ struct ProposeGroupScheduleView: View {
         isLoading = true
         
         // scheduleDateItems를 사용하여 일정 생성
-        var schedules: [TimeSlotGroup] = []
+        var schedule: [TimeSlotGroup] = []
         
         for item in scheduleDateItems {
-            schedules.append(
+            schedule.append(
                 TimeSlotGroup(
                     startTime: item.startTime,
                     endTime: item.endTime,
@@ -266,7 +271,7 @@ struct ProposeGroupScheduleView: View {
             title: title,
             content: content,
             creator: userID,
-            schedule: schedules,
+            schedule: schedule,
             groupColor: selectedColor,
             members: groupViewModel.getGroupMembers(groupID: groupID)
         ) { success in

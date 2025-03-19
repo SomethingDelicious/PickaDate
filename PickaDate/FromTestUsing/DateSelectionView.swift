@@ -82,20 +82,6 @@ import SwiftUI
                  .frame(maxHeight: 200)
  
                  Spacer()
- 
-                 // 확인 버튼
-                 Button(action: {
-                     selectedDates = temporarySelectedDates
-                     presentationMode.wrappedValue.dismiss()
-                 }) {
-                     Text("확인")
-                         .frame(maxWidth: .infinity)
-                         .padding()
-                         .background(Color.blue)
-                         .foregroundColor(.white)
-                         .cornerRadius(10)
-                 }
-                 .padding()
              }
              .onAppear {
                  temporarySelectedDates = selectedDates

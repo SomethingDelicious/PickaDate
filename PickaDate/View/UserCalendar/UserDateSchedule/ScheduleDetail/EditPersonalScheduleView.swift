@@ -14,7 +14,7 @@ struct EditUserScheduleView: View {
     let schedule: PDUserSchedule
     @State private var currentDate = Date()
     
-    @State private var name: String
+    @State private var title: String
     @State private var content: String
     @State private var selectedGroups: Set<String>
     @State private var startDate: Date
@@ -25,7 +25,7 @@ struct EditUserScheduleView: View {
     init(schedule: PDUserSchedule) {
         self.schedule = schedule
         
-        _name = State(initialValue: schedule.name)
+        _title = State(initialValue: schedule.title)
         _content = State(initialValue: schedule.content)
         _selectedGroups = State(initialValue: Set(schedule.groupIDs))
         if let firstSchedule = schedule.schedule.first {
@@ -57,7 +57,7 @@ struct EditUserScheduleView: View {
         NavigationView {
             Form {
                 Section(header: Text("일정 정보").foregroundColor(.black)) {
-                    TextField("일정 이름", text: $name)
+                    TextField("일정 이름", text: $title)
                         .foregroundColor(.black)
                     
                     TextField("내용", text: $content)
@@ -128,7 +128,7 @@ struct EditUserScheduleView: View {
         
     }
     private func editSchedule() {
-        guard !name.isEmpty, !content.isEmpty else { return }
+        guard !title.isEmpty, !content.isEmpty else { return }
         guard userViewModel.currentUser != nil else { return }
 
         let calendar = Calendar.current
@@ -159,7 +159,7 @@ struct EditUserScheduleView: View {
 
         userViewModel.updateUserSchedule(
             scheduleID: scheduleID,
-            name: name,
+            title: title,
             content: content,
             groupIDs: updatedGroupIDArray,
             schedule: updatedSchedule,

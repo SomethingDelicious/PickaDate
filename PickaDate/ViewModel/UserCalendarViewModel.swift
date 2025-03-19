@@ -51,7 +51,7 @@ class UserCalendarViewModel: ObservableObject {
     }
     
     // 유저스케쥴 추가하기
-    func addUserSchedule(userID: String, name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+    func addUserSchedule(userID: String, title: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
         let scheduleData = schedule.map { slot in
             return [
                 "startTime": slot.startTime,
@@ -62,7 +62,7 @@ class UserCalendarViewModel: ObservableObject {
         
         let userSchedule: [String: Any] = [
             "userID": userID,
-            "name": name,
+            "title": title,
             "content": content,
             "createdAt": FieldValue.serverTimestamp(),
             "schedule": scheduleData,
@@ -81,7 +81,7 @@ class UserCalendarViewModel: ObservableObject {
     }
     
     // 유저스케쥴 업데이트하기
-    func updateUserSchedule(scheduleID: String, userID: String, name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+    func updateUserSchedule(scheduleID: String, userID: String, title: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
         let scheduleData = schedule.map { slot in
             return [
                 "startTime": slot.startTime,
@@ -93,7 +93,7 @@ class UserCalendarViewModel: ObservableObject {
         
         let updatedSchedule: [String: Any] = [
             "userID": userID,   // 유저 uid
-            "name": name,
+            "title": title,
             "content": content,
             "updatedAt": FieldValue.serverTimestamp(), // 수정된 시간 기록
             "schedule": scheduleData,
