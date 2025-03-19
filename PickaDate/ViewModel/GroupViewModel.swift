@@ -129,7 +129,7 @@ class GroupViewModel: ObservableObject {
         for userID in userIDs {
             fsDB.collection("users").document(userID).updateData([
                 "joinedGroups": FieldValue.arrayUnion([groupName]),
-                "joinedGroupsUID": FieldValue.arrayUnion([groupID])
+                "joinedGroupUIDs": FieldValue.arrayUnion([groupID])
             ]) { error in
                 if let error = error {
                     print("[E]사용자 \(userID)의 그룹 멤버십 업데이트 실패: \(error.localizedDescription)")
