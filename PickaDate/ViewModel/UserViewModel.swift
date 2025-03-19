@@ -140,7 +140,7 @@ class UserViewModel: ObservableObject {
              "userScheduleColor": userScheduleColor
          ]
          
-         fsDB.collection("userSchedule").document(scheduleID).updateData(updatedSchedule) { error in
+         fsDB.collection("userSchedules").document(scheduleID).updateData(updatedSchedule) { error in
              if let error = error {
                  print("[E] 업데이트 실패: \(error.localizedDescription)")
              } else {
@@ -152,7 +152,7 @@ class UserViewModel: ObservableObject {
      
      // 유저스케쥴 삭제하기
      func deleteUserSchedule(scheduleID: String) {
-         fsDB.collection("userSchedule").document(scheduleID).delete { error in
+         fsDB.collection("userSchedules").document(scheduleID).delete { error in
              if let error = error {
                  print("[E] 삭제 실패: \(error.localizedDescription)")
              } else {

@@ -9,10 +9,8 @@ import FirebaseFirestore
 
 struct ShareUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var userViewModel = UserViewModel()
-    @StateObject private var calendarViewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: PDUser
     let schedule: PDUserSchedule
     
     @State private var selectedGroups: Set<String> = []
@@ -20,11 +18,8 @@ struct ShareUserScheduleView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 10) {
-                
-                
                 VStack(alignment: .leading) {
-                    
-                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
+                    MultiSelectGroupView(userGroups: userViewModel.currentUser?.joinedGroups ?? [], selectedGroups: $selectedGroups)
                         .frame(height: 200)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
@@ -50,10 +45,7 @@ struct ShareUserScheduleView: View {
 
 
             .onAppear {
-                Task{
-                    try await userViewModel.fetchCurrentUser()
-                }
-                calendarViewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
                 selectedGroups = Set(schedule.groupIDs)
             }
         }
@@ -67,15 +59,15 @@ struct ShareUserScheduleView: View {
         return formatter.string(from: date)
     }
     func updateUserSchedule() {
+        guard userViewModel.currentUser != nil else { return }
         let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
         
         guard let scheduleID = schedule.id else {
             print("오류: schedule.id가 nil입니다.")
             return
         }
-        calendarViewModel.updateUserSchedule(
+        userViewModel.updateUserSchedule(
             scheduleID: scheduleID,
-            userID: user.userID,
             name: schedule.name,
             content: schedule.content,
             groupIDs: updatedGroupIDArray,

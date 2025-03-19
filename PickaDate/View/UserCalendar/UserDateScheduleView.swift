@@ -8,14 +8,13 @@ import SwiftUI
 import FirebaseFirestore
 
 struct UserDateScheduleView: View {
-    @StateObject private var viewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     
     
     var selectedDate: Date
     var userSchedules: [PDUserSchedule]
-    let user: PDUser
     
     var body: some View {
         NavigationView {
@@ -25,7 +24,7 @@ struct UserDateScheduleView: View {
                         .foregroundColor(.gray)
                 } else {
                     List(userSchedules, id: \.id) { schedule in
-                        NavigationLink(destination: ScheduleDetailView(schedule: schedule, user: user)) {
+                        NavigationLink(destination: ScheduleDetailView(schedule: schedule)) {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(schedule.name)
                                     .font(.headline)
@@ -69,7 +68,7 @@ struct UserDateScheduleView: View {
                             .foregroundStyle(.black)
                     }
                     .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
-                        viewModel.fetchUserSchedules()
+                        userViewModel.fetchUserSchedules()
                     }) {
                         AddUserScheduleView(selectedDate: selectedDate)
                     }
@@ -77,7 +76,7 @@ struct UserDateScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         

@@ -163,8 +163,7 @@ struct UserCalendarView: View {
                 }
                 UserDateScheduleView(
                     selectedDate: selectedDate,
-                    userSchedules: selectedSchedules,
-                    user: userViewModel.currentUser ?? PDUser(email: "", fullName: "", userName: "", registeredAt: Date(), joinedGroups: [], onGroup: "")
+                    userSchedules: selectedSchedules
                 )
             }
             .onAppear {

@@ -9,9 +9,8 @@ import FirebaseFirestore
 
 struct CopyUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: PDUser
     let schedule: PDUserSchedule
     @State private var selectedDates: Set<Date> = []
     @State private var currentMonth: Date = Date()
@@ -154,6 +153,8 @@ struct CopyUserScheduleView: View {
         return days
     }
     private func copyScheduleToSelectedDates() {
+        guard userViewModel.currentUser != nil else { return }
+        
         let initialDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
         print("initialDates: \(initialDates)")
         let newDates = selectedDates.sorted().filter { date in
@@ -171,8 +172,7 @@ struct CopyUserScheduleView: View {
                 return UserTimeSlot(startTime: newStartTime, endTime: newEndTime, isAllDay: timeSlot.isAllDay)
             }
             
-            viewModel.addUserSchedule(
-                userID: schedule.userID,
+            userViewModel.addUserSchedule(
                 name: schedule.name,
                 content: schedule.content,
                 groupIDs: schedule.groupIDs,

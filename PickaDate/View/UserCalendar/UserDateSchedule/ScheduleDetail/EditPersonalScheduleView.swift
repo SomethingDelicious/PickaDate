@@ -9,9 +9,8 @@ import FirebaseFirestore
 
 struct EditUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: PDUser
     let schedule: PDUserSchedule
     @State private var currentDate = Date()
     
@@ -23,8 +22,7 @@ struct EditUserScheduleView: View {
     @State private var selectedColor: String
     @State private var isAllDay: Bool = false
     
-    init(user: PDUser, schedule: PDUserSchedule) {
-        self.user = user
+    init(schedule: PDUserSchedule) {
         self.schedule = schedule
         
         _name = State(initialValue: schedule.name)
@@ -90,8 +88,9 @@ struct EditUserScheduleView: View {
                 }
                 
                 Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
-                                }
+                    MultiSelectGroupView(userGroups: userViewModel.currentUser?.joinedGroups ?? [], selectedGroups: $selectedGroups)
+                }
+                
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
@@ -122,7 +121,7 @@ struct EditUserScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         
@@ -130,6 +129,7 @@ struct EditUserScheduleView: View {
     }
     private func editSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
+        guard userViewModel.currentUser != nil else { return }
 
         let calendar = Calendar.current
         let finalStartDate = isAllDay ? calendar.startOfDay(for: startDate) : startDate
@@ -157,9 +157,8 @@ struct EditUserScheduleView: View {
             return
         }
 
-        viewModel.updateUserSchedule(
+        userViewModel.updateUserSchedule(
             scheduleID: scheduleID,
-            userID: user.userID,
             name: name,
             content: content,
             groupIDs: updatedGroupIDArray,

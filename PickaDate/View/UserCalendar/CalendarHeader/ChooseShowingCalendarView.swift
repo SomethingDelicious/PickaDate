@@ -9,10 +9,9 @@ import FirebaseFirestore
 
 struct ChooseShowingCalendarView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var userViewModel = UserViewModel()
-    @StateObject private var calendarViewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: PDUser
+    let user: PDUser?
     
     @Binding var selectedCalendars: Set<String>
     
@@ -32,7 +31,7 @@ struct ChooseShowingCalendarView: View {
                     ))
                     .padding(.horizontal)
 
-                    ForEach(user.joinedGroups, id: \.self) { group in
+                    ForEach(user?.joinedGroups ?? [], id: \.self) { group in
                         Toggle(group, isOn: Binding(
                             get: { selectedCalendars.contains(group) },
                             set: { isSelected in
@@ -62,10 +61,7 @@ struct ChooseShowingCalendarView: View {
             
             
             .onAppear {
-                Task {
-                   try await userViewModel.fetchCurrentUser()
-                }
-                calendarViewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))

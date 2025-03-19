@@ -12,12 +12,11 @@ import FirebaseFirestore
 
 struct ScheduleDetailView: View {
     let schedule: PDUserSchedule
-    let user: PDUser
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
     @State private var isCopying = false
     @State private var isSharing = false
-    @StateObject private var viewModel = UserCalendarViewModel()
     
     var body: some View {
         NavigationStack {
@@ -87,7 +86,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "calendar")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(user.userName)
+                        Text(userViewModel.currentUser?.userName ?? "")
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
@@ -127,7 +126,7 @@ struct ScheduleDetailView: View {
                 
             }
             .onAppear {
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }
             
         }
@@ -162,7 +161,7 @@ struct ScheduleDetailView: View {
                             print("schedule.id가 nil")
                             return
                         }
-                        viewModel.deleteUserSchedule(scheduleID: scheduleID)
+                        userViewModel.deleteUserSchedule(scheduleID: scheduleID)
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
@@ -177,21 +176,19 @@ struct ScheduleDetailView: View {
             
         }
         .sheet(isPresented: $isEditing, onDismiss: {
-            viewModel.fetchUserSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            EditUserScheduleView(user: user, schedule: schedule)
+            EditUserScheduleView(schedule: schedule)
         }
         .sheet(isPresented: $isCopying, onDismiss: {
-            viewModel.fetchUserSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            CopyUserScheduleView(user: user, schedule: schedule)
-                .environmentObject(viewModel)
+            CopyUserScheduleView(schedule: schedule)
         }
         .sheet(isPresented: $isSharing, onDismiss: {
-            viewModel.fetchUserSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            ShareUserScheduleView(user: user, schedule: schedule)
-                .environmentObject(viewModel)
+            ShareUserScheduleView(schedule: schedule)
         }
         
         
