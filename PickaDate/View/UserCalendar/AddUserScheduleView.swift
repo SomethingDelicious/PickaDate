@@ -20,10 +20,8 @@ extension EnvironmentValues {
 
 struct AddUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var userViewModel = UserViewModel()
-    @StateObject private var calendarViewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: PDUser
     let selectedDate: Date
     
     @State private var name: String = ""
@@ -46,8 +44,7 @@ struct AddUserScheduleView: View {
         "brown": .brown
     ]
     
-    init(user: PDUser, selectedDate: Date) {
-        self.user = user
+    init(selectedDate: Date) {
         self.selectedDate = selectedDate
         self._startDate = State(initialValue: selectedDate)
         self._endDate = State(initialValue: selectedDate)
@@ -90,8 +87,8 @@ struct AddUserScheduleView: View {
                 
                 
                 Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinedGroups, selectedGroups: $selectedGroups)
-                                }
+                    MultiSelectGroupView(userGroups: userViewModel.currentUser?.joinedGroups ?? [], selectedGroups: $selectedGroups)
+                }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
@@ -125,7 +122,6 @@ struct AddUserScheduleView: View {
                 Task {
                     try await userViewModel.fetchCurrentUser()
                 }
-                calendarViewModel.fetchUserSchedules()
             }
         }
         
@@ -133,6 +129,7 @@ struct AddUserScheduleView: View {
     }
     private func addSchedule() {
         guard !name.isEmpty, !content.isEmpty else { return }
+        guard userViewModel.currentUser != nil else { return }
         
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
@@ -141,7 +138,7 @@ struct AddUserScheduleView: View {
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        calendarViewModel.addUserSchedule(userID: user.userID, name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
+        userViewModel.addUserSchedule(name: name, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

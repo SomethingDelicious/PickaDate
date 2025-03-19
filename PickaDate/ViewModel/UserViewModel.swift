@@ -51,6 +51,114 @@ class UserViewModel: ObservableObject {
         await MainActor.run {
             self.currentUser = user
             print("[L]사용자 정보 가져오기 성공")
+            // 사용자 정보를 가져온 후 바로 일정 정보도 가져오기
+            self.fetchUserSchedules()
         }
     }
-}
+    
+    // 사용자 일정 가져오기
+     func fetchUserSchedules() {
+         guard let userID = currentUser?.userID else {
+             print("[E] 현재 로그인된 사용자가 없습니다.")
+             return
+         }
+         
+         fsDB.collection("userSchedules")
+             .whereField("userID", isEqualTo: userID)
+             .getDocuments { snapshot, error in
+                 if let error = error {
+                     print("[E] 데이터 가져오기 실패: \(error.localizedDescription)")
+                     return
+                 }
+                 
+                 DispatchQueue.main.async {
+                     self.userSchedules = snapshot?.documents.compactMap { doc in
+                         try? doc.data(as: PDUserSchedule.self)
+                     } ?? []
+                     print("[L] 사용자 일정 가져오기 성공: \(self.userSchedules.count)개")
+                 }
+             }
+     }
+    
+    // 유저스케쥴 추가하기
+     func addUserSchedule(name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+         guard let userID = currentUser?.userID else {
+             print("[E] 현재 로그인된 사용자가 없습니다.")
+             return
+         }
+         
+         let scheduleData = schedule.map { slot in
+             return [
+                 "startTime": slot.startTime,
+                 "endTime": slot.endTime,
+                 "isAllDay": slot.isAllDay
+             ] as [String: Any]
+         }
+         
+         let userSchedule: [String: Any] = [
+             "userID": userID,
+             "name": name,
+             "content": content,
+             "createdAt": FieldValue.serverTimestamp(),
+             "schedule": scheduleData,
+             "groupIDs": groupIDs,
+             "userScheduleColor" : userScheduleColor
+         ]
+         
+         fsDB.collection("userSchedule").document().setData(userSchedule) { error in
+             if let error = error {
+                 print("[E] 추가 실패: \(error.localizedDescription)")
+             } else {
+                 print("[L] 문서 추가 성공")
+                 self.fetchUserSchedules()
+             }
+         }
+     }
+     
+     // 유저스케쥴 업데이트하기
+     func updateUserSchedule(scheduleID: String, name: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+         guard let userID = currentUser?.userID else {
+             print("[E] 현재 로그인된 사용자가 없습니다.")
+             return
+         }
+         
+         let scheduleData = schedule.map { slot in
+             return [
+                 "startTime": slot.startTime,
+                 "endTime": slot.endTime,
+                 "isAllDay": slot.isAllDay
+             ] as [String: Any]
+         }
+         
+         let updatedSchedule: [String: Any] = [
+             "userID": userID,
+             "name": name,
+             "content": content,
+             "updatedAt": FieldValue.serverTimestamp(),
+             "schedule": scheduleData,
+             "groupIDs": groupIDs,
+             "userScheduleColor": userScheduleColor
+         ]
+         
+         fsDB.collection("userSchedule").document(scheduleID).updateData(updatedSchedule) { error in
+             if let error = error {
+                 print("[E] 업데이트 실패: \(error.localizedDescription)")
+             } else {
+                 print("[L] 문서 업데이트 성공")
+                 self.fetchUserSchedules() // 데이터 새로고침
+             }
+         }
+     }
+     
+     // 유저스케쥴 삭제하기
+     func deleteUserSchedule(scheduleID: String) {
+         fsDB.collection("userSchedule").document(scheduleID).delete { error in
+             if let error = error {
+                 print("[E] 삭제 실패: \(error.localizedDescription)")
+             } else {
+                 print("[L] 삭제 성공")
+                 self.fetchUserSchedules()
+             }
+         }
+     }
+ }

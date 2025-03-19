@@ -71,7 +71,7 @@ struct UserDateScheduleView: View {
                     .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
                         viewModel.fetchUserSchedules()
                     }) {
-                        AddUserScheduleView(user: user, selectedDate: selectedDate)
+                        AddUserScheduleView(selectedDate: selectedDate)
                     }
                     
                 }

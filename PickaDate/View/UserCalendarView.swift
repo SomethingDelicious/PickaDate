@@ -7,96 +7,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-let dummyGroupSchedules: [PDGroupSchedule] = [
-    PDGroupSchedule(
-        groupID: "group1",
-        name: "운동하기",
-        content: "헬스장에서 1시간 운동",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ],
-        groupColor: "red"
-        
-    ),
-    PDGroupSchedule(
-        groupID: "group1",
-        name: "동아리 회의",
-        content: "다음 프로젝트 계획 회의",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
-        ],
-        groupColor: "green"
-    ),
-    PDGroupSchedule(
-        groupID: "group2",
-        name: "알고리즘 스터디",
-        content: "백준 문제 풀이",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
-        ],
-        groupColor: "blue"
-    ),
-    PDGroupSchedule(
-        groupID: "group2",
-        name: "동아리 회의",
-        content: "다음 프로젝트 계획 회의",
-        createdAt: Date(),
-        schedule: [
-            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
-        ]
-        ,groupColor: "orange"
-    )
-]
-// 내용 확인하고 다른 파일로 이동.
-// Event: 개인 또는 그룹 일정을 단일 이벤트로 표현하며, createdAt 정보를 포함합니다.
-// ArrangedEvent: 이벤트를 겹치지 않도록 트랙(줄)을 배정한 후 실제 그릴 때 사용하는 구조체입니다.
-struct Event: Identifiable {
-    let id = UUID()
-    let name: String
-    let startDate: Date
-    let endDate: Date
-    let color: Color
-    let createdAt: Date
-}
-
-struct ArrangedEvent: Identifiable {
-    let id = UUID()
-    let name: String
-    let startDate: Date
-    let endDate: Date
-    let color: Color
-    let trackIndex: Int  // 같은 날짜 내에서 겹치는 이벤트가 있을 때, 트랙 번호(위쪽이 낮은 번호)
-}
-
-// 날짜를 연/월/일 단위로만 추출하기 위한 확장입니다.
-extension Date {
-    var dayOnly: Date {
-        let comps = Calendar.current.dateComponents([.year, .month, .day], from: self)
-        return Calendar.current.date(from: comps)!
-    }
-}
-
-// 각 날짜 셀의 화면상 위치(Anchor<CGRect>) 정보를 상위 뷰로 전달하기 위한 PreferenceKey입니다.
-struct DayCellBoundsKey: PreferenceKey {
-    static var defaultValue: [Date: Anchor<CGRect>] = [:]
-    
-    static func reduce(value: inout [Date: Anchor<CGRect>],
-                       nextValue: () -> [Date: Anchor<CGRect>]) {
-        value.merge(nextValue()) { $1 }
-    }
-}
 struct UserCalendarView: View {
-    @StateObject private var viewModel = UserCalendarViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     @State private var isShowingDetailView = false
     @State private var selectedDate = Date() //일
     @State private var currentMonth: Date = Date() //월
     @State var selectedCalendars: Set<String> = ["개인 캘린더"]
-    
-    //더미데이터
-    let user: PDUser
     
     private var year: Int {
         Calendar.current.component(.year, from: selectedDate)
@@ -119,7 +35,7 @@ struct UserCalendarView: View {
                     currentMonth: $currentMonth,
                     selectedYear: $selectedYear,
                     selectedMonth: $selectedMonth,
-                    user: user,
+                    user: userViewModel.currentUser,
                     selectedCalendars: $selectedCalendars
                 )
                 WeekdayHeaderView()
@@ -230,9 +146,9 @@ struct UserCalendarView: View {
                 
             }
             .sheet(isPresented: $isShowingDetailView, onDismiss: {
-                viewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }) {
-                let selectedSchedules = viewModel.userSchedule.filter { schedule in
+                let selectedSchedules = userViewModel.userSchedules.filter { schedule in
                     schedule.schedule.contains { timeSlot in
                         let startDate = convertToDate(timeSlot.startTime)
                         let endDate = convertToDate(timeSlot.endTime)
@@ -248,11 +164,11 @@ struct UserCalendarView: View {
                 UserDateScheduleView(
                     selectedDate: selectedDate,
                     userSchedules: selectedSchedules,
-                    user: user
+                    user: userViewModel.currentUser ?? PDUser(email: "", fullName: "", userName: "", registeredAt: Date(), joinedGroups: [], onGroup: "")
                 )
             }
             .onAppear {
-                    viewModel.fetchUserSchedules()
+                userViewModel.fetchUserSchedules()
             }
             
         }
@@ -263,6 +179,46 @@ struct UserCalendarView: View {
     
 }
 
+// MARK: - 부속 struct 및 extension
+// Event: 개인 또는 그룹 일정을 단일 이벤트로 표현하며, createdAt 정보를 포함합니다.
+// ArrangedEvent: 이벤트를 겹치지 않도록 트랙(줄)을 배정한 후 실제 그릴 때 사용하는 구조체입니다.
+struct Event: Identifiable {
+    let id = UUID()
+    let name: String
+    let startDate: Date
+    let endDate: Date
+    let color: Color
+    let createdAt: Date
+}
+
+struct ArrangedEvent: Identifiable {
+    let id = UUID()
+    let name: String
+    let startDate: Date
+    let endDate: Date
+    let color: Color
+    let trackIndex: Int  // 같은 날짜 내에서 겹치는 이벤트가 있을 때, 트랙 번호(위쪽이 낮은 번호)
+}
+
+// 날짜를 연/월/일 단위로만 추출하기 위한 확장입니다.
+extension Date {
+    var dayOnly: Date {
+        let comps = Calendar.current.dateComponents([.year, .month, .day], from: self)
+        return Calendar.current.date(from: comps)!
+    }
+}
+
+// 각 날짜 셀의 화면상 위치(Anchor<CGRect>) 정보를 상위 뷰로 전달하기 위한 PreferenceKey입니다.
+struct DayCellBoundsKey: PreferenceKey {
+    static var defaultValue: [Date: Anchor<CGRect>] = [:]
+    
+    static func reduce(value: inout [Date: Anchor<CGRect>],
+                       nextValue: () -> [Date: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
+}
+
+// MARK: - 부속 struct 및 extension2
 private struct DayCell: View {
     let date: Date
     let isSelected: Bool
@@ -289,12 +245,11 @@ private struct DayCell: View {
 }
 
 private struct CalendarHeaderView: View {
-    @StateObject private var userViewModel = UserViewModel()
-    @StateObject private var calendarViewModel = UserCalendarViewModel()
+    @EnvironmentObject var userViewModel: UserViewModel
     @Binding var currentMonth: Date
     @Binding var selectedYear: Int
     @Binding var selectedMonth: Int
-    let user: PDUser
+    let user: PDUser?
     @State private var isShowingDatePicker = false
     @State private var isChoosing = false
     @Binding var selectedCalendars: Set<String>
@@ -367,7 +322,7 @@ private struct CalendarHeaderView: View {
                         .presentationDetents([.medium])
                     }
                 }
-                Text(user.userID)
+                Text(user?.userName ?? "")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -383,15 +338,17 @@ private struct CalendarHeaderView: View {
         }
         .padding()
         .sheet(isPresented: $isChoosing, onDismiss: {
-            calendarViewModel.fetchUserSchedules()
-            Task {
-                try await userViewModel.fetchCurrentUser()
-            }
+            userViewModel.fetchUserSchedules()
         }) {
-            ChooseShowingCalendarView(
-                user: user,
-                selectedCalendars: $selectedCalendars
-            )
+            if let user = user {
+                 ChooseShowingCalendarView(
+                     user: user,
+                     selectedCalendars: $selectedCalendars
+                 )
+             } else {
+                 Text("사용자 정보를 불러오는 중...")
+                     .padding()
+             }
         }
     }
 }
@@ -419,7 +376,7 @@ extension UserCalendarView {
         var result: [Event] = []
         
         if selectedCalendars.contains("개인 캘린더") {
-            for schedule in viewModel.userSchedule {
+            for schedule in userViewModel.userSchedules {
                 for timeSlot in schedule.schedule {
                     let start = convertToDate(timeSlot.startTime)
                     let end   = convertToDate(timeSlot.endTime)
@@ -584,3 +541,47 @@ extension UserCalendarView {
         return Date()
     }
 }
+
+let dummyGroupSchedules: [PDGroupSchedule] = [
+    PDGroupSchedule(
+        groupID: "group1",
+        name: "운동하기",
+        content: "헬스장에서 1시간 운동",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
+        ],
+        groupColor: "red"
+        
+    ),
+    PDGroupSchedule(
+        groupID: "group1",
+        name: "동아리 회의",
+        content: "다음 프로젝트 계획 회의",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
+        ],
+        groupColor: "green"
+    ),
+    PDGroupSchedule(
+        groupID: "group2",
+        name: "알고리즘 스터디",
+        content: "백준 문제 풀이",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 1, to: Date())!)
+        ],
+        groupColor: "blue"
+    ),
+    PDGroupSchedule(
+        groupID: "group2",
+        name: "동아리 회의",
+        content: "다음 프로젝트 계획 회의",
+        createdAt: Date(),
+        schedule: [
+            TimeSlotGroup(startTime: Date(), endTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!)
+        ]
+        ,groupColor: "orange"
+    )
+]

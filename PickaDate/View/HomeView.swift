@@ -7,15 +7,13 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var userCalendarViewModel = UserCalendarViewModel()
+    @EnvironmentObject var userViewModel: UserViewModel
     @State private var selectedTab = 0
-    
-    //더미데이터
-    let user = PDUser.init(email: "user123@gmail.com", fullName: "UsersFullName", userName: "name123", registeredAt: Date(), joinedGroups: ["group1", "group2"])
-    let groupName = "맛있는거사조"
-    
     @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
+
+    let groupName = "맛있는거사조"
+    
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -26,7 +24,7 @@ struct HomeView: View {
                     }
                     .tag(0)
                 
-                UserCalendarView(user: user)
+                UserCalendarView()
                     .tabItem {
                         Image(systemName: "person.fill")
                         Text("개인")
@@ -76,9 +74,9 @@ struct HomeView: View {
                     }
                     //.offset(y: -30)
                     .sheet(isPresented: $isShowingUserScheduleView, onDismiss: {
-                        userCalendarViewModel.fetchUserSchedules()
+                        userViewModel.fetchUserSchedules()
                     }) {
-                        AddUserScheduleView(user: user, selectedDate: Date())
+                        AddUserScheduleView(selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
                         AddGroupScheduleView(groupName: groupName)
