@@ -7,10 +7,12 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 class GroupViewModel: ObservableObject {
     let fsDB = Firestore.firestore()
     @Published var groups: [PDGroup] = []
+    @Published var currentGroup: PDGroup? // 현재 선택된 그룹
     
     // 그룹 정보 가져오기
     func fetchGroups() {
@@ -26,6 +28,37 @@ class GroupViewModel: ObservableObject {
                 } ?? []
             }
         }
+    }
+    
+    // 사용자의 그룹 정보 가져오기
+    func fetchUserGroups() {
+        // 현재 로그인한 사용자 ID 확인
+        guard let userID = Auth.auth().currentUser?.uid else {
+            print("[E]로그인된 사용자가 없습니다.")
+            return
+        }
+        
+        // 사용자가 속한 그룹만 가져오기
+        fsDB.collection("groups")
+            .whereField("member", arrayContains: userID)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("[E]사용자 그룹 가져오기 실패: \(error.localizedDescription)")
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    self.groups = snapshot?.documents.compactMap { doc in
+                        try? doc.data(as: PDGroup.self)
+                    } ?? []
+                    print("[L]사용자 그룹 가져오기 성공: \(self.groups.count)개")
+                    
+                    // 현재 그룹이 설정되지 않았다면 첫 번째 그룹으로 설정
+                    if self.currentGroup == nil && !self.groups.isEmpty {
+                        self.setCurrentGroup(self.groups[0])
+                    }
+                }
+            }
     }
     
     // 그룹 추가하기
@@ -45,6 +78,35 @@ class GroupViewModel: ObservableObject {
             } else {
                 print("[L]그룹 추가 성공")
                 self.fetchGroups()
+            }
+        }
+    }
+    
+    // 현재 그룹 설정하기
+    func setCurrentGroup(_ group: PDGroup) {
+        self.currentGroup = group
+        
+        // 사용자의 onGroup 필드 업데이트
+        updateUserOnGroup(group.groupID)
+        
+        print("[L]현재 그룹 설정: \(group.groupName)")
+    }
+    
+    // 사용자의 onGroup 필드 업데이트
+    private func updateUserOnGroup(_ groupID: String) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            print("[E]로그인된 사용자가 없습니다.")
+            return
+        }
+        
+        // Firestore의 사용자 문서 업데이트
+        fsDB.collection("users").document(userID).updateData([
+            "onGroup": groupID
+        ]) { error in
+            if let error = error {
+                print("[E]사용자 onGroup 업데이트 실패: \(error.localizedDescription)")
+            } else {
+                print("[L]사용자 onGroup 업데이트 성공")
             }
         }
     }

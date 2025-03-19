@@ -8,6 +8,7 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var groupViewModel: GroupViewModel
     @State private var selectedTab = 0
     @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
