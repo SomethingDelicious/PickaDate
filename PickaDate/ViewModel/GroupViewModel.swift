@@ -63,21 +63,29 @@ class GroupViewModel: ObservableObject {
     }
     
     // 그룹 추가하기
-    func addGroup(groupName: String, leader: String, members: [String]) {
+    func addGroup(groupName: String, leader: String, leaderID: String, members: [String], memberIDs: [String]) {
         let groupID = UUID().uuidString
         let groupData: [String: Any] = [
             "groupID": groupID,
             "groupName": groupName,
             "createdAt": FieldValue.serverTimestamp(),
             "leader": leader,
-            "members": members
+            "leaderID": leaderID,
+            "members": members,
+            "memberIDs": memberIDs
         ]
         
-        fsDB.collection("groups").document(groupID).setData(groupData) { error in
+        fsDB.collection("groups").document(groupID).setData(groupData) { [weak self] error in
+            guard let self = self else { return }
+            
             if let error = error {
                 print("[E]그룹 추가 실패: \(error.localizedDescription)")
             } else {
                 print("[L]그룹 추가 성공")
+                
+                // 모든 멤버의 joinedGroups 및 joinedGroupsUID 업데이트
+                self.updateUsersGroupMemberships(userIDs: memberIDs, groupID: groupID, groupName: groupName)
+                
                 self.fetchGroups()
             }
         }
@@ -116,6 +124,22 @@ class GroupViewModel: ObservableObject {
     }
     
     // MARK: - 멤버 관리 메서드
+    // 사용자들의 그룹 멤버십 업데이트
+    func updateUsersGroupMemberships(userIDs: [String], groupID: String, groupName: String) {
+        for userID in userIDs {
+            fsDB.collection("users").document(userID).updateData([
+                "joinedGroups": FieldValue.arrayUnion([groupName]),
+                "joinedGroupsUID": FieldValue.arrayUnion([groupID])
+            ]) { error in
+                if let error = error {
+                    print("[E]사용자 \(userID)의 그룹 멤버십 업데이트 실패: \(error.localizedDescription)")
+                } else {
+                    print("[L]사용자 \(userID)의 그룹 멤버십 업데이트 성공")
+                }
+            }
+        }
+    }
+    
     // 그룹 멤버 목록 가져오기
     func fetchGroupMembers(groupID: String) {
         // 그룹 문서 가져오기
@@ -222,5 +246,13 @@ class GroupViewModel: ObservableObject {
                     completion(withScheduleCount, withoutScheduleCount)
                 }
             }
+    }
+    
+    // 그룹 데이터 초기화 (로그아웃 시 사용)
+    func resetGroupData() {
+        self.groups = []
+        self.currentGroup = nil
+        self.groupMembers = []
+        print("[L] GroupViewModel 초기화 완료")
     }
 }

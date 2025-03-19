@@ -25,6 +25,10 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // AuthService에 ViewModel 참조 설정
+             authService.userViewModel = userViewModel
+             authService.groupViewModel = groupViewModel
+            
              if authService.user != nil {
                  // 사용자가 로그인 되어 있다면 사용자 정보 가져오기
                  Task {

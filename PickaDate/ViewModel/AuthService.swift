@@ -16,6 +16,10 @@ class AuthService: ObservableObject {
     @Published var user: User?
     @Published var currentUserID: String = ""
     
+    // ViewModel 참조를 저장할 변수들 추가
+    weak var userViewModel: UserViewModel?
+    weak var groupViewModel: GroupViewModel?
+    
     private let auth = Auth.auth()
     private let db = Firestore.firestore()
     
@@ -56,6 +60,7 @@ class AuthService: ObservableObject {
                 "userName": userName,
                 "registeredAt": Date(),
                 "joinedGroups": [],
+                "joinedGroupUIDs": [],
                 "onGroup": ""
             ])
             
@@ -90,10 +95,19 @@ class AuthService: ObservableObject {
             try auth.signOut()
             self.user = nil
             self.currentUserID = ""
+            
+            // ViewModel 초기화 호출
+            userViewModel?.resetUserData()
+            groupViewModel?.resetGroupData()
+            
+            print("[L] 로그아웃 성공 및 ViewModel 초기화 완료")
+            
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
     }
+    
+
     
     
     

@@ -8,10 +8,16 @@
 import SwiftUI
 import FirebaseFirestore
 
+// 선택된 멤버 정보를 저장할 구조체 추가
+struct SelectedMember {
+    var userName: String
+    var userID: String
+}
+
 struct UserSearchComponent: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var userViewModel: UserViewModel
-    @Binding var selectedMembers: [String] // 선택된 멤버 목록
+    @Binding var selectedMembers: [SelectedMember] // 선택된 멤버 목록
     
     @State private var searchText = ""
     @State private var searchResults: [PDUser] = []
@@ -71,13 +77,18 @@ struct UserSearchComponent: View {
                             Spacer()
                             
                             // 이미 선택된 멤버인지 확인
-                            if selectedMembers.contains(user.userName) {
+                            if selectedMembers.contains(where: { $0.userID == user.userID }) {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.green)
                             } else {
                                 Button(action: {
+                                    // userID와 userName 모두 저장
+                                    let newMember = SelectedMember(
+                                        userName: user.userName,
+                                        userID: user.userID
+                                    )
                                     // 멤버 추가
-                                    selectedMembers.append(user.userName)
+                                    selectedMembers.append(newMember)
                                     
                                     // 선택 후 창 닫기
                                     dismiss()

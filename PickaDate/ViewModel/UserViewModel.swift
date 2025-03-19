@@ -161,4 +161,12 @@ class UserViewModel: ObservableObject {
              }
          }
      }
+    
+    // 사용자 데이터 초기화 (로그아웃 시 사용)
+    func resetUserData() {
+        self.currentUser = nil
+        self.userSchedules = []
+        print("[L] UserViewModel 초기화 완료")
+    }
+
  }

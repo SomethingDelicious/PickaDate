@@ -12,7 +12,7 @@ struct GroupAddView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @State private var groupName: String = ""
     @State private var leader: String = ""
-    @State private var members: [String] = []
+    @State private var members: [SelectedMember] = []
     
     @State var showImagePicker = false
     @State var selectedUIImage: UIImage?
@@ -139,9 +139,9 @@ struct GroupAddView: View {
                         }
                         
                         // 선택된 멤버 표시
-                        ForEach(members, id: \.self) { member in
+                        ForEach(members, id: \.userID) { member in
                             VStack {
-                                Text(member)
+                                Text(member.userName)
                                     .foregroundStyle(.black)
                                     .padding(8)
                                     .overlay(
@@ -151,7 +151,7 @@ struct GroupAddView: View {
                                 
                                 // 삭제 버튼
                                 Button(action: {
-                                    if let index = members.firstIndex(of: member) {
+                                    if let index = members.firstIndex(where: { $0.userID == member.userID }) {
                                         members.remove(at: index)
                                     }
                                 }) {
@@ -170,12 +170,26 @@ struct GroupAddView: View {
                 Button(action: {
                     // 그룹 추가
                     if let currentUser = userViewModel.currentUser {
-                        var allMembers = members
-                        if !allMembers.contains(currentUser.userName) {
-                            allMembers.append(currentUser.userName)
+                        // 멤버 이름과 ID 목록 준비
+                        var memberNames = members.map { $0.userName }
+                        var memberIDs = members.map { $0.userID }
+                        
+                        // 현재 사용자가 멤버 목록에 없으면 추가
+                        if !memberNames.contains(currentUser.userName) {
+                            memberNames.append(currentUser.userName)
+                        }
+                        if !memberIDs.contains(currentUser.userID) {
+                            memberIDs.append(currentUser.userID)
                         }
 
-                        viewModel.addGroup(groupName: groupName, leader: currentUser.userName, members: allMembers)
+                        // 그룹 추가 함수 호출
+                        viewModel.addGroup(
+                            groupName: groupName,
+                            leader: currentUser.userName,
+                            leaderID: currentUser.userID,
+                            members: memberNames,
+                            memberIDs: memberIDs
+                        )
                         
                         dismiss()
                     }
@@ -207,6 +221,6 @@ struct GroupAddView: View {
     }
 }
 
-//#Preview {
-//    GroupAddView()
-//}
+#Preview {
+    GroupAddView()
+}
