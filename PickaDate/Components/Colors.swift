@@ -34,8 +34,10 @@ extension Color {
     static let subColorTwo = Color(hex: "BAA78E")
     static let pointColor = Color(hex: "C98A65")
     
+    static let lightColor = Color(hex: "EAE1D2")
+    
     // 기본테마: A59D84, C1BAA1, D7D3BF, ECEBDE
-    // 테마2: 786154, B1926F, BAA78E, C98A65
+    // 테마2: 786154, B1926F, BAA78E, C98A65, (EAE1D2)
     
     // Gray Scale
     static let gray50Background = Color(hex: "F6F7F8")

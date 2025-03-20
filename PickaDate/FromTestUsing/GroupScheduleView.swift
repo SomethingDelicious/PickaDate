@@ -96,9 +96,11 @@ struct GroupScheduleView: View {
                     .padding(.bottom, 30) // 하단 탭바와의 간격
                 } // GeometryReader1
                 .sheet(isPresented: $isShowingProposalList) {
-                    //TODO: 일정 제안 목록 뷰 (추후 구현)
-                    Text("일정 제안 목록")
-                        .padding()
+                    // 새 리스트 뷰를 열되 파라미터 전달 없이 환경 객체 사용
+                    GroupProposalListView()
+                        .environmentObject(groupViewModel)
+                        .environmentObject(viewModel)
+                    
                 }
                 .navigationTitle("그룹 일정")
                 .navigationBarTitleDisplayMode(.inline)
