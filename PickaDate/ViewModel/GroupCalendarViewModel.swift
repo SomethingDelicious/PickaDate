@@ -57,6 +57,7 @@ class GroupCalendarViewModel: ObservableObject {
     // 그룹 일정 제안하기
     func proposeGroupSchedule(
         groupID: String,
+        groupName: String,
         title: String,
         content: String,
         creator: String,
@@ -71,6 +72,7 @@ class GroupCalendarViewModel: ObservableObject {
         let proposalData: [String: Any] = [
             "proposalID": proposalID,
             "groupID": groupID,
+            "groupName": groupName,
             "title": title,
             "content": content,
             "creator": creator,

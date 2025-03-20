@@ -268,6 +268,7 @@ struct ProposeGroupScheduleView: View {
         
         scheduleViewModel.proposeGroupSchedule(
             groupID: groupID,
+            groupName: groupName,
             title: title,
             content: content,
             creator: userID,
@@ -336,6 +337,4 @@ struct ProposeGroupScheduleView: View {
     }
 }
 
-#Preview {
-    ProposeGroupScheduleView(userID: "user123", groupID: "group123")
-}
+

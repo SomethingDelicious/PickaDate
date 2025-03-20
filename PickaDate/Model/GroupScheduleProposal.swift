@@ -13,6 +13,7 @@ struct GroupScheduleProposal: Identifiable, Codable {
     @DocumentID var id: String?
     var proposalID: String       // 제안 ID
     var groupID: String          // 그룹 ID
+    var groupName: String        // 그룹 이름
     var title: String            // 제목
     var content: String          // 내용
     var creator: String          // 제안자 ID
