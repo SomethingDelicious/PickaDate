@@ -92,12 +92,6 @@ struct GroupScheduleView: View {
                                     
                                 }
                         )
-                        
-                        // 추가 버튼
-                        AddScheduleButton(isShowingSheet: $isShowingAddGroupSchedulePeriod,
-                                          groupID: currentGroup.groupID,
-                                          groupName: currentGroup.groupName
-                        )
                     } //VStack1
                     .padding(.bottom, 30) // 하단 탭바와의 간격
                 } // GeometryReader1
@@ -264,34 +258,6 @@ struct GroupScheduleView: View {
                         .font(.caption)
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
-                }
-            }
-        }
-    }
-    
-    private struct AddScheduleButton: View {
-        @Binding var isShowingSheet: Bool
-        let groupID: String
-        let groupName: String
-        @EnvironmentObject private var userViewModel: UserViewModel
-        
-        var body: some View {
-            VStack {
-                Spacer()
-                Button(action: { isShowingSheet.toggle() }) {
-                    Image(systemName: "plus.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.white)
-                        .frame(width: 50, height: 50)
-                        .padding()
-                }
-                .frame(width: 80, height: 80)
-                .background(Color.gray.opacity(0.3))
-                .cornerRadius(40)
-                .padding(.bottom, 20)
-                .sheet(isPresented: $isShowingSheet) {
-                    ProposeGroupScheduleView(userID: userViewModel.currentUser?.userID ?? "", groupID: groupName)
                 }
             }
         }

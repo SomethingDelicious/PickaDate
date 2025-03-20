@@ -69,7 +69,7 @@ struct ProposeGroupScheduleView: View {
                 }
                 
                 // 섹션 2: 시간 설정
-                Section(header: Text("시간 성정")) {
+                Section(header: Text("시간 설정")) {
                     Toggle("시간 고정", isOn: $isTimeFixed)
                     
                     if isTimeFixed {

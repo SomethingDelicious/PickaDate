@@ -41,7 +41,7 @@ class GroupViewModel: ObservableObject {
         
         // 사용자가 속한 그룹만 가져오기
         fsDB.collection("groups")
-            .whereField("members", arrayContains: userID)
+            .whereField("memberIDs", arrayContains: userID)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("[E]사용자 그룹 가져오기 실패: \(error.localizedDescription)")

@@ -13,8 +13,6 @@ struct HomeView: View {
     @State private var isShowingUserScheduleView = false
     @State private var isShowingGroupScheduleView = false
     
-    let groupName = "맛있는거사조"
-    
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -80,7 +78,7 @@ struct HomeView: View {
                         AddUserScheduleView(selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
-                        AddGroupScheduleView(groupName: groupName)
+                        ProposeGroupScheduleView(userID: userViewModel.currentUser?.userID ?? "", groupID: groupViewModel.currentGroup?.groupID ?? "")
                     }
                     Spacer()
                 }
