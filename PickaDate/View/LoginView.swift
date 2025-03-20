@@ -52,11 +52,12 @@ struct LoginView: View {
                         .fontWeight(.semibold)
                         .padding(.top)
                         .padding(.trailing, 28)
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.pointColor)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
                 .padding(.bottom)
                 
+                // 로그인 버튼
                 Button (action: {
                     Task {
                         await login()
@@ -67,7 +68,7 @@ struct LoginView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                         .frame(width: 352, height: 44)
-                        .background(.black)
+                        .background(Color.pointColor)
                         .cornerRadius(8)
                 }
                 
@@ -84,7 +85,7 @@ struct LoginView: View {
                         Text("Continue with Google")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.black)
+                            .foregroundColor(Color.pointColor)
                     }
                     .frame(width: 352, height: 44)
                     .background(Color(.systemGray6))
@@ -103,6 +104,7 @@ struct LoginView: View {
                         Text("Don't have an account?")
                         Text("Sign Up")
                             .fontWeight(.semibold)
+                            .foregroundStyle(Color.pointColor)
                     }
                     .foregroundColor(.black)
                     .font(.footnote)

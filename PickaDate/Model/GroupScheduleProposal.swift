@@ -20,5 +20,11 @@ struct GroupScheduleProposal: Identifiable, Codable {
     var schedule: [TimeSlotGroup] // 일정 시간
     var votes: [String: String]  // [사용자ID: 선택한 일정 인덱스]
     var groupColor: String       // 색상
-    var status: String           // 상태 (pending, confirmed, canceled)
+    var status: ProposalStatus           // 상태 (pending, confirmed, canceled)
+}
+
+enum ProposalStatus: String, Codable {
+    case pending    // 진행 중
+    case confirmed  // 확정됨
+    case canceled   // 취소됨
 }

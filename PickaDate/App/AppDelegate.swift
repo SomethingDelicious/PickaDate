@@ -52,7 +52,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // 18. *데이터 유지되는 에뮬레이터 명령어* ->         firebase emulators:start --import emulator-backup  --export-on-exit
         // 19. 터미널에서 Ctrl + C를 눌러 에뮬레이터를 종료한다.
         
-        // * Firebase 서버 이용시, 에뮬레이터 섹션 다시 주석 처리
+        // * Firebase 서버 이용시, 에뮬레이터 섹션 다시 주석 처리 (Divider 사이만)
         
         
         //MARK: - 에뮬레이터 섹션 시작

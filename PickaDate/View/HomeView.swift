@@ -50,6 +50,7 @@ struct HomeView: View {
                     }
                     .tag(4)
             }
+            .tint(Color.pointColor)
             VStack {
                 Spacer()
                 HStack {
@@ -66,7 +67,7 @@ struct HomeView: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 30, height: 30)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color.pointColor)
                             .background(Color.white)
                             .clipShape(Circle())
                             .shadow(radius: 4)
