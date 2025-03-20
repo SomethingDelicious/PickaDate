@@ -149,6 +149,3 @@ struct UserSearchComponent: View {
     }
 }
 
-//#Preview {
-//    UserSearchComponent()
-//}

@@ -10,7 +10,7 @@ import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 
-// 임시 로그인 기능
+// 로그인 기능
 @MainActor
 class AuthService: ObservableObject {
     @Published var user: User?
