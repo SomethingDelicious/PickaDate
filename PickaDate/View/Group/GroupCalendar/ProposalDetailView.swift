@@ -8,121 +8,54 @@
 import SwiftUI
 
 struct ProposalDetailView: View {
+    // MARK: - Properties
     @EnvironmentObject private var calendarViewModel: GroupCalendarViewModel
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var groupViewModel: GroupViewModel
+    @Environment(\.dismiss) private var dismiss
     
     // 제안 정보
     let proposal: GroupScheduleProposal
     
-    // 투표한 선택지 인덱스
-    @State private var selectedOptionIndex: Int? = nil
+    // 사용자 선택 상태
+    @State private var userSelectedOptions: [Int: Bool] = [:]
     
+    // 현재 사용자가 그룹의 리더인지 확인
+    private var isGroupLeader: Bool {
+        if let currentGroup = groupViewModel.currentGroup {
+            return userViewModel.currentUser?.userID == currentGroup.leader
+        }
+        return false
+    }
+    
+    // 현재 사용자가 확인을 완료했는지 여부
+    private var hasUserChecked: Bool {
+        guard let userID = userViewModel.currentUser?.userID else { return false }
+        return proposal.checkedMembers.contains(userID)
+    }
+    
+    // MARK: - Body
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // 제목 및 정보 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(proposal.title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text("제안자: \(getUserName(userID: proposal.creator))")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    Text("작성일: \(formatDateTime(proposal.createdAt))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    StatusBadge(status: proposal.status)
-                        .padding(.top, 4)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(10)
+                headerSection
                 
                 // 내용 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("내용")
-                        .font(.headline)
-                    
-                    Text(proposal.content)
-                        .padding()
-                        .background(Color.gray.opacity(0.05))
-                        .cornerRadius(8)
-                }
-                .padding()
+                contentSection
                 
                 // 일정 옵션 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("제안 일정")
-                        .font(.headline)
-                    
-                    ForEach(Array(proposal.schedule.enumerated()), id: \.offset) { index, timeSlot in
-                        ScheduleOptionView(
-                            index: index,
-                            timeSlot: timeSlot,
-                            isSelected: selectedOptionIndex == index,
-                            color: colorMap[proposal.groupColor, default: .blue],
-                            onTap: {
-                                if proposal.status == .pending {
-                                    selectedOptionIndex = index
-                                }
-                            }
-                        )
-                    }
-                }
-                .padding()
+                scheduleOptionsSection
                 
-                // 투표 결과 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("투표 현황")
-                        .font(.headline)
-                    
-                    // 투표 결과 집계
-                    // (실제 구현에서는 여기에 투표 결과 표시)
-                    Text("투표한 인원: \(proposal.votes.count)명")
-                        .foregroundColor(.gray)
-                }
-                .padding()
+                // 확인 현황 섹션
+                checkStatusSection
                 
                 // 버튼 섹션
                 if proposal.status == .pending {
-                    VStack(spacing: 16) {
-                        Button(action: submitVote) {
-                            Text("투표하기")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(selectedOptionIndex != nil ? Color.blue : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        .disabled(selectedOptionIndex == nil)
-                        
-                        // 제안자인 경우 추가 버튼
-                        if isProposalCreator {
-                            Button(action: confirmSchedule) {
-                                Text("일정 확정하기")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
-                            
-                            Button(action: cancelProposal) {
-                                Text("제안 취소하기")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
-                        }
-                    }
-                    .padding()
+                    buttonSection
+                } else {
+                    // 확정되었거나 최소된 경우 상태 메시지
+                    statusMessageSection
                 }
             }
             .padding()
@@ -130,77 +63,286 @@ struct ProposalDetailView: View {
         .navigationTitle("일정 제안 상세")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            // 이미 투표한 경우 선택한 인덱스 가져오기
-            loadUserVote()
+            loadUserAvailability()
         }
     }
     
-    // MARK: - Helper Methods
-    
-    // 사용자 이름 가져오기
-    private func getUserName(userID: String) -> String {
-        // 실제 구현에서는 사용자 이름을 가져오는 로직 추가
-        // 지금은 간단하게 userID로 반환
-        return userID
+    // MARK: - Section Views
+    // 제목 및 정보 섹션
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(proposal.title)
+                .font(.title2)
+                .fontWeight(.bold)
+            Text("그룹: \(proposal.groupName)")
+                .font(.subheadline)
+                .foregroundStyle(.gray)
+            
+            Text("제안자: \(proposal.creatorName))")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            
+            Text("작성일: \(formatDateTime(proposal.createdAt))")
+                .font(.caption)
+                .foregroundColor(.gray)
+            
+            StatusBadge(status: proposal.status)
+                .padding(.top, 4)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.gray.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
     
-    // 날짜 포맷팅
+    // 내용 섹션
+    private var contentSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("내용")
+                .font(.headline)
+            
+            Text(proposal.content)
+                .padding()
+                .background(Color.gray.opacity(0.05))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .padding()
+    }
+    
+    // 일정 옵션 섹션
+    private var scheduleOptionsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("제안 일정")
+                .font(.headline)
+            
+            ForEach(Array(proposal.schedules.enumerated()), id: \.offset) { index, timeSlot in
+                ScheduleOptionView(
+                    index: index,
+                    timeSlot: timeSlot,
+                    isAvailable: userSelectedOptions[index, default: true],
+                    isConfirmed: proposal.confirmedOptionIndex == index,
+                    color: colorMap[proposal.groupColor, default: .blue],
+                    isEditable: proposal.status == .pending && !hasUserChecked,
+                    onToggleAvailability: {
+                        toggleOptionAvailability(index: index)
+                    }
+                )
+            }
+        }
+        .padding()
+    }
+    
+    // 확인 현황 섹션
+    private var checkStatusSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("일정 확인 현황")
+                .font(.headline)
+            Text("확인 완료: \(proposal.checkedMembers.count)명")
+                .foregroundStyle(.blue)
+            Text("미확인: \(proposal.unCheckedMembers.count)명")
+                .foregroundStyle(.red)
+        }
+        .padding()
+    }
+    
+    // 버튼 섹션
+    private var buttonSection: some View {
+        VStack(spacing: 16) {
+            // 일반 사용자용 버튼
+            if !hasUserChecked {
+                Button(action: confirmCheck) {
+                    Text("확인 완료")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            } else {
+                Text("확인 완료됨")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.gray)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            
+            // 리더용 추가 버튼
+            if isGroupLeader && proposal.status == .pending {
+                Button(action: confirmSchedule) {
+                    Text("일정 확정하기")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                
+                Button(action: cancelProposal) {
+                    Text("제안 취소하기")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+        } // VStack1
+        .padding()
+    }
+    
+    // 상태 메세지 섹션 (확정됨 또는 취소됨 상태)
+    private var statusMessageSection: some View {
+        VStack(spacing: 16) {
+            switch proposal.status {
+            case .confirmed:
+                if let index = proposal.confirmedOptionIndex, index < proposal.schedules.count {
+                    let confirmedOption = proposal.schedules[index]
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("확정된 일정")
+                            .font(.headline)
+                        
+                        Text("날짜: \(formatDate(confirmedOption.startTime))")
+                        
+                        if confirmedOption.isAllDay {
+                            Text("종일")
+                        } else {
+                            Text("시간: \(formatTime(confirmedOption.startTime)) ~ \(formatTime(confirmedOption.endTime))")
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.green.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            case .canceled:
+                Text("이 일정 제안은 취소되었습니다")
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            default:
+                EmptyView()
+            }
+        }
+        .padding()
+    }
+    
+    
+    // MARK: - Helper Methods
+    
+    // 사용자의 일정 가능 여부 로드
+    private func loadUserAvailability() {
+        guard let userID = userViewModel.currentUser?.userID else { return }
+        
+        // 기존에 저장된 가능/불가능 상태 로드
+        if let availability = proposal.memberAvailability[userID] {
+            for (indexStr, isAvailable) in availability {
+                if let index = Int(indexStr) {
+                    userSelectedOptions[index] = isAvailable
+                }
+            }
+        } else {
+            // 새로운 사용자의 경우 개인 일정과 겹치는지 확인하며 초기 상태 설정
+            for (index, option) in proposal.schedules.enumerated() {
+                let hasConflict = checkScheduleConflict(with: option)
+                userSelectedOptions[index] = !hasConflict // 충돌이 없으면 가능, 있으면 불가능
+            }
+        }
+    }
+    // 옵션의 가능/불가능 상태 토글
+    private func toggleOptionAvailability(index: Int) {
+        userSelectedOptions[index] = !(userSelectedOptions[index] ?? true)
+    }
+    // 개인 일정과 충돌 여부 확인
+    private func checkScheduleConflict(with option: TimeSlotGroup) -> Bool {
+        // 사용자의 개인 일정과 옵션 시간이 겹치는지 확인
+        for schedule in userViewModel.userSchedules {
+            for timeSlot in schedule.schedules {
+                // 시간 범위가 겹치는지 확인
+                if max(option.startTime, timeSlot.startTime) < min(option.endTime, timeSlot.endTime) {
+                    return true // 충돌 있음
+                }
+            }
+        }
+        return false // 충돌 없음
+    }
+    
+    // 확인 완료
+    private func confirmCheck() {
+        guard let userID = userViewModel.currentUser?.userID else { return }
+        
+        // 사용자의 가능/불가능 상태를 ViewModel에 저장
+        var availabilityMap: [String: Bool] = [:]
+        for (index, isAvailable) in userSelectedOptions {
+            availabilityMap[String(index)] = isAvailable
+        }
+        
+        // ViewModel을 통해 Firestore에 업데이트 요청
+        // TODO: 실제 구현: calendarViewModel.updateUserAvailability(...)
+        print("사용자 \(userID)가 일정 확인 완료")
+    }
+    
+    // 일정 확정 (그룹 리더만 사용)
+    private func confirmSchedule() {
+        // TODO: 일정 확정 로직 추가 예정
+        print("일정 확정")
+    }
+    
+    // 제안 취소 (그룹 리더만 사용)
+    private func cancelProposal() {
+        // 제안 취소 로직 추가 예정
+        print("제안 취소")
+    }
+    
+    // 날짜 및 시간 포맷팅
     private func formatDateTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy년 M월 d일 HH:mm"
         return formatter.string(from: date)
     }
     
-    // 현재 사용자가 제안자인지 확인
-    private var isProposalCreator: Bool {
-        return userViewModel.currentUser?.userID == proposal.creator
+    // 날짜 포맷팅
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy년 M월 d일"
+        return formatter.string(from: date)
     }
     
-    // 사용자 투표 로드
-    private func loadUserVote() {
-        guard let userID = userViewModel.currentUser?.userID else { return }
-        
-        if let voteIndex = proposal.votes[userID], let index = Int(voteIndex) {
-            selectedOptionIndex = index
-        }
-    }
-    
-    // 투표 제출
-    private func submitVote() {
-        guard let userID = userViewModel.currentUser?.userID,
-              let index = selectedOptionIndex else { return }
-        
-        // 실제 구현에서는 투표 로직 추가
-        print("사용자 \(userID)가 옵션 \(index)에 투표")
-        
-        // 여기에 투표 업데이트 로직 추가
-    }
-    
-    // 일정 확정
-    private func confirmSchedule() {
-        // 실제 구현에서는 일정 확정 로직 추가
-        print("일정 확정")
-    }
-    
-    // 제안 취소
-    private func cancelProposal() {
-        // 실제 구현에서는 제안 취소 로직 추가
-        print("제안 취소")
+    // 시간 포맷팅
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
     }
 }
+
+// MARK: - 보조 뷰
 
 // 일정 옵션 뷰
 struct ScheduleOptionView: View {
     let index: Int
     let timeSlot: TimeSlotGroup
-    let isSelected: Bool
+    let isAvailable: Bool
+    let isConfirmed: Bool
     let color: Color
-    let onTap: () -> Void
+    let isEditable: Bool
+    let onToggleAvailability: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("옵션 \(index + 1)")
-                .font(.headline)
+            HStack {
+                Text("옵션 \(index + 1)")
+                    .font(.headline)
+                
+                if isConfirmed {
+                    Text("(확정)")
+                        .foregroundStyle(.green)
+                        .fontWeight(.bold)
+                }
+                
+                Spacer()
+            }
             
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -221,19 +363,46 @@ struct ScheduleOptionView: View {
                 
                 Spacer()
                 
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? color : .gray)
-                    .font(.title2)
+                // 가능/불가능 토글 버튼
+                if isEditable {
+                    HStack(spacing: 8) {
+                        Button(action: onToggleAvailability) {
+                            VStack {
+                                Image(systemName: isAvailable ? "checkmark.circle.fill" : "checkmark.circle")
+                                Text("가능")
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(isAvailable ? .blue : .gray)
+                        }
+                        
+                        Button(action: onToggleAvailability) {
+                            VStack {
+                                Image(systemName: !isAvailable ? "xmark.circle.fill" : "xmark.circle")
+                                Text("불가능")
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(!isAvailable ? .red : .gray)
+                        }
+                    }
+                } else {
+                    // 편집 불가능한 상태에서는 상태만 표시
+                    Text(isAvailable ? "참여 가능" : "참여 불가능")
+                        .foregroundStyle(isAvailable ? .blue : .red)
+                        .font(.subheadline)
+                }
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? color : Color.gray.opacity(0.5), lineWidth: 2)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
         )
-        .onTapGesture {
-            onTap()
-        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isConfirmed ? Color.green : (isAvailable ? color.opacity(0.5) : Color.gray.opacity(0.5)), lineWidth: 2)
+        )
+        .padding(.vertical, 4)
     }
     
     // 날짜 포맷팅
@@ -250,3 +419,4 @@ struct ScheduleOptionView: View {
         return formatter.string(from: date)
     }
 }
+

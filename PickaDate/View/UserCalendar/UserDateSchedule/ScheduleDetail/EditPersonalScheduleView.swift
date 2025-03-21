@@ -28,7 +28,7 @@ struct EditUserScheduleView: View {
         _title = State(initialValue: schedule.title)
         _content = State(initialValue: schedule.content)
         _selectedGroups = State(initialValue: Set(schedule.groupIDs))
-        if let firstSchedule = schedule.schedule.first {
+        if let firstSchedule = schedule.schedules.first {
             _startDate = State(initialValue: firstSchedule.startTime)
             _endDate = State(initialValue: firstSchedule.endTime)
             _isAllDay = State(initialValue: firstSchedule.isAllDay)
@@ -162,7 +162,7 @@ struct EditUserScheduleView: View {
             title: title,
             content: content,
             groupIDs: updatedGroupIDArray,
-            schedule: updatedSchedule,
+            schedules: updatedSchedule,
             userScheduleColor: selectedColor
         )
 

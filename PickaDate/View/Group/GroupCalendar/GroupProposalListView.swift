@@ -71,7 +71,7 @@ struct ProposalRowView: View {
                     Spacer()
                     
                     // 날짜 정보
-                    if let firstDate = proposal.schedule.first?.startTime {
+                    if let firstDate = proposal.schedules.first?.startTime {
                         Text(formatDate(firstDate))
                             .font(.caption)
                             .foregroundColor(.gray)

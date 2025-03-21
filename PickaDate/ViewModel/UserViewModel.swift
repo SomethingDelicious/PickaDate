@@ -81,13 +81,13 @@ class UserViewModel: ObservableObject {
      }
     
     // 유저스케쥴 추가하기
-     func addUserSchedule(title: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+     func addUserSchedule(title: String, content: String, groupIDs: [String], schedules: [UserTimeSlot], userScheduleColor: String) {
          guard let userID = currentUser?.userID else {
              print("[E] 현재 로그인된 사용자가 없습니다.")
              return
          }
          
-         let scheduleData = schedule.map { slot in
+         let scheduleData = schedules.map { slot in
              return [
                  "startTime": slot.startTime,
                  "endTime": slot.endTime,
@@ -100,7 +100,7 @@ class UserViewModel: ObservableObject {
              "title": title,
              "content": content,
              "createdAt": FieldValue.serverTimestamp(),
-             "schedule": scheduleData,
+             "schedules": scheduleData,
              "groupIDs": groupIDs,
              "userScheduleColor" : userScheduleColor
          ]
@@ -116,13 +116,13 @@ class UserViewModel: ObservableObject {
      }
      
      // 유저스케쥴 업데이트하기
-     func updateUserSchedule(scheduleID: String, title: String, content: String, groupIDs: [String], schedule: [UserTimeSlot], userScheduleColor: String) {
+     func updateUserSchedule(scheduleID: String, title: String, content: String, groupIDs: [String], schedules: [UserTimeSlot], userScheduleColor: String) {
          guard let userID = currentUser?.userID else {
              print("[E] 현재 로그인된 사용자가 없습니다.")
              return
          }
          
-         let scheduleData = schedule.map { slot in
+         let scheduleData = schedules.map { slot in
              return [
                  "startTime": slot.startTime,
                  "endTime": slot.endTime,
@@ -135,7 +135,7 @@ class UserViewModel: ObservableObject {
              "title": title,
              "content": content,
              "updatedAt": FieldValue.serverTimestamp(),
-             "schedule": scheduleData,
+             "schedules": scheduleData,
              "groupIDs": groupIDs,
              "userScheduleColor": userScheduleColor
          ]

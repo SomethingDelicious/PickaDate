@@ -26,7 +26,7 @@ struct ScheduleDetailView: View {
                         .font(.largeTitle)
                         .bold()
                         .foregroundColor(schedule.color)
-                    if let firstSchedule = schedule.schedule.first {
+                    if let firstSchedule = schedule.schedules.first {
                         if (firstSchedule.startTime == firstSchedule.endTime) {
                             Text("\(formattedDate(firstSchedule.startTime))")
                                 .font(.body)
@@ -47,7 +47,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "clock")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        if let firstSchedule = schedule.schedule.first {
+                        if let firstSchedule = schedule.schedules.first {
                             if firstSchedule.isAllDay {
                                 Text("종일")
                                     .font(.body)

@@ -229,7 +229,7 @@ class GroupViewModel: ObservableObject {
                 // 일정이 있는 멤버 찾기
                 for document in snapshot?.documents ?? [] {
                     if let schedule = try? document.data(as: PDUserSchedule.self) {
-                        for timeSlot in schedule.schedule {
+                        for timeSlot in schedule.schedules {
                             // 해당 날짜에 일정이 있는지 확인
                             if (timeSlot.startTime <= endOfDay && timeSlot.endTime >= startOfDay) {
                                 membersWithSchedule.insert(schedule.userID)

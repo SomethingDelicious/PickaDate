@@ -134,11 +134,11 @@ struct AddUserScheduleView: View {
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        let schedule = [UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate)]
+        let schedules = [UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate)]
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        userViewModel.addUserSchedule(title: title, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
+        userViewModel.addUserSchedule(title: title, content: content, groupIDs: selectedGroupArray, schedules: schedules, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

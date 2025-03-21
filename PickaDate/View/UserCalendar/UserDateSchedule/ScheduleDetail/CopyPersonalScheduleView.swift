@@ -83,7 +83,7 @@ struct CopyUserScheduleView: View {
             }
             .onAppear {
                 initializeSelectedDates()
-                if let firstDate = schedule.schedule.first?.startTime {
+                if let firstDate = schedule.schedules.first?.startTime {
                     currentMonth = firstDate
                 }
             }
@@ -93,7 +93,7 @@ struct CopyUserScheduleView: View {
         }
     }
     private func initializeSelectedDates() {
-        let existingDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
+        let existingDates = schedule.schedules.map { Calendar.current.startOfDay(for: $0.startTime) }
         selectedDates.formUnion(existingDates)
     }
     
@@ -155,14 +155,14 @@ struct CopyUserScheduleView: View {
     private func copyScheduleToSelectedDates() {
         guard userViewModel.currentUser != nil else { return }
         
-        let initialDates = schedule.schedule.map { Calendar.current.startOfDay(for: $0.startTime) }
+        let initialDates = schedule.schedules.map { Calendar.current.startOfDay(for: $0.startTime) }
         print("initialDates: \(initialDates)")
         let newDates = selectedDates.sorted().filter { date in
             !initialDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) })
         }
         print("newDates: \(newDates)")
         for date in newDates {
-            let newTimeSlots = schedule.schedule.map { timeSlot -> UserTimeSlot in
+            let newTimeSlots = schedule.schedules.map { timeSlot -> UserTimeSlot in
                 let originalStartTime = timeSlot.startTime
                 let timeOffset = originalStartTime.timeIntervalSince(Calendar.current.startOfDay(for: originalStartTime))
                 
@@ -176,7 +176,7 @@ struct CopyUserScheduleView: View {
                 title: schedule.title,
                 content: schedule.content,
                 groupIDs: schedule.groupIDs,
-                schedule: newTimeSlots,
+                schedules: newTimeSlots,
                 userScheduleColor: schedule.userScheduleColor
             )
         }

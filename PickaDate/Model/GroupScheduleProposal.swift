@@ -19,7 +19,7 @@ struct GroupScheduleProposal: Identifiable, Codable {
     var creator: String             // 제안자 ID
     var creatorName: String         // 제안자 userName
     var createdAt: Date             // 생성 일시
-    var schedule: [TimeSlotGroup]   // 일정 시간
+    var schedules: [TimeSlotGroup]   // 일정 시간
     var checkedMembers: [String]    // 확인 완료한 멤버 ID 목록
     var unCheckedMembers: [String]  // 확인 안한 멤버 ID 목록
     var memberAvailability: [String: [String: Bool]] // 각 멤버별 각 후보에 대한 가능/불가능 상태  // [멤버ID: [옵션인덱스: 가능여부]]
@@ -37,7 +37,7 @@ struct GroupScheduleProposal: Identifiable, Codable {
         self.creator = ""
         self.creatorName = ""
         self.createdAt = Date()
-        self.schedule = []
+        self.schedules = []
         self.checkedMembers = []
         self.unCheckedMembers = []
         self.memberAvailability = [:]
@@ -48,7 +48,7 @@ struct GroupScheduleProposal: Identifiable, Codable {
     
     // 상세 정보로 초기화하는 생성자
     init(groupID: String, groupName: String, title: String, content: String,
-         creator: String, creatorName: String, schedule: [TimeSlotGroup],
+         creator: String, creatorName: String, schedules: [TimeSlotGroup],
          groupMembers: [String], groupColor: String = "blue") {
         
         self.proposalID = UUID().uuidString
@@ -59,7 +59,7 @@ struct GroupScheduleProposal: Identifiable, Codable {
         self.creator = creator
         self.creatorName = creatorName
         self.createdAt = Date()
-        self.schedule = schedule
+        self.schedules = schedules
         self.checkedMembers = []              // 처음에는 아무도 체크하지 않음
         self.unCheckedMembers = groupMembers  // 모든 그룹 멤버를 미체크 상태로 설정
         self.memberAvailability = [:]         // 처음에는 빈 상태

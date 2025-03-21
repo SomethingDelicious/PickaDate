@@ -254,10 +254,10 @@ struct ProposeGroupScheduleView: View {
         isLoading = true
         
         // scheduleDateItems를 사용하여 일정 생성
-        var schedule: [TimeSlotGroup] = []
+        var schedules: [TimeSlotGroup] = []
         
         for item in scheduleDateItems {
-            schedule.append(
+            schedules.append(
                 TimeSlotGroup(
                     startTime: item.startTime,
                     endTime: item.endTime,
@@ -272,7 +272,7 @@ struct ProposeGroupScheduleView: View {
             title: title,
             content: content,
             creator: userID,
-            schedule: schedule,
+            schedules: schedules,
             groupColor: selectedColor,
             members: groupViewModel.getGroupMembers(groupID: groupID)
         ) { success in

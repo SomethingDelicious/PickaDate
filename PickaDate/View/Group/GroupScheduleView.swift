@@ -342,11 +342,10 @@ struct GroupScheduleView: View {
     // 확인한 날짜에 해당하는 일정들을 가져오는 메서드
     private func getSchedulesForDate(_ date: Date) -> [PDGroupSchedule] {
         viewModel.groupSchedules.filter { schedule in
-            schedule.schedule.contains { timeSlot in
-                Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
-                Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
-                (date >= timeSlot.startTime && date <= timeSlot.endTime)
-            }
+            let timeSlot = schedule.schedule
+            return Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
+                   Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
+                   (date >= timeSlot.startTime && date <= timeSlot.endTime)
         }
     }
     

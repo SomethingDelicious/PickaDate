@@ -61,7 +61,7 @@ class GroupCalendarViewModel: ObservableObject {
         title: String,
         content: String,
         creator: String,
-        schedule: [TimeSlotGroup],
+        schedules: [TimeSlotGroup],
         groupColor: String,
         members: [String],
         completion: @escaping (Bool) -> Void
@@ -77,7 +77,7 @@ class GroupCalendarViewModel: ObservableObject {
             "content": content,
             "creator": creator,
             "createdAt": FieldValue.serverTimestamp(),
-            "schedule": schedule.map { slot in
+            "schedules": schedules.map { slot in
                 return [
                     "startTime": slot.startTime,
                     "endTime": slot.endTime,
@@ -115,7 +115,7 @@ class GroupCalendarViewModel: ObservableObject {
     // 특정 날짜에 대한 그룹 일정 제안 가져오기
     func getGroupProposalForDate(_ date: Date) -> [GroupScheduleProposal] {
         return groupProposals.filter { proposal in
-            proposal.schedule.contains { timeSlot in
+            proposal.schedules.contains { timeSlot in
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
                 (date >= timeSlot.startTime && date <= timeSlot.endTime)
@@ -188,7 +188,7 @@ class GroupCalendarViewModel: ObservableObject {
                         if let documents = snapshot?.documents {
                             for document in documents {
                                 if let userSchedule = try? document.data(as: PDUserSchedule.self) {
-                                    for slot in userSchedule.schedule {
+                                    for slot in userSchedule.schedules {
                                         let slotStartDate = calendar.startOfDay(for: slot.startTime)
                                         let slotEndDate = calendar.startOfDay(for: slot.endTime)
                                         

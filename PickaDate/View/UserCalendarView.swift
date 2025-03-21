@@ -149,7 +149,7 @@ struct UserCalendarView: View {
                 userViewModel.fetchUserSchedules()
             }) {
                 let selectedSchedules = userViewModel.userSchedules.filter { schedule in
-                    schedule.schedule.contains { timeSlot in
+                    schedule.schedules.contains { timeSlot in
                         let startDate = convertToDate(timeSlot.startTime)
                         let endDate = convertToDate(timeSlot.endTime)
                         return isDateInRange(
@@ -376,7 +376,7 @@ extension UserCalendarView {
         
         if selectedCalendars.contains("개인 캘린더") {
             for schedule in userViewModel.userSchedules {
-                for timeSlot in schedule.schedule {
+                for timeSlot in schedule.schedules {
                     let start = convertToDate(timeSlot.startTime)
                     let end   = convertToDate(timeSlot.endTime)
                     
@@ -394,7 +394,7 @@ extension UserCalendarView {
         
         for schedule in dummyGroupSchedules {
             if selectedCalendars.contains(schedule.groupID) {
-                for timeSlot in schedule.schedule {
+                let timeSlot = schedule.schedule
                     let start = timeSlot.startTime
                     let end   = timeSlot.endTime
                     let color = Color.self
@@ -407,7 +407,7 @@ extension UserCalendarView {
                         createdAt: schedule.createdAt
                     )
                     result.append(event)
-                }
+                
             }
         }
         

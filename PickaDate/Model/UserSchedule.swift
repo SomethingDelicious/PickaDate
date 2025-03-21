@@ -14,7 +14,7 @@ struct PDUserSchedule: Identifiable, Codable {
     var title: String            //개인 일정 이름
     var content: String         //개인 일정 내용
     var createdAt: Timestamp         //일정 생성 날짜
-    var schedule: [UserTimeSlot]    //개인 일정 날짜, 시간
+    var schedules: [UserTimeSlot]    //개인 일정 날짜, 시간
     var groupIDs: [String]         //개인 일정을 공유한 그룹
     var userScheduleColor: String
     

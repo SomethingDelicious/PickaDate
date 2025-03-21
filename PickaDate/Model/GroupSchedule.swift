@@ -63,8 +63,8 @@ struct PDGroupSchedule: Identifiable, Codable {
         self.createdAt = Date()
         
         // 선택된 옵션의 일정 시간 사용
-        if selectedOptionIndex < proposal.schedule.count {
-            self.schedule = proposal.schedule[selectedOptionIndex]
+        if selectedOptionIndex < proposal.schedules.count {
+            self.schedule = proposal.schedules[selectedOptionIndex]
         } else {
             // 기본값 설정
             self.schedule = TimeSlotGroup(startTime: Date(), endTime: Date())
@@ -108,68 +108,3 @@ struct TimeSlotGroup: Codable {
          self.isAllDay = isAllDay
      }
  }
-
-//MARK: - from Test
-
- 
-struct GroupSchedule: Identifiable, Codable {
-    @DocumentID var id: String?
-    var groupID: String             // 그룹 ID
-    var title: String               // 그룹 일정 제목
-    var content: String             // 그룹 일정 내용
-    var createdAt: Date             // 일정 생성 날짜
-    var schedule: [TimeSlotGroup]   // 그룹 일정 날짜, 시간
-    var status: ScheduleStatus      // 확정된 일정 상태
-    var creator: String             // 일정 생성자 ID
-    var checkedMembers: [String]    // 체크된 참여자 ID 목록
-    var unCheckedMembers: [String]  // 체크 안된 참여자 ID 목록
-    var participants: [String]      // 참여자 ID 목록
-    var nonParticipants: [String]   // 불참자 ID 목록
-    var groupColor: String          // 그룹 일정 색상
-    
-    var color: Color {
-        colorMap[groupColor, default: .blue]
-    }
-    
-    // 기본 생성자
-    init() {
-        self.groupID = ""
-        self.title = ""
-        self.content = ""
-        self.createdAt = Date()
-        self.schedule = []
-        self.status = .planned
-        self.creator = ""
-        self.checkedMembers = []
-        self.unCheckedMembers = []
-        self.participants = []
-        self.nonParticipants = []
-        self.groupColor = "blue"
-    }
-    
-    // 제안 일정 생성자
-    init(groupID: String, title: String, content: String, creator: String, schedule: [TimeSlotGroup], groupColor: String = "blue") {
-        self.groupID = groupID
-        self.title = title
-        self.content = content
-        self.createdAt = Date()
-        self.schedule = schedule
-        self.status = .planned
-        self.creator = creator
-        self.checkedMembers = []
-        self.unCheckedMembers = []
-        self.participants = []
-        self.nonParticipants = []
-        self.groupColor = groupColor
-    }
-    
-    
-    
-    // 그룹원의 일정 상태를 가져오는 함수
-    func getMemberScheduleStatus(allMembers: [String], membersWithSchedule: [String]) -> (withSchedule: Int, withoutSchedule: Int) {
-        let withScheduleCount = membersWithSchedule.count
-        let withoutScheduleCount = allMembers.count - withScheduleCount
-        
-        return (withSchedule: withScheduleCount, withoutSchedule: withoutScheduleCount)
-    }
-}

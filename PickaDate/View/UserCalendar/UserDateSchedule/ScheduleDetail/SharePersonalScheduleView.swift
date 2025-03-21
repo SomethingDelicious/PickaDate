@@ -71,7 +71,7 @@ struct ShareUserScheduleView: View {
             title: schedule.title,
             content: schedule.content,
             groupIDs: updatedGroupIDArray,
-            schedule: schedule.schedule,
+            schedules: schedule.schedules,
             userScheduleColor: schedule.userScheduleColor
         )
     }
