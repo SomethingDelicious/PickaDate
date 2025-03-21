@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -19,14 +18,13 @@ extension EnvironmentValues {
     }
 }
 
-struct AddPersonalScheduleView: View {
+struct AddUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: User
     let selectedDate: Date
     
-    @State private var name: String = ""
+    @State private var title: String = ""
     @State private var content: String = ""
     @State private var selectedGroups: Set<String> = []
     @State private var startDate: Date
@@ -46,8 +44,7 @@ struct AddPersonalScheduleView: View {
         "brown": .brown
     ]
     
-    init(user: User, selectedDate: Date) {
-        self.user = user
+    init(selectedDate: Date) {
         self.selectedDate = selectedDate
         self._startDate = State(initialValue: selectedDate)
         self._endDate = State(initialValue: selectedDate)
@@ -57,7 +54,7 @@ struct AddPersonalScheduleView: View {
         NavigationView {
             Form {
                 Section(header: Text("일정 정보").foregroundColor(.black)) {
-                    TextField("일정 이름", text: $name)
+                    TextField("일정 이름", text: $title)
                         .foregroundColor(.black)
                     
                     TextField("내용", text: $content)
@@ -90,8 +87,8 @@ struct AddPersonalScheduleView: View {
                 
                 
                 Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
-                                }
+                    MultiSelectGroupView(userGroups: userViewModel.currentUser?.joinedGroups ?? [], selectedGroups: $selectedGroups)
+                }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
@@ -122,24 +119,26 @@ struct AddPersonalScheduleView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                Task {
+                    try await userViewModel.fetchCurrentUser()
+                }
             }
         }
         
         
     }
     private func addSchedule() {
-        guard !name.isEmpty, !content.isEmpty else { return }
+        guard !title.isEmpty, !content.isEmpty else { return }
+        guard userViewModel.currentUser != nil else { return }
         
         let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
         let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
+        let schedule = [UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate)]
         
         let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
 
-        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupID: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
+        userViewModel.addUserSchedule(title: title, content: content, groupIDs: selectedGroupArray, schedule: schedule, userScheduleColor: selectedColor)
         
         presentationMode.wrappedValue.dismiss()
     }

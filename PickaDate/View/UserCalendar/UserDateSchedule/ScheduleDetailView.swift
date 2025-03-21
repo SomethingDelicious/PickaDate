@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -12,19 +11,18 @@ import FirebaseFirestore
 
 
 struct ScheduleDetailView: View {
-    let schedule: PersonalSchedule
-    let user: User
+    let schedule: PDUserSchedule
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var isEditing = false
     @State private var isCopying = false
     @State private var isSharing = false
-    @StateObject private var viewModel = FirestoreViewModel()
     
     var body: some View {
         NavigationStack {
             VStack {
                 VStack(alignment: .center) {
-                    Text(schedule.name)
+                    Text(schedule.title)
                         .font(.largeTitle)
                         .bold()
                         .foregroundColor(schedule.color)
@@ -88,7 +86,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "calendar")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(user.userID)
+                        Text(userViewModel.currentUser?.userName ?? "")
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
@@ -98,7 +96,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "paintpalette")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(schedule.personalColor)
+                        Text(schedule.userScheduleColor)
                             .font(.body)
                             .foregroundColor(.black)
                         Spacer()
@@ -108,7 +106,7 @@ struct ScheduleDetailView: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.body)
                             .foregroundColor(schedule.color)
-                        Text(schedule.groupID.isEmpty ? "없음" : schedule.groupID.joined(separator: ", "))
+                        Text(schedule.groupIDs.isEmpty ? "없음" : schedule.groupIDs.joined(separator: ", "))
                             .font(.body)
                             .foregroundColor(.black)
 
@@ -128,7 +126,7 @@ struct ScheduleDetailView: View {
                 
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                userViewModel.fetchUserSchedules()
             }
             
         }
@@ -163,7 +161,7 @@ struct ScheduleDetailView: View {
                             print("schedule.id가 nil")
                             return
                         }
-                        viewModel.deletePersonalSchedule(scheduleID: scheduleID)
+                        userViewModel.deleteUserSchedule(scheduleID: scheduleID)
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Label("삭제", systemImage: "trash")
@@ -178,21 +176,19 @@ struct ScheduleDetailView: View {
             
         }
         .sheet(isPresented: $isEditing, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            EditPersonalScheduleView(user: user, schedule: schedule)
+            EditUserScheduleView(schedule: schedule)
         }
         .sheet(isPresented: $isCopying, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            CopyPersonalScheduleView(user: user, schedule: schedule)
-                .environmentObject(viewModel)
+            CopyUserScheduleView(schedule: schedule)
         }
         .sheet(isPresented: $isSharing, onDismiss: {
-            viewModel.fetchPersonalSchedules()
+            userViewModel.fetchUserSchedules()
         }) {
-            SharePersonalScheduleView(user: user, schedule: schedule)
-                .environmentObject(viewModel)
+            ShareUserScheduleView(schedule: schedule)
         }
         
         

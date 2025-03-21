@@ -15,6 +15,6 @@ struct AddGroupScheduleView: View {
     }
 }
 
-#Preview {
-    AddGroupScheduleView(groupName: "맛있는거사조")
-}
+//#Preview {
+//    AddGroupScheduleView(groupName: "맛있는거사조")
+//}

@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,27 +7,26 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct PersonalDateScheduleView: View {
-    @StateObject private var viewModel = FirestoreViewModel()
+struct UserDateScheduleView: View {
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var isShowingAddSchedule = false
     
     
     var selectedDate: Date
-    var schedules: [PersonalSchedule]
-    let user: User
+    var userSchedules: [PDUserSchedule]
     
     var body: some View {
         NavigationView {
             VStack {
-                if schedules.isEmpty {
+                if userSchedules.isEmpty {
                     Text("일정이 없습니다.")
                         .foregroundColor(.gray)
                 } else {
-                    List(schedules, id: \.id) { schedule in
-                        NavigationLink(destination: ScheduleDetailView(schedule: schedule, user: user)) {
+                    List(userSchedules, id: \.id) { schedule in
+                        NavigationLink(destination: ScheduleDetailView(schedule: schedule)) {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(schedule.name)
+                                Text(schedule.title)
                                     .font(.headline)
                                     .foregroundColor(.white)
                                 
@@ -36,7 +34,7 @@ struct PersonalDateScheduleView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                                 
-                                Text("그룹: \(schedule.groupID.joined(separator: ", "))")
+                                Text("그룹: \(schedule.groupIDs.joined(separator: ", "))")
                                     .font(.caption)
                                     .foregroundColor(.white)
                             }
@@ -70,15 +68,15 @@ struct PersonalDateScheduleView: View {
                             .foregroundStyle(.black)
                     }
                     .sheet(isPresented: $isShowingAddSchedule, onDismiss: {
-                        viewModel.fetchPersonalSchedules()
+                        userViewModel.fetchUserSchedules()
                     }) {
-                        AddPersonalScheduleView(user: user, selectedDate: selectedDate)
+                        AddUserScheduleView(selectedDate: selectedDate)
                     }
                     
                 }
             }
             .onAppear {
-                viewModel.fetchPersonalSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         

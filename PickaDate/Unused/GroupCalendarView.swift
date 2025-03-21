@@ -1,5 +1,5 @@
 //
-//  GroupDateView.swift
+//  GroupCalendarView.swift
 //  PickaDate
 //
 //  Created by NoelMacMini on 2/22/25.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct GroupDateView: View {
+struct GroupCalendarView: View {
     // MARK: - Properties
-    @StateObject private var viewModel = GroupDateViewModel()
+    @StateObject private var viewModel = GroupCalendarViewModel()
     @State private var selectedDate = Date() // 선택된 날짜를 저장
     @State private var currentMonth: Date = Date()  // 현재 표시중인 월
     @State private var isShowingAddGroupSchedulePeriod = false
@@ -79,7 +79,7 @@ struct GroupDateView: View {
             .navigationTitle("그룹 일정")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                viewModel.fetchGroupSchedules()
+                // viewModel.fetchGroupSchedules()
             } // GeometryReader1/onAppear
         } // NavigationStack1
     } // Body
@@ -89,7 +89,7 @@ struct GroupDateView: View {
         let date: Date
         let isSelected: Bool
         let isCurrentMonth: Bool
-        let schedules: [GroupSchedule]
+        let schedules: [PDGroupSchedule]
         let cellHeight: CGFloat // 높이 파라미터 추가
         
         var body: some View {
@@ -100,7 +100,7 @@ struct GroupDateView: View {
                 if !schedules.isEmpty {
                     VStack {
                         ForEach(schedules) { schedule in
-                            Text(schedule.name)
+                            Text(schedule.title)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(.white)
@@ -271,8 +271,8 @@ struct GroupDateView: View {
                calendar.component(.year, from: date1) == calendar.component(.year, from: date2)
     }
     // 확인한 날짜에 해당하는 일정들을 가져오는 메서드
-    private func getSchedulesForDate(_ date: Date) -> [GroupSchedule] {
-        viewModel.groupSchedule.filter { schedule in
+    private func getSchedulesForDate(_ date: Date) -> [PDGroupSchedule] {
+        viewModel.groupSchedules.filter { schedule in
             schedule.schedule.contains { timeSlot in
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.startTime) ||
                 Calendar.current.isDate(date, inSameDayAs: timeSlot.endTime) ||
@@ -292,7 +292,7 @@ struct GroupDateView: View {
 }
 
 
-// MARK: - Preview
-#Preview {
-    GroupDateView()
-}
+//// MARK: - Preview
+//#Preview {
+//    GroupCalendarView()
+//}
