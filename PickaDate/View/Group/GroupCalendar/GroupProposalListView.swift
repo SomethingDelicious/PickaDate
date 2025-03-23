@@ -41,7 +41,9 @@ struct GroupProposalListView: View {
             .onAppear {
                 // 뷰가 나타날 때 해당 그룹의 제안 목록 가져오기
                 if let currentGroup = groupViewModel.currentGroup {
-                    calendarViewModel.fetchGroupProposals(for: currentGroup.groupID)
+                    Task {
+                        await calendarViewModel.fetchGroupProposals(for: currentGroup.groupID)
+                    }
                 }
             }
         }

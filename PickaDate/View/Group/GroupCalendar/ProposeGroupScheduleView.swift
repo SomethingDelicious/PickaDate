@@ -17,11 +17,11 @@ struct ScheduleDateItem: Identifiable {
 }
 
 struct ProposeGroupScheduleView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var userViewModel: UserViewModel
     @StateObject private var groupViewModel = GroupViewModel()
     @StateObject private var scheduleViewModel = GroupCalendarViewModel()
     
-    let userID: String  // 현재 사용자 ID
     let groupID: String // 그룹 ID
     
     // 일정 정보 변수
@@ -163,7 +163,11 @@ struct ProposeGroupScheduleView: View {
                 
                 // 섹션 5: 제안 버튼
                 Section {
-                    Button(action: proposeSchedule) {
+                    Button(action: {
+                        Task {
+                            await proposeSchedule()
+                        }
+                    }) {
                         if isLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
@@ -185,7 +189,7 @@ struct ProposeGroupScheduleView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("취소") {
-                        presentationMode.wrappedValue.dismiss()
+                        dismiss()
                     }
                 }
             }
@@ -250,7 +254,12 @@ struct ProposeGroupScheduleView: View {
     }
     
     // 일정 제안 기능 - scheduleDateItems 사용하도록 수정
-    private func proposeSchedule() {
+    private func proposeSchedule() async {
+        guard let currentUser = userViewModel.currentUser else {
+            print("현재 사용자 정보가 없습니다.")
+            return
+        }
+        
         isLoading = true
         
         // scheduleDateItems를 사용하여 일정 생성
@@ -266,20 +275,31 @@ struct ProposeGroupScheduleView: View {
             )
         }
         
-        scheduleViewModel.proposeGroupSchedule(
-            groupID: groupID,
-            groupName: groupName,
-            title: title,
-            content: content,
-            creator: userID,
-            schedules: schedules,
-            groupColor: selectedColor,
-            members: groupViewModel.getGroupMembers(groupID: groupID)
-        ) { success in
-            isLoading = false
-            
-            if success {
-                presentationMode.wrappedValue.dismiss()
+        let groupMembers = groupViewModel.getGroupMembers(groupID: groupID)
+        
+        do {
+            try await scheduleViewModel.proposeGroupSchedule(
+                groupID: groupID,
+                groupName: groupName,
+                title: title,
+                content: content,
+                creator: currentUser.userID,
+                creatorName: currentUser.userName,
+                schedules: schedules,
+                groupMembers: [],
+                groupColor: selectedColor
+            )
+            // 성공 시 화면 닫기
+            await MainActor.run {
+                isLoading = false
+                dismiss()
+            }
+        } catch {
+            // 오류 처리
+            await MainActor.run {
+                isLoading = false
+                // 여기에 오류 메시지 표시 로직 추가 가능
+                print("[E] 제안 추가 실패: \(error.localizedDescription)")
             }
         }
     }

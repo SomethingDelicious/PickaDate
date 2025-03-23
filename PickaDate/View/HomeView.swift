@@ -79,7 +79,7 @@ struct HomeView: View {
                         AddUserScheduleView(selectedDate: Date())
                     }
                     .sheet(isPresented: $isShowingGroupScheduleView) {
-                        ProposeGroupScheduleView(userID: userViewModel.currentUser?.userID ?? "", groupID: groupViewModel.currentGroup?.groupID ?? "")
+                        ProposeGroupScheduleView(groupID: groupViewModel.currentGroup?.groupID ?? "")
                     }
                     Spacer()
                 }

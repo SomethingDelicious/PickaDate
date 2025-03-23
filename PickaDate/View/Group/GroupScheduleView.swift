@@ -107,8 +107,9 @@ struct GroupScheduleView: View {
                 .onAppear {
                     // 현재 그룹의 일정 정보 가져오기
                     viewModel.fetchGroupSchedules(groupID: currentGroup.groupID)
-                    viewModel.fetchGroupProposals(for: currentGroup.groupID)
-                    
+                    Task {
+                        await viewModel.fetchGroupProposals(for: currentGroup.groupID)
+                    }
                     // 현재 달의 일정 상태 계산
                     viewModel.calculateMonthScheduleStatus(
                         groupID: currentGroup.groupID,

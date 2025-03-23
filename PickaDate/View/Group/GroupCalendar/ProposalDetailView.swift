@@ -159,12 +159,14 @@ struct ProposalDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             } else {
-                Text("확인 완료됨")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gray)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                Button(action: confirmCheck) {
+                    Text("수정 완료")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
             }
             
             // 리더용 추가 버튼

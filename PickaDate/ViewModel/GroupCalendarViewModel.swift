@@ -36,22 +36,22 @@ class GroupCalendarViewModel: ObservableObject {
     }
     
     // 그룹 일정 제안 가져오기
-    func fetchGroupProposals(for groupID: String) {
-        fsDB.collection("groupScheduleProposals")
-            .whereField("groupID", isEqualTo: groupID)
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    print("[E]그룹 일정 제안 가져오기 실패: \(error.localizedDescription)")
-                    return
+    func fetchGroupProposals(for groupID: String) async {
+        do {
+            let snapshot = try await fsDB.collection("groupScheduleProposals")
+                .whereField("groupID", isEqualTo: groupID)
+                .getDocuments()
+            
+            // MainActor로 UI 관련 업데이트 수행
+            await MainActor.run {
+                self.groupProposals = snapshot.documents.compactMap { doc in
+                    try? doc.data(as: GroupScheduleProposal.self)
                 }
-                
-                DispatchQueue.main.async {
-                    self.groupProposals = snapshot?.documents.compactMap { doc in
-                        try? doc.data(as: GroupScheduleProposal.self)
-                    } ?? []
-                    print("[L]그룹 일정 제안 가져오기 성공: \(self.groupProposals.count)개")
-                }
+                print("[L]그룹 일정 제안 가져오기 성공: \(self.groupProposals.count)개")
             }
+        } catch {
+            print("[E]그룹 일정 제안 가져오기 실패: \(error.localizedDescription)")
+        }
     }
     
     // 그룹 일정 제안하기
@@ -61,13 +61,20 @@ class GroupCalendarViewModel: ObservableObject {
         title: String,
         content: String,
         creator: String,
+        creatorName: String,
         schedules: [TimeSlotGroup],
-        groupColor: String,
-        members: [String],
-        completion: @escaping (Bool) -> Void
-    ) {
+        groupMembers: [String],
+        groupColor: String = "blue"
+    ) async throws {
         // 그룹 스케줄 프로포절 생성
         let proposalID = UUID().uuidString
+        
+        // 처음에는 모든 멤버가 미확인 상태
+        let checkedMembers: [String] = []
+        let unCheckedMembers = groupMembers
+        
+        // 초기 가용성 맵 (비어있음)
+        let memberAvailability: [String: [String: Bool]] = [:]
         
         let proposalData: [String: Any] = [
             "proposalID": proposalID,
@@ -76,6 +83,7 @@ class GroupCalendarViewModel: ObservableObject {
             "title": title,
             "content": content,
             "creator": creator,
+            "creatorName": creatorName,
             "createdAt": FieldValue.serverTimestamp(),
             "schedules": schedules.map { slot in
                 return [
@@ -84,20 +92,24 @@ class GroupCalendarViewModel: ObservableObject {
                     "isAllDay": slot.isAllDay
                 ] as [String: Any]
             },
-            "votes": [:], // 빈 투표 맵으로 시작
+            "checkedMembers": checkedMembers,
+            "unCheckedMembers": unCheckedMembers,
+            "memberAvailability": memberAvailability,
             "groupColor": groupColor,
             "status": "pending" // 상태는 pending으로 시작
         ]
         
-        fsDB.collection("groupScheduleProposals").document(proposalID).setData(proposalData) { error in
-            if let error = error {
-                print("[E]그룹 일정 제안 추가 실패: \(error.localizedDescription)")
-                completion(false)
-            } else {
-                print("[L]그룹 일정 제안 추가 성공")
-                self.fetchGroupProposals(for: groupID)
-                completion(true)
-            }
+        do {
+            // async/await를 사용한 Firestore 문서 추가
+            try await fsDB.collection("groupScheduleProposals").document(proposalID).setData(proposalData)
+            
+            print("[L]그룹 일정 제안 추가 성공")
+            
+            // 제안 목록 새로고침
+            await fetchGroupProposals(for: groupID)
+        } catch {
+            print("[E]그룹 일정 제안 추가 실패: \(error.localizedDescription)")
+            throw error
         }
     }
     
