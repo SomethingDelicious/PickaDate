@@ -272,29 +272,71 @@ struct ProposalDetailView: View {
     
     // 확인 완료
     private func confirmCheck() {
-        guard let userID = userViewModel.currentUser?.userID else { return }
+        guard let userID = userViewModel.currentUser?.userID,
+              let userName = userViewModel.currentUser?.userName else { return }
         
         // 사용자의 가능/불가능 상태를 ViewModel에 저장
-        var availabilityMap: [String: Bool] = [:]
+        var availabilityMap: [Int: Bool] = [:]
         for (index, isAvailable) in userSelectedOptions {
-            availabilityMap[String(index)] = isAvailable
+            availabilityMap[index] = isAvailable
         }
         
-        // ViewModel을 통해 Firestore에 업데이트 요청
-        // TODO: 실제 구현: calendarViewModel.updateUserAvailability(...)
-        print("사용자 \(userID)가 일정 확인 완료")
+        do {
+            
+            // ViewModel을 통해 Firestore에 업데이트 요청
+            calendarViewModel.updateUserAvailability(
+                proposalID: proposal.proposalID,
+                userID: userID,
+                userName: userName,
+                availability: availabilityMap
+            )
+            print("사용자 \(userID)가 일정 확인 완료")
+            // 성공 시 화면 닫기
+            dismiss()
+        } catch {
+            // 오류 처리
+            print("[E] 일정 확인 업데이트 실패: \(error.localizedDescription)")
+        }
     }
     
     // 일정 확정 (그룹 리더만 사용)
     private func confirmSchedule() {
-        // TODO: 일정 확정 로직 추가 예정
-        print("일정 확정")
+        guard isGroupLeader, let selectedOption = getSelectedOptionIndex() else {
+            return
+        }
+        
+        do {
+            // ViewModel을 통해 일정 확정
+            calendarViewModel.confirmProposal(
+                proposalID: proposal.proposalID,
+                selectedOptionIndex: selectedOption
+            )
+            print("일정 확정")
+            dismiss()
+        } catch {
+            print("[E] 일정 확정 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    // 선택된 옵션 인덱스 가져오기
+    private func getSelectedOptionIndex() -> Int? {
+        // 여기서는 간단히 첫 번째 옵션을 선택
+        // TODO: 실제로는 사용자가 확정할 옵션을 선택하는 UI 필요
+        return proposal.schedules.indices.first
     }
     
     // 제안 취소 (그룹 리더만 사용)
     private func cancelProposal() {
-        // 제안 취소 로직 추가 예정
-        print("제안 취소")
+        guard isGroupLeader else { return }
+        
+        do {
+            // ViewModel을 통해 제안 취소
+            calendarViewModel.cancelProposal(proposalID: proposal.proposalID)
+            print("제안 취소")
+            dismiss()
+        } catch {
+            print("[E] 제안 취소 실패: \(error.localizedDescription)")
+        }
     }
     
     // 날짜 및 시간 포맷팅

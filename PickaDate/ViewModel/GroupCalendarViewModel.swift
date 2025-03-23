@@ -257,7 +257,6 @@ class GroupCalendarViewModel: ObservableObject {
         }
     }
 
-    
     // 그룹 일정 추가하기
     func addGroupSchedule(groupID: String, title: String, content: String, schedule: [TimeSlotGroup], groupColor: String) {
         let scheduleData = schedule.map { slot in
@@ -322,6 +321,210 @@ class GroupCalendarViewModel: ObservableObject {
             } else {
                 print("[L]그룹 일정 삭제 성공")
                 self.fetchGroupSchedules(groupID: groupID)
+            }
+        }
+    }
+    
+    // MARK: - 그룹 일정 제안 상세뷰를 위한 메서드
+    // 사용자의 일정 확인 및 가능/불가능 상태 업데이트
+    func updateUserAvailability(
+        proposalID: String,
+        userID: String,
+        userName: String,
+        availability: [Int: Bool]
+    ) {
+        // Firestore에서 해당 제안 문서 가져오기
+        fsDB.collection("groupScheduleProposals").document(proposalID).getDocument { [weak self] snapshot, error in
+            guard let self = self, let document = snapshot, document.exists else {
+                print("[E] 일정 제안을 찾을 수 없음: \(error?.localizedDescription ?? "알 수 없는 오류")")
+                return
+            }
+            
+            do {
+                // 현재 제안 데이터 가져오기
+                var proposal = try document.data(as: GroupScheduleProposal.self)
+                
+                // 가능/불가능 상태를 String 키로 변환
+                var availabilityMap: [String: Bool] = [:]
+                for (index, isAvailable) in availability {
+                    availabilityMap[String(index)] = isAvailable
+                }
+                
+                // memberAvailability 업데이트
+                proposal.memberAvailability[userID] = availabilityMap
+                
+                // checkedMembers, uncheckedMembers 업데이트
+                if !proposal.checkedMembers.contains(userID) {
+                    proposal.checkedMembers.append(userID)
+                    proposal.unCheckedMembers.removeAll { $0 == userID }
+                }
+                
+                // Firestore 업데이트
+                let updateData: [String: Any] = [
+                    "memberAvailability": proposal.memberAvailability,
+                    "checkedMembers": proposal.checkedMembers,
+                    "unCheckedMembers": proposal.unCheckedMembers
+                ]
+                
+                self.fsDB.collection("groupScheduleProposals").document(proposalID).updateData(updateData) { error in
+                    if let error = error {
+                        print("[E] 일정 확인 업데이트 실패: \(error.localizedDescription)")
+                    } else {
+                        print("[L] 일정 확인 업데이트 성공")
+                        
+                        // 제안 목록 새로고침
+                        Task {
+                            await self.fetchGroupProposals(for: proposal.groupID)
+                        }
+                    }
+                }
+            } catch {
+                print("[E] 제안 데이터 파싱 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // 일정 제안 확정하기 (리더만 사용)
+    func confirmProposal(
+        proposalID: String,
+        selectedOptionIndex: Int
+    ) {
+        // Firestore에서 해당 제안 문서 가져오기
+        fsDB.collection("groupScheduleProposals").document(proposalID).getDocument { [weak self] snapshot, error in
+            guard let self = self, let document = snapshot, document.exists else {
+                print("[E] 일정 제안을 찾을 수 없음: \(error?.localizedDescription ?? "알 수 없는 오류")")
+                return
+            }
+            
+            do {
+                // 현재 제안 데이터 가져오기
+                var proposal = try document.data(as: GroupScheduleProposal.self)
+                
+                // 제안 상태 업데이트
+                proposal.status = .confirmed
+                proposal.confirmedOptionIndex = selectedOptionIndex
+                
+                // Firestore 업데이트
+                let updateData: [String: Any] = [
+                    "status": "confirmed",
+                    "confirmedOptionIndex": selectedOptionIndex
+                ]
+                
+                self.fsDB.collection("groupScheduleProposals").document(proposalID).updateData(updateData) { error in
+                    if let error = error {
+                        print("[E] 일정 확정 실패: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    print("[L] 일정 제안 확정 성공")
+                    
+                    // 확정된 일정을 그룹 일정으로 저장
+                    self.createGroupScheduleFromProposal(proposal: proposal, selectedOptionIndex: selectedOptionIndex)
+                    
+                    // 제안 목록 새로고침
+                    Task {
+                        await self.fetchGroupProposals(for: proposal.groupID)
+                    }
+                }
+            } catch {
+                print("[E] 제안 데이터 파싱 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    // 확정된 제안에서 그룹 일정 생성
+    private func createGroupScheduleFromProposal(
+        proposal: GroupScheduleProposal,
+        selectedOptionIndex: Int
+    ) {
+        guard selectedOptionIndex < proposal.schedules.count else {
+            print("[E] 선택된 옵션 인덱스가 범위를 벗어남")
+            return
+        }
+        
+        // 선택된 옵션의 일정 시간
+        let selectedSchedule = proposal.schedules[selectedOptionIndex]
+        
+        // 참여 가능한 멤버 목록 계산
+        var participants: [String] = []
+        var nonParticipants: [String] = []
+        
+        // 각 멤버의 가능 여부에 따라 참여자/불참자 나누기
+        for (memberID, availabilityMap) in proposal.memberAvailability {
+            if let isAvailable = availabilityMap[String(selectedOptionIndex)], isAvailable {
+                participants.append(memberID)
+            } else {
+                nonParticipants.append(memberID)
+            }
+        }
+        
+        // 그룹 일정 데이터 생성
+        let groupScheduleID = UUID().uuidString
+        let groupScheduleData: [String: Any] = [
+            "groupID": proposal.groupID,
+            "groupName": proposal.groupName,
+            "title": proposal.title,
+            "content": proposal.content,
+            "createdAt": FieldValue.serverTimestamp(),
+            "schedule": [
+                "startTime": selectedSchedule.startTime,
+                "endTime": selectedSchedule.endTime,
+                "isAllDay": selectedSchedule.isAllDay
+            ],
+            "status": "confirmed",
+            "creator": proposal.creator,
+            "creatorName": proposal.creatorName,
+            "originalProposalID": proposal.proposalID,
+            "participants": participants,
+            "nonParticipants": nonParticipants,
+            "groupColor": proposal.groupColor
+        ]
+        
+        // Firestore에 그룹 일정 저장
+        fsDB.collection("groupSchedules").document(groupScheduleID).setData(groupScheduleData) { [weak self] error in
+            if let error = error {
+                print("[E] 그룹 일정 생성 실패: \(error.localizedDescription)")
+            } else {
+                print("[L] 그룹 일정 생성 성공")
+                
+                // 그룹 일정 목록 새로고침
+                if let self = self {
+                    self.fetchGroupSchedules(groupID: proposal.groupID)
+                }
+            }
+        }
+    }
+    
+    // 일정 제안 취소하기 (리더만 사용)
+    func cancelProposal(proposalID: String) {
+        // Firestore에서 해당 제안 문서 가져오기
+        fsDB.collection("groupScheduleProposals").document(proposalID).getDocument { [weak self] snapshot, error in
+            guard let self = self, let document = snapshot, document.exists else {
+                print("[E] 일정 제안을 찾을 수 없음: \(error?.localizedDescription ?? "알 수 없는 오류")")
+                return
+            }
+            
+            do {
+                // 현재 제안 데이터 가져오기
+                let proposal = try document.data(as: GroupScheduleProposal.self)
+                
+                // 제안 상태를 취소로 업데이트
+                self.fsDB.collection("groupScheduleProposals").document(proposalID).updateData([
+                    "status": "canceled"
+                ]) { error in
+                    if let error = error {
+                        print("[E] 일정 제안 취소 실패: \(error.localizedDescription)")
+                    } else {
+                        print("[L] 일정 제안 취소 성공")
+                        
+                        // 제안 목록 새로고침
+                        Task {
+                            await self.fetchGroupProposals(for: proposal.groupID)
+                        }
+                    }
+                }
+            } catch {
+                print("[E] 제안 데이터 파싱 실패: \(error.localizedDescription)")
             }
         }
     }
