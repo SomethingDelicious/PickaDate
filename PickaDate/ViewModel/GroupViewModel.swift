@@ -151,7 +151,7 @@ class GroupViewModel: ObservableObject {
             
             if let document = snapshot, document.exists {
                 // 멤버 배열 추출
-                if let members = document.data()?["member"] as? [String] {
+                if let members = document.data()?["memberIDs"] as? [String] {
                     DispatchQueue.main.async {
                         self.groupMembers = members
                         print("[L]그룹 멤버 가져오기 성공: \(members.count)명")
