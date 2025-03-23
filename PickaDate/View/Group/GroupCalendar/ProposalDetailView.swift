@@ -78,7 +78,7 @@ struct ProposalDetailView: View {
                 .font(.subheadline)
                 .foregroundStyle(.gray)
             
-            Text("제안자: \(proposal.creatorName))")
+            Text("제안자: \(proposal.creatorName)")
                 .font(.subheadline)
                 .foregroundColor(.gray)
             

@@ -275,7 +275,7 @@ struct ProposeGroupScheduleView: View {
             )
         }
         
-        let groupMembers = groupViewModel.getGroupMembers(groupID: groupID)
+        let groupMembers = await groupViewModel.getGroupMembers(groupID: groupID)
         
         do {
             try await scheduleViewModel.proposeGroupSchedule(
@@ -286,7 +286,7 @@ struct ProposeGroupScheduleView: View {
                 creator: currentUser.userID,
                 creatorName: currentUser.userName,
                 schedules: schedules,
-                groupMembers: [],
+                groupMembers: groupMembers,
                 groupColor: selectedColor
             )
             // 성공 시 화면 닫기

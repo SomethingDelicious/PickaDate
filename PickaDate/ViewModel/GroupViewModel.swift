@@ -141,34 +141,42 @@ class GroupViewModel: ObservableObject {
     }
     
     // 그룹 멤버 목록 가져오기
-    func fetchGroupMembers(groupID: String) {
-        // 그룹 문서 가져오기
-        fsDB.collection("groups").document(groupID).getDocument { snapshot, error in
-            if let error = error {
-                print("[E]그룹 정보 가져오기 실패: \(error.localizedDescription)")
-                return
+    func fetchGroupMembers(groupID: String) async -> [String] {
+        do {
+            // 그룹 문서 가져오기
+            let document = try await fsDB.collection("groups").document(groupID).getDocument()
+            
+            if document.exists, let members = document.data()?["memberIDs"] as? [String] {
+                // UI 업데이트는 MainActor에서
+                await MainActor.run {
+                    self.groupMembers = members
+                    print("[L]그룹 멤버 가져오기 성공: \(members.count)명")
+                }
+                return members
             }
             
-            if let document = snapshot, document.exists {
-                // 멤버 배열 추출
-                if let members = document.data()?["memberIDs"] as? [String] {
-                    DispatchQueue.main.async {
-                        self.groupMembers = members
-                        print("[L]그룹 멤버 가져오기 성공: \(members.count)명")
-                    }
-                }
-            }
+        } catch {
+            print("[E]그룹 정보 가져오기 실패: \(error.localizedDescription)")
+        }
+        
+        return []
+    }
+    // 기존 비동기 방식의 fetchGroupMembers는 내부적으로 async 버전 호출
+    func fetchGroupMembers(groupID: String) {
+        Task {
+            _ = await fetchGroupMembers(groupID: groupID)
         }
     }
     
-    // 해당 그룹의 멤버 목록 반환
-    func getGroupMembers(groupID: String) -> [String] {
-        if groupID == currentGroup?.groupID {
+    // 해당 그룹의 멤버 목록 반환 (캐시 활용)
+    func getGroupMembers(groupID: String) async -> [String] {
+        // 현재 그룹과 ID가 같고 멤버 정보가 있으면 바로 반환
+        if groupID == currentGroup?.groupID && !groupMembers.isEmpty {
             return groupMembers
-        } else {
-            // 캐시된 그룹이 아니면 빈 배열 반환 (비동기적으로 fetchGroupMembers 호출 필요)
-            return []
         }
+        
+        // 그렇지 않으면 fetchGroupMembers 호출
+        return await fetchGroupMembers(groupID: groupID)
     }
     
     // ---------------------
