@@ -64,6 +64,34 @@ struct ProposalDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadUserAvailability()
+            
+            // 제안된 일정 날짜들이 속한 달의 일정 상태 계산 요청
+            Task {
+                // 모든 제안 날짜가 속한 년/월 확인
+                let calendar = Calendar.current
+                var monthsToCalculate = Set<String>() // "YYYY-MM" 형태의 문자열 저장
+                
+                for timeSlot in proposal.schedules {
+                    let date = timeSlot.startTime
+                    let year = calendar.component(.year, from: date)
+                    let month = calendar.component(.month, from: date)
+                    let yearMonthString = "\(year)-\(month)"
+                    monthsToCalculate.insert(yearMonthString)
+                }
+                
+                // 각 월에 대해 일정 상태 계산 요청
+                if let groupID = groupViewModel.currentGroup?.groupID {
+                    for yearMonthString in monthsToCalculate {
+                        let components = yearMonthString.split(separator: "-")
+                        if components.count == 2,
+                           let year = Int(components[0]),
+                           let month = Int(components[1]) {
+                            // 이미 계산된 월인지 확인 (선택적)
+                            calendarViewModel.calculateMonthScheduleStatus(groupID: groupID, year: year, month: month)
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -116,15 +144,25 @@ struct ProposalDetailView: View {
                 .font(.headline)
             
             ForEach(Array(proposal.schedules.enumerated()), id: \.offset) { index, timeSlot in
+                // 개인 일정 충돌 여부 확인
+                let hasConflict = checkScheduleConflict(with: timeSlot)
+                
+                // 시작 날짜의 일정 상태 조회
+                let startDate = timeSlot.startTime
+                let scheduleStatus = calendarViewModel.getScheduleStatusForDate(startDate)
+                
                 ScheduleOptionView(
                     index: index,
                     timeSlot: timeSlot,
-                    isAvailable: userSelectedOptions[index, default: true],
+                    isAvailable: userSelectedOptions[index, default: !hasConflict],
                     isConfirmed: proposal.confirmedOptionIndex == index,
+                    hasConflict: hasConflict,
                     color: colorMap[proposal.groupColor, default: .blue],
-                    isEditable: proposal.status == .pending && !hasUserChecked,
+                    isEditable: proposal.status == .pending,
+                    withSchedule: scheduleStatus.withSchedule,
+                    withoutSchedule: scheduleStatus.withoutSchedule,
                     onToggleAvailability: {
-                        toggleOptionAvailability(index: index)
+                        userSelectedOptions[index] = !(userSelectedOptions[index] ?? !hasConflict)
                     }
                 )
             }
@@ -369,9 +407,13 @@ struct ScheduleOptionView: View {
     let timeSlot: TimeSlotGroup
     let isAvailable: Bool
     let isConfirmed: Bool
+    let hasConflict: Bool
     let color: Color
     let isEditable: Bool
+    let withSchedule: Int    // 일정 있는 멤버 수
+    let withoutSchedule: Int // 일정 없는 멤버 수
     let onToggleAvailability: () -> Void
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -386,6 +428,18 @@ struct ScheduleOptionView: View {
                 }
                 
                 Spacer()
+                
+                // 일정 상태 표시
+                let totalMembers = withSchedule + withoutSchedule
+                if totalMembers > 0 {
+                    Text("일정: \(withSchedule)명")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(getScheduleStatusColor(ratio: Double(withSchedule) / Double(totalMembers)))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
             }
             
             HStack {
@@ -447,6 +501,18 @@ struct ScheduleOptionView: View {
                 .stroke(isConfirmed ? Color.green : (isAvailable ? color.opacity(0.5) : Color.gray.opacity(0.5)), lineWidth: 2)
         )
         .padding(.vertical, 4)
+    }
+    
+    // 일정 상태에 따른 색상 계산
+    private func getScheduleStatusColor(ratio: Double) -> Color {
+        switch ratio {
+        case 0...0.33:
+            return .green  // 적은 인원이 일정 있음 (좋음)
+        case 0.34...0.66:
+            return .orange // 절반 정도 일정 있음 (주의)
+        default:
+            return .red    // 대부분 일정 있음 (나쁨)
+        }
     }
     
     // 날짜 포맷팅
