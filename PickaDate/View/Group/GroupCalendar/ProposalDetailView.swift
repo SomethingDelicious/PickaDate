@@ -63,6 +63,7 @@ struct ProposalDetailView: View {
         .navigationTitle("일정 제안 상세")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            userViewModel.fetchUserSchedules()
             loadUserAvailability()
             
             // 제안된 일정 날짜들이 속한 달의 일정 상태 계산 요청
@@ -275,18 +276,26 @@ struct ProposalDetailView: View {
     private func loadUserAvailability() {
         guard let userID = userViewModel.currentUser?.userID else { return }
         
+        // 디버깅을 위한 로그 추가
+        print("Loading availability for user: \(userViewModel.currentUser?.userName ?? "Unknown User")")
+        print("Current user schedules: \(userViewModel.userSchedules.count)")
+        
         // 기존에 저장된 가능/불가능 상태 로드
         if let availability = proposal.memberAvailability[userID] {
+            print("Found saved availability: \(availability)")
             for (indexStr, isAvailable) in availability {
                 if let index = Int(indexStr) {
                     userSelectedOptions[index] = isAvailable
+                    print("Option \(index): \(isAvailable ? "Available" : "Unavailable")")
                 }
             }
         } else {
+            print("No saved availability, checking conflicts")
             // 새로운 사용자의 경우 개인 일정과 겹치는지 확인하며 초기 상태 설정
             for (index, option) in proposal.schedules.enumerated() {
                 let hasConflict = checkScheduleConflict(with: option)
                 userSelectedOptions[index] = !hasConflict // 충돌이 없으면 가능, 있으면 불가능
+                print("Option \(index): \(hasConflict ? "Conflict detected" : "No conflict") -> \(!hasConflict ? "Available" : "Unavailable")")
             }
         }
     }
@@ -296,15 +305,53 @@ struct ProposalDetailView: View {
     }
     // 개인 일정과 충돌 여부 확인
     private func checkScheduleConflict(with option: TimeSlotGroup) -> Bool {
+        let calendar = Calendar.current
+        let optionStartDay = calendar.startOfDay(for: option.startTime)
+        let optionEndDay = calendar.startOfDay(for: option.endTime)
+        
+        print("Checking conflicts for option:")
+        print("  Option Start: \(option.startTime) (\(formatDateTime(option.startTime)))")
+        print("  Option End: \(option.endTime) (\(formatDateTime(option.endTime)))")
+        print("  Option Start Day: \(optionStartDay) (\(formatDate(optionStartDay)))")
+        print("  Option End Day: \(optionEndDay) (\(formatDate(optionEndDay)))")
+        print("  Is All Day: \(option.isAllDay)")
+        
         // 사용자의 개인 일정과 옵션 시간이 겹치는지 확인
-        for schedule in userViewModel.userSchedules {
-            for timeSlot in schedule.schedules {
+        // for schedule in userViewModel.userSchedules {
+        for (scheduleIndex, schedule) in userViewModel.userSchedules.enumerated() {
+            // for timeSlot in schedule.schedules {
+            for (slotIndex, timeSlot) in schedule.schedules.enumerated() {
+                // 날짜 범위가 겹치는지 먼저 확인 (최적화)
+                let slotStartDay = calendar.startOfDay(for: timeSlot.startTime)
+                let slotEndDay = calendar.startOfDay(for: timeSlot.endTime)
+                
+                print("Comparing with user schedule #\(scheduleIndex), slot #\(slotIndex):")
+                print("Slot Start: \(timeSlot.startTime) (\(formatDateTime(timeSlot.startTime)))")
+                print("Slot End: \(timeSlot.endTime) (\(formatDateTime(timeSlot.endTime)))")
+                print("Slot Start Day: \(slotStartDay) (\(formatDate(slotStartDay)))")
+                print("Slot End Day: \(slotEndDay) (\(formatDate(slotEndDay)))")
+                print("Is All Day: \(timeSlot.isAllDay)")
+                
+                // 날짜 범위가 겹치지 않으면 다음 일정 확인
+                if slotEndDay < optionStartDay || slotStartDay > optionEndDay {
+                    print("날짜 범위가 겹치지 않음 - continuing to next slot")
+                    continue
+                }
+                print("날짜 겹침")
+                
                 // 시간 범위가 겹치는지 확인
-                if max(option.startTime, timeSlot.startTime) < min(option.endTime, timeSlot.endTime) {
-                    return true // 충돌 있음
+                if option.isAllDay || timeSlot.isAllDay {
+                    print("일정 충돌 감지: 최소 하나의 종일 일정: \(option.isAllDay), \(timeSlot.isAllDay)")
+                    return true // 하나라도 종일 일정이면 충돌
+                } else if max(option.startTime, timeSlot.startTime) < min(option.endTime, timeSlot.endTime) {
+                    print("시간 범위 충돌 감지: \(option.startTime) ~ \(option.endTime), \(timeSlot.startTime) ~ \(timeSlot.endTime)")
+                    return true // 시간 범위가 겹치면 충돌
+                } else {
+                    print("시간 충돌 감지 안됨")
                 }
             }
         }
+        print("충돌 찾지 못함")
         return false // 충돌 없음
     }
     
@@ -432,7 +479,7 @@ struct ScheduleOptionView: View {
                 // 일정 상태 표시
                 let totalMembers = withSchedule + withoutSchedule
                 if totalMembers > 0 {
-                    Text("일정: \(withSchedule)명")
+                    Text("당일 일정: \(withSchedule)명")
                         .font(.caption)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
