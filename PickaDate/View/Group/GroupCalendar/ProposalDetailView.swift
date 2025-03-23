@@ -19,6 +19,7 @@ struct ProposalDetailView: View {
     
     // 사용자 선택 상태
     @State private var userSelectedOptions: [Int: Bool] = [:]
+    @State private var selectedOptionForConfirmation: Int? = nil
     
     // 현재 사용자가 그룹의 리더인지 확인
     private var isGroupLeader: Bool {
@@ -162,8 +163,18 @@ struct ProposalDetailView: View {
                     isEditable: proposal.status == .pending,
                     withSchedule: scheduleStatus.withSchedule,
                     withoutSchedule: scheduleStatus.withoutSchedule,
+                    isLeader: isGroupLeader,
+                    isSelectedForConfirmation: selectedOptionForConfirmation == index,
                     onToggleAvailability: {
                         userSelectedOptions[index] = !(userSelectedOptions[index] ?? !hasConflict)
+                    },
+                    onSelectForConfirmation: {
+                        // 이미 선택된 옵션이면 선택 해제, 아니면 선택
+                        if selectedOptionForConfirmation == index {
+                            selectedOptionForConfirmation = nil
+                        } else {
+                            selectedOptionForConfirmation = index
+                        }
                     }
                 )
             }
@@ -202,7 +213,7 @@ struct ProposalDetailView: View {
                     Text("수정 완료")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.gray)
+                        .background(Color.blue)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
@@ -218,6 +229,7 @@ struct ProposalDetailView: View {
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .disabled(selectedOptionForConfirmation == nil)  // 옵션이 선택되지 않으면 비활성화
                 
                 Button(action: cancelProposal) {
                     Text("제안 취소하기")
@@ -386,7 +398,10 @@ struct ProposalDetailView: View {
     
     // 일정 확정 (그룹 리더만 사용)
     private func confirmSchedule() {
-        guard isGroupLeader, let selectedOption = getSelectedOptionIndex() else {
+        // 선택된 옵션이 없으면 확정 불가
+        guard isGroupLeader, let selectedOption = selectedOptionForConfirmation else {
+            // 선택된 옵션이 없다는 알림 표시
+            print("선택된 옵션이 없습니다")
             return
         }
         
@@ -396,18 +411,11 @@ struct ProposalDetailView: View {
                 proposalID: proposal.proposalID,
                 selectedOptionIndex: selectedOption
             )
-            print("일정 확정")
+            print("일정 확정: 옵션 \(selectedOption + 1)")
             dismiss()
         } catch {
             print("[E] 일정 확정 실패: \(error.localizedDescription)")
         }
-    }
-    
-    // 선택된 옵션 인덱스 가져오기
-    private func getSelectedOptionIndex() -> Int? {
-        // 여기서는 간단히 첫 번째 옵션을 선택
-        // TODO: 실제로는 사용자가 확정할 옵션을 선택하는 UI 필요
-        return proposal.schedules.indices.first
     }
     
     // 제안 취소 (그룹 리더만 사용)
@@ -459,12 +467,24 @@ struct ScheduleOptionView: View {
     let isEditable: Bool
     let withSchedule: Int    // 일정 있는 멤버 수
     let withoutSchedule: Int // 일정 없는 멤버 수
+    let isLeader: Bool       // 리더 여부 추가
+    let isSelectedForConfirmation: Bool  // 확정 선택 여부 추가
     let onToggleAvailability: () -> Void
+    let onSelectForConfirmation: () -> Void  // 확정 선택 콜백 추가
     
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
+                // 리더용 체크박스
+                if isLeader && !isConfirmed {
+                    Button(action: onSelectForConfirmation) {
+                        Image(systemName: isSelectedForConfirmation ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(isSelectedForConfirmation ? .green : .gray)
+                    }
+                    .padding(.trailing, 4)
+                }
+                
                 Text("옵션 \(index + 1)")
                     .font(.headline)
                 
