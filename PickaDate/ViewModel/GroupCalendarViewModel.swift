@@ -158,7 +158,7 @@ class GroupCalendarViewModel: ObservableObject {
             }
             
             // 그룹 멤버 목록 추출
-            guard let members = groupDoc.data()?["member"] as? [String] else {
+            guard let memberIDs = groupDoc.data()?["memberIDs"] as? [String] else {
                 print("[E]그룹 멤버 정보가 없습니다.")
                 return
             }
@@ -180,12 +180,12 @@ class GroupCalendarViewModel: ObservableObject {
             var memberSchedules: [String: [Date: Bool]] = [:] // [멤버ID: [날짜: 일정있음]]
             let group = DispatchGroup()
             
-            for member in members {
+            for memberID in memberIDs {
                 group.enter()
                 
                 // 사용자 일정 가져오기
                 self.fsDB.collection("userSchedules")
-                    .whereField("userID", isEqualTo: member)
+                    .whereField("userID", isEqualTo: memberID)
                     .getDocuments { snapshot, error in
                         defer { group.leave() }
                         
@@ -215,7 +215,7 @@ class GroupCalendarViewModel: ObservableObject {
                             }
                         }
                         
-                        memberSchedules[member] = dateHasSchedule
+                        memberSchedules[memberID] = dateHasSchedule
                     }
             }
             
@@ -236,7 +236,7 @@ class GroupCalendarViewModel: ObservableObject {
                     }
                     
                     // 일정 없는 멤버 수 계산
-                    let withoutScheduleCount = members.count - withScheduleCount
+                    let withoutScheduleCount = memberIDs.count - withScheduleCount
                     
                     // 날짜를 문자열 키로 변환
                     let dateFormatter = DateFormatter()

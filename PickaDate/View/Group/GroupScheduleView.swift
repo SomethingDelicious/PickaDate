@@ -167,7 +167,7 @@ struct GroupScheduleView: View {
                 if isCurrentMonth && (scheduleStatus.withSchedule > 0 || scheduleStatus.withoutSchedule > 0) {
                     VStack(spacing: 2) {
                         if scheduleStatus.withSchedule > 0 {
-                            Text("일정 있음: \(scheduleStatus.withSchedule)명")
+                            Text("일정: \(scheduleStatus.withSchedule)명")
                                 .font(.system(size: 8))
                                 .padding(2)
                                 .background(getScheduleStatusColor(ratio: Double(scheduleStatus.withSchedule) / Double(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)))
@@ -175,9 +175,9 @@ struct GroupScheduleView: View {
                                 .foregroundColor(.white)
                         }
                         
-                        Text("총 \(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)명")
-                            .font(.system(size: 8))
-                            .foregroundColor(.gray)
+//                        Text("총 \(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)명")
+//                            .font(.system(size: 8))
+//                            .foregroundColor(.gray)
                     }
                     .padding(.top, 2)
                 }
