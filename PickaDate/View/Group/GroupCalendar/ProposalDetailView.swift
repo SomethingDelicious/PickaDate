@@ -23,7 +23,7 @@ struct ProposalDetailView: View {
     // 현재 사용자가 그룹의 리더인지 확인
     private var isGroupLeader: Bool {
         if let currentGroup = groupViewModel.currentGroup {
-            return userViewModel.currentUser?.userID == currentGroup.leader
+            return userViewModel.currentUser?.userID == currentGroup.leaderID
         }
         return false
     }
