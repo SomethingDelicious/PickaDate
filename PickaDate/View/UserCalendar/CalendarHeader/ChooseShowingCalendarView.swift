@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -10,9 +9,9 @@ import FirebaseFirestore
 
 struct ChooseShowingCalendarView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: User
+    let user: PDUser?
     
     @Binding var selectedCalendars: Set<String>
     
@@ -32,7 +31,7 @@ struct ChooseShowingCalendarView: View {
                     ))
                     .padding(.horizontal)
 
-                    ForEach(user.joinGroup, id: \.self) { group in
+                    ForEach(user?.joinedGroups ?? [], id: \.self) { group in
                         Toggle(group, isOn: Binding(
                             get: { selectedCalendars.contains(group) },
                             set: { isSelected in
@@ -62,8 +61,7 @@ struct ChooseShowingCalendarView: View {
             
             
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         .navigationTitle(Text("일정 공유 그룹"))

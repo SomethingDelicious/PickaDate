@@ -1,5 +1,4 @@
 //
-//  ContentView.swift
 //  PickaDate
 //
 //  Created by 김태건 on 2/20/25.
@@ -8,31 +7,39 @@
 import SwiftUI
 import FirebaseFirestore
 
-private struct TimeIntervalKey: EnvironmentKey {
-    static let defaultValue: Int = 60
-}
-
-extension EnvironmentValues {
-    var timeInterval: Int {
-        get { self[TimeIntervalKey.self] }
-        set { self[TimeIntervalKey.self] = newValue }
-    }
-}
-
-struct AddPersonalScheduleView: View {
+struct EditUserScheduleView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = FirestoreViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
     
-    let user: User
-    let selectedDate: Date
+    let schedule: PDUserSchedule
+    @State private var currentDate = Date()
     
-    @State private var name: String = ""
-    @State private var content: String = ""
-    @State private var selectedGroups: Set<String> = []
+    @State private var title: String
+    @State private var content: String
+    @State private var selectedGroups: Set<String>
     @State private var startDate: Date
     @State private var endDate: Date
-    @State private var selectedColor: String = "green"
+    @State private var selectedColor: String
     @State private var isAllDay: Bool = false
+    
+    init(schedule: PDUserSchedule) {
+        self.schedule = schedule
+        
+        _title = State(initialValue: schedule.title)
+        _content = State(initialValue: schedule.content)
+        _selectedGroups = State(initialValue: Set(schedule.groupIDs))
+        if let firstSchedule = schedule.schedules.first {
+            _startDate = State(initialValue: firstSchedule.startTime)
+            _endDate = State(initialValue: firstSchedule.endTime)
+            _isAllDay = State(initialValue: firstSchedule.isAllDay)
+        } else {
+            _startDate = State(initialValue: Date())
+            _endDate = State(initialValue: Date())
+            _isAllDay = State(initialValue: false)
+        }
+        
+        _selectedColor = State(initialValue: schedule.userScheduleColor)
+    }
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     
@@ -46,18 +53,11 @@ struct AddPersonalScheduleView: View {
         "brown": .brown
     ]
     
-    init(user: User, selectedDate: Date) {
-        self.user = user
-        self.selectedDate = selectedDate
-        self._startDate = State(initialValue: selectedDate)
-        self._endDate = State(initialValue: selectedDate)
-    }
-    
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("일정 정보").foregroundColor(.black)) {
-                    TextField("일정 이름", text: $name)
+                    TextField("일정 이름", text: $title)
                         .foregroundColor(.black)
                     
                     TextField("내용", text: $content)
@@ -87,11 +87,10 @@ struct AddPersonalScheduleView: View {
                         .foregroundColor(.black)
                 }
                 
+                Section(header: Text("공유 그룹 선택").foregroundColor(.black)) {
+                    MultiSelectGroupView(userGroups: userViewModel.currentUser?.joinedGroups ?? [], selectedGroups: $selectedGroups)
+                }
                 
-                
-                Section(header: Text("공유할 그룹 선택").foregroundColor(.black)) {
-                                    MultiSelectGroupView(userGroups: user.joinGroup, selectedGroups: $selectedGroups)
-                                }
                 Section(header: Text("색상 선택").foregroundColor(.black)) {
                     Picker("색상", selection: $selectedColor) {
                         ForEach(colors, id: \.self) { color in
@@ -106,7 +105,7 @@ struct AddPersonalScheduleView: View {
                     .pickerStyle(MenuPickerStyle())
                 }
             }
-            .navigationTitle("새 일정 추가")
+            .navigationTitle("일정 편집")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("닫기") {
@@ -115,63 +114,58 @@ struct AddPersonalScheduleView: View {
                     .foregroundColor(.black)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("저장") {
-                        addSchedule()
+                    Button("수정") {
+                        editSchedule()
                     }
                     .foregroundColor(.black)
                 }
             }
             .onAppear {
-                viewModel.fetchUsers()
-                viewModel.fetchPersonalSchedules()
+                userViewModel.fetchUserSchedules()
             }
         }
         
         
     }
-    private func addSchedule() {
-        guard !name.isEmpty, !content.isEmpty else { return }
-        
-        let finalStartDate = isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate
-        let finalEndDate = isAllDay ? Calendar.current.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
+    private func editSchedule() {
+        guard !title.isEmpty, !content.isEmpty else { return }
+        guard userViewModel.currentUser != nil else { return }
 
-        let schedule = [TimeSlotPersonal(startTime: finalStartDate, endTime: finalEndDate)]
-        
-        let selectedGroupArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
+        let calendar = Calendar.current
+        let finalStartDate = isAllDay ? calendar.startOfDay(for: startDate) : startDate
+        let finalEndDate = isAllDay ? calendar.startOfDay(for: endDate).addingTimeInterval(86399) : endDate
 
-        viewModel.addPersonalSchedule(userID: user.userID, name: name, content: content, groupID: selectedGroupArray, schedule: schedule, personalColor: selectedColor)
-        
+        var updatedSchedule: [UserTimeSlot] = []
+
+        if isAllDay {
+            var currentDate = finalStartDate
+            while currentDate <= finalEndDate {
+                let dayStart = calendar.startOfDay(for: currentDate)
+                let dayEnd = calendar.startOfDay(for: currentDate).addingTimeInterval(86399)
+
+                updatedSchedule.append(UserTimeSlot(startTime: dayStart, endTime: dayEnd, isAllDay: true))
+                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+            }
+        } else {
+            updatedSchedule.append(UserTimeSlot(startTime: finalStartDate, endTime: finalEndDate, isAllDay: false))
+        }
+
+        let updatedGroupIDArray = selectedGroups.isEmpty ? [] : Array(selectedGroups)
+
+        guard let scheduleID = schedule.id else {
+            print("오류: schedule.id가 nil입니다.")
+            return
+        }
+
+        userViewModel.updateUserSchedule(
+            scheduleID: scheduleID,
+            title: title,
+            content: content,
+            groupIDs: updatedGroupIDArray,
+            schedules: updatedSchedule,
+            userScheduleColor: selectedColor
+        )
+
         presentationMode.wrappedValue.dismiss()
-    }
-}
-
-struct MultiSelectGroupView: View {
-    let userGroups: [String]
-    @Binding var selectedGroups: Set<String>
-    
-    var body: some View {
-        List {
-            ForEach(userGroups, id: \.self) { group in
-                HStack {
-                    Text(group)
-                    Spacer()
-                    if selectedGroups.contains(group) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.blue)
-                    } else {
-                        Image(systemName: "circle")
-                            .foregroundColor(.gray)
-                    }
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if selectedGroups.contains(group) {
-                        selectedGroups.remove(group)
-                    } else {
-                        selectedGroups.insert(group)
-                    }
-                }
-            }
-        }
     }
 }

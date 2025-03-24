@@ -10,14 +10,14 @@ import FirebaseCore
 
 @main
 struct PickaDateApp: App {
-    //@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    init() {
-        FirebaseApp.configure()
-    }
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    @StateObject private var authService = AuthService()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authService)
         }
     }
 }
