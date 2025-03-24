@@ -11,14 +11,14 @@ struct EditPostView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = PostViewModel()
     @StateObject private var groupViewModel = GroupViewModel()
-    @State private var post: Post
+    @State private var post: PDPost
     @State private var title: String
     @State private var content: String
     @State private var writer: String
     @State private var groupID: String
     @State private var likes: Int
     
-    init(post: Post) {
+    init(post: PDPost) {
         self.post = post
         title = post.title
         content = post.content

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		70D5C4EA2D678095004F4D70 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 70D5C4E92D678095004F4D70 /* FirebaseFirestore */; };
+		8A54C4452D90DF1F00FA3AB6 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A54C4442D90DF1F00FA3AB6 /* FirebaseAuth */; };
+		8A54C4472D90DF6D00FA3AB6 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 8A54C4462D90DF6D00FA3AB6 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +30,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				70D5C4EA2D678095004F4D70 /* FirebaseFirestore in Frameworks */,
+				8A54C4452D90DF1F00FA3AB6 /* FirebaseAuth in Frameworks */,
+				8A54C4472D90DF6D00FA3AB6 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +75,8 @@
 			name = PickaDate;
 			packageProductDependencies = (
 				70D5C4E92D678095004F4D70 /* FirebaseFirestore */,
+				8A54C4442D90DF1F00FA3AB6 /* FirebaseAuth */,
+				8A54C4462D90DF6D00FA3AB6 /* FirebaseStorage */,
 			);
 			productName = PickaDate;
 			productReference = 70D5C4592D67581E004F4D70 /* PickaDate.app */;
@@ -350,6 +356,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 70D5C4E82D678095004F4D70 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		8A54C4442D90DF1F00FA3AB6 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 70D5C4E82D678095004F4D70 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		8A54C4462D90DF6D00FA3AB6 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 70D5C4E82D678095004F4D70 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

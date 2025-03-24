@@ -10,10 +10,10 @@ import FirebaseFirestore
 
 class PostViewModel: ObservableObject {
     private let fsDB = Firestore.firestore()
-    @Published var posts: [Post] = []
-    @Published var comments: [String: [Comment]] = [:] // [postid : 댓글 내용]
+    @Published var posts: [PDPost] = []
+    @Published var comments: [String: [PDComment]] = [:] // [postid : 댓글 내용]
     
-    // 가져오기(fetch)
+    // MARK: - 게시판
     // 게시판 정보 가져오기
     func fetchPosts() {
         fsDB.collection("posts").getDocuments { snapshot, error in
@@ -24,7 +24,7 @@ class PostViewModel: ObservableObject {
             print("[L]post 가져오기 성공")
             DispatchQueue.main.async {
                 self.posts = snapshot?.documents.compactMap { doc in
-                    try? doc.data(as: Post.self)
+                    try? doc.data(as: PDPost.self)
                 } ?? []
                 
                 for post in self.posts {
@@ -34,25 +34,6 @@ class PostViewModel: ObservableObject {
         }
     }
     
-    // 댓글 가져오기
-    func fetchComments(postID: String) {
-        fsDB.collection("posts").document(postID)
-            .collection("comments").getDocuments{
-                snapshot, error in
-                if let error = error {
-                    print("[E]댓글 가져오기 실패: \(error.localizedDescription)")
-                    return
-                }
-                print("[L]댓글 가져오기 성공")
-                DispatchQueue.main.async {
-                    self.comments[postID] = snapshot?.documents.compactMap { doc in
-                        try? doc.data(as: Comment.self)
-                    } ?? []
-                }
-            }
-    }
-    
-    // 추가하기(add)
     // 게시판 추가하기
     func addPost(groupID: String, title: String, content: String, writer: String, createdAt: Date = Date(), likes: Int = 0) {
         let postID = UUID().uuidString
@@ -76,29 +57,6 @@ class PostViewModel: ObservableObject {
         }
     }
     
-    // 댓글 추가하기
-    func addComment(postID: String, content: String, writer: String) {
-        let commentID = UUID().uuidString
-        let data: [String: Any] = [
-            "commentID": commentID,
-            "content": content,
-            "writer": writer,
-            "createdAt": FieldValue.serverTimestamp()
-        ]
-        
-        fsDB.collection("posts").document(postID)
-            .collection("comments").document(commentID)
-            .setData(data) { error in
-                if let error = error {
-                    print("[E]댓글 추가 실패: \(error.localizedDescription)")
-                } else {
-                    print("[L]댓글 추가 성공")
-                    self.fetchComments(postID: postID)
-                }
-            }
-    }
-    
-    // 수정하기(update)
     // 게시판 수정하기
     func updatePost(postID: String, groupID: String, title: String, content: String, writer: String, createdAt: Date, likes: Int) {
         let updateData: [String: Any] = [
@@ -122,26 +80,6 @@ class PostViewModel: ObservableObject {
         }
     }
     
-    // 댓글 수정하기
-    func updateComment(postID: String, commentID: String, content: String) {
-        let updateData: [String: Any] = [
-            "content": content,
-            "updatedAt": FieldValue.serverTimestamp()
-        ]
-        
-        fsDB.collection("posts").document(postID)
-            .collection("comments").document(commentID)
-            .updateData(updateData) { error in
-                if let error = error {
-                    print("[E]댓글 수정 실패: \(error.localizedDescription)")
-                } else {
-                    print("[L]댓글 수정 성공")
-                    self.fetchComments(postID: postID)
-                }
-            }
-    }
-    
-    // 삭제하기(delete)
     // 게시판 삭제하기
     func deletePost(postID: String) {
         // 먼저 해당 게시물의 모든 댓글을 삭제
@@ -168,6 +106,66 @@ class PostViewModel: ObservableObject {
             }
     }
     
+    // MARK: - 댓글
+    // 댓글 가져오기
+    func fetchComments(postID: String) {
+        fsDB.collection("posts").document(postID)
+            .collection("comments").getDocuments{
+                snapshot, error in
+                if let error = error {
+                    print("[E]댓글 가져오기 실패: \(error.localizedDescription)")
+                    return
+                }
+                print("[L]댓글 가져오기 성공")
+                DispatchQueue.main.async {
+                    self.comments[postID] = snapshot?.documents.compactMap { doc in
+                        try? doc.data(as: PDComment.self)
+                    } ?? []
+                }
+            }
+    }
+    
+    // 댓글 추가하기
+    func addComment(postID: String, content: String, writer: String) {
+        let commentID = UUID().uuidString
+        let data: [String: Any] = [
+            "commentID": commentID,
+            "content": content,
+            "writer": writer,
+            "createdAt": FieldValue.serverTimestamp()
+        ]
+        
+        fsDB.collection("posts").document(postID)
+            .collection("comments").document(commentID)
+            .setData(data) { error in
+                if let error = error {
+                    print("[E]댓글 추가 실패: \(error.localizedDescription)")
+                } else {
+                    print("[L]댓글 추가 성공")
+                    self.fetchComments(postID: postID)
+                }
+            }
+    }
+
+    // 댓글 수정하기
+    func updateComment(postID: String, commentID: String, content: String) {
+        let updateData: [String: Any] = [
+            "content": content,
+            "updatedAt": FieldValue.serverTimestamp()
+        ]
+        
+        fsDB.collection("posts").document(postID)
+            .collection("comments").document(commentID)
+            .updateData(updateData) { error in
+                if let error = error {
+                    print("[E]댓글 수정 실패: \(error.localizedDescription)")
+                } else {
+                    print("[L]댓글 수정 성공")
+                    self.fetchComments(postID: postID)
+                }
+            }
+    }
+
     // 댓글 삭제하기
     func deleteComment(postID: String, commentID: String) {
         fsDB.collection("posts").document(postID)
@@ -184,6 +182,7 @@ class PostViewModel: ObservableObject {
             }
     }
     
+    // MARK: - 그 외
     // Date 타입을 String 타입으로 변환
     func formatDate(_ date: Date) -> String {
         let dateFormatter = DateFormatter()

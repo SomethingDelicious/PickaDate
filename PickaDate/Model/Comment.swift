@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct Comment: Identifiable, Codable {
+struct PDComment: Identifiable, Codable {
     @DocumentID var id: String?
     var commentID: String
     var content: String
