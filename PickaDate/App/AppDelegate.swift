@@ -55,24 +55,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // * Firebase 서버 이용시, 에뮬레이터 섹션 다시 주석 처리 (Divider 사이만)
         
         
-        //MARK: - 에뮬레이터 섹션 시작
-        // 앱의 시작 지점에서 에뮬레이터 설정
-        #if DEBUG
-        // 디버그 모드(개발 중)일 때만 실행되는 코드
-        // 1. Firestore 설정
-        let settings = Firestore.firestore().settings
-        settings.host = "localhost:8080"          // 로컬 에뮬레이터 사용
-        settings.isSSLEnabled = false             // 개발용 보안 설정 해제
-        // 개발 중에도 캐싱이 필요하다면 아래 라인은 주석 처리
-        // settings.isPersistenceEnabled = false
-        Firestore.firestore().settings = settings // 설정 적용 필요
-        
-        // 2. 각 서비스의 에뮬레이터 설정
-        // let auth = Auth.auth()
-        Auth.auth().useEmulator(withHost: "localhost", port: 9099) // Authentication 에뮬레이터, 직접 적용됨
-        // let storage = Storage.storage()
-        Storage.storage().useEmulator(withHost: "localhost", port: 9199) // Storage 에뮬레이터, 직접 적용됨
-        #endif
+//        //MARK: - 에뮬레이터 섹션 시작
+//        // 앱의 시작 지점에서 에뮬레이터 설정
+//        #if DEBUG
+//        // 디버그 모드(개발 중)일 때만 실행되는 코드
+//        // 1. Firestore 설정
+//        let settings = Firestore.firestore().settings
+//        settings.host = "localhost:8080"          // 로컬 에뮬레이터 사용
+//        settings.isSSLEnabled = false             // 개발용 보안 설정 해제
+//        // 개발 중에도 캐싱이 필요하다면 아래 라인은 주석 처리
+//        // settings.isPersistenceEnabled = false
+//        Firestore.firestore().settings = settings // 설정 적용 필요
+//        
+//        // 2. 각 서비스의 에뮬레이터 설정
+//        // let auth = Auth.auth()
+//        Auth.auth().useEmulator(withHost: "localhost", port: 9099) // Authentication 에뮬레이터, 직접 적용됨
+//        // let storage = Storage.storage()
+//        Storage.storage().useEmulator(withHost: "localhost", port: 9199) // Storage 에뮬레이터, 직접 적용됨
+//        #endif
         //MARK: - 에뮬레이터 섹션 끝
         
         return true

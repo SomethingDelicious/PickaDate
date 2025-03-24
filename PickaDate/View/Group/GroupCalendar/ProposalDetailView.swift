@@ -45,6 +45,11 @@ struct ProposalDetailView: View {
                 // 내용 섹션
                 contentSection
                 
+                // 상태 메세지 (확정되었거나 최소된 경우)
+                if proposal.status != .pending {
+                    statusMessageSection
+                }
+                
                 // 일정 옵션 섹션
                 scheduleOptionsSection
                 
@@ -54,9 +59,6 @@ struct ProposalDetailView: View {
                 // 버튼 섹션
                 if proposal.status == .pending {
                     buttonSection
-                } else {
-                    // 확정되었거나 최소된 경우 상태 메시지
-                    statusMessageSection
                 }
             }
             .padding()
@@ -477,7 +479,7 @@ struct ScheduleOptionView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 // 리더용 체크박스
-                if isLeader && !isConfirmed {
+                if isLeader && !isConfirmed && isEditable {
                     Button(action: onSelectForConfirmation) {
                         Image(systemName: isSelectedForConfirmation ? "checkmark.square.fill" : "square")
                             .foregroundStyle(isSelectedForConfirmation ? .green : .gray)

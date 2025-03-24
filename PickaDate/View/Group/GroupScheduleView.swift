@@ -68,16 +68,25 @@ struct GroupScheduleView: View {
                         // 날짜 그리드
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
                             ForEach(days, id: \.self) { date in
+                                // 해당 날짜의 그룹 일정 가져오기
+                                let dateSchedules = getSchedulesForDate(date)
+                                // 해당 날짜의 멤버 일정 상태 가져오기
                                 let status = viewModel.getScheduleStatusForDate(date)
                                 DayCell(
                                     date: date,
                                     isSelected: isSameDay(date, selectedDate),
                                     isCurrentMonth: isSameMonth(date, currentMonth),
-                                    scheduleStatus: status
+                                    scheduleStatus: status,
+                                    hasGroupSchedule: !dateSchedules.isEmpty,
+                                    schedules: dateSchedules // 그룹 스케줄 목록 전달
                                 )
                                 .onTapGesture {
                                     selectedDate = date
-                                    // 여기에 날짜 선택 시 수행할 작업 추가
+                                    // 해당 날짜의 일정이 있다면 일정 상세 뷰로 이동
+                                    if !getSchedulesForDate(date).isEmpty {
+                                        // 일정 상세 뷰로 이동하는 코드 (예: sheet 표시)
+                                        // showScheduleDetail = true
+                                    }
                                 }
                             }
                         }
@@ -152,6 +161,11 @@ struct GroupScheduleView: View {
         let isSelected: Bool
         let isCurrentMonth: Bool
         let scheduleStatus: (withSchedule: Int, withoutSchedule: Int)
+        let hasGroupSchedule: Bool
+        let schedules: [PDGroupSchedule]
+        
+        // 그룹 스케줄 정보를 가져오기 위한 환경 객체 추가
+        @EnvironmentObject private var viewModel: GroupCalendarViewModel
         
         var body: some View {
             VStack {
@@ -164,8 +178,28 @@ struct GroupScheduleView: View {
                     .clipShape(Circle())
                 
                 // 일정 상태 표시
-                if isCurrentMonth && (scheduleStatus.withSchedule > 0 || scheduleStatus.withoutSchedule > 0) {
+                if isCurrentMonth {
                     VStack(spacing: 2) {
+                        // 그룹 일정 표시 (제목으로 표시)
+                        ForEach(schedules.prefix(2), id: \.id) { schedule in
+                            Text(schedule.title)
+                                .font(.system(size: 7))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(schedule.color)
+                                .foregroundStyle(.white)
+                                .cornerRadius(2)
+                        }
+                        
+                        // 2개 이상의 일정이 있을 경우 더보기 표시
+                        if schedules.count > 2 {
+                            Text("+\(schedules.count - 2)개")
+                                .font(.system(size: 6))
+                                .foregroundStyle(.gray)
+                        }
+                        // 멤버 일정 상태 표시
                         if scheduleStatus.withSchedule > 0 {
                             Text("일정: \(scheduleStatus.withSchedule)명")
                                 .font(.system(size: 8))
@@ -174,7 +208,7 @@ struct GroupScheduleView: View {
                                 .cornerRadius(4)
                                 .foregroundColor(.white)
                         }
-                        
+
 //                        Text("총 \(scheduleStatus.withSchedule + scheduleStatus.withoutSchedule)명")
 //                            .font(.system(size: 8))
 //                            .foregroundColor(.gray)
@@ -188,6 +222,11 @@ struct GroupScheduleView: View {
             .padding(2)
             .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
             .cornerRadius(8)
+            // 그룹 일정이 있으면 테두리 표시
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(hasGroupSchedule ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 1)
+            )
         }
         
         // 일정 상태에 따른 색상 계산
