@@ -9,36 +9,34 @@ import SwiftUI
 
 struct PostView: View {
     @StateObject private var viewModel = PostViewModel()
-    @StateObject private var groupViewModel = GroupViewModel()
+    //    @StateObject private var groupViewModel = GroupViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    
     @State private var showingAddPost: Bool = false
     @State private var groupID: String = ""
     @State private var title: String = ""
     @State private var content: String = ""
     @State private var writer: String = ""
     
-    // groupID로 바꿀 예정
+    @State private var selectedGroupID: String = ""
     @State private var selectedGroupName: String = ""
+    
     
     var body: some View {
         NavigationView {
             List {
-                if viewModel.posts.isEmpty {
+                let filteredPosts = viewModel.posts
+                    .filter { $0.groupID == selectedGroupID }
+                    .sorted { $0.createdAt < $1.createdAt }
+
+                if filteredPosts.isEmpty {
                     Text("텅...")
                         .font(.title)
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
-                }
-                ForEach(viewModel.posts.filter { post in
-                    if post.groupID == selectedGroupName {
-                        return true
-                    } else if selectedGroupName == "" {
-                        return true
-                    } else {
-                        return false
-                    }
-                }
-                    .sorted(by: { $0.createdAt < $1.createdAt })) { postData in
+                } else {
+                    ForEach(filteredPosts) { postData in
                         NavigationLink(destination: PostDetailView(post: postData)) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(postData.title)
@@ -55,7 +53,7 @@ struct PostView: View {
                                 }
                                 HStack {
                                     HStack {
-                                        Image(systemName: "hand.thumbsup")
+                                        Image(systemName: "heart")
                                         Text("\(postData.likes)")
                                             .font(.caption)
                                     }
@@ -67,12 +65,11 @@ struct PostView: View {
                                     }
                                     .foregroundColor(.blue)
                                 }
-                                
                             }
                             .padding(.vertical, 4)
                         }
-                        
                     }
+                }
             }
             .navigationTitle("게시판")
             .navigationBarTitleDisplayMode(.inline)
@@ -94,6 +91,7 @@ struct PostView: View {
                         Menu(content: {
                             Button(action: {
                                 selectedGroupName = ""
+                                selectedGroupID = ""
                             }) {
                                 HStack {
                                     Text("전체그룹")
@@ -101,14 +99,21 @@ struct PostView: View {
                                     Image(systemName: selectedGroupName == "" ? "checkmark.square.fill" : "")
                                 }
                             }
-                            ForEach(groupViewModel.groups) { group in
-                                Button(action: {
-                                    selectedGroupName = group.groupName
-                                }) {
-                                    HStack {
-                                        Text(group.groupName)
-                                        Spacer()
-                                        Image(systemName: selectedGroupName == group.groupName ? "checkmark.square.fill" : "")
+                            
+                            if let currentUser = userViewModel.currentUser {
+                                ForEach(currentUser.joinedGroups, id: \.self) { group in
+                                    Button(action: {
+                                        selectedGroupName = group
+                                        if let index = currentUser.joinedGroups.firstIndex(of: group),
+                                           index < currentUser.joinedGroupUIDs.count {
+                                            selectedGroupID = currentUser.joinedGroupUIDs[index]
+                                        }
+                                    }) {
+                                        HStack {
+                                            Text(group)
+                                            Spacer()
+                                            Image(systemName: selectedGroupName == group ? "checkmark.square.fill" : "")
+                                        }
                                     }
                                 }
                             }
@@ -137,14 +142,39 @@ struct PostView: View {
                 
             }
             .onAppear {
-                viewModel.fetchPosts()
-                groupViewModel.fetchGroups()
+                Task {
+                    try await userViewModel.fetchCurrentUser()
+                    do {
+                        try await viewModel.fetchPosts()
+                    } catch {
+                        print("포스트 가져오기 실패: \(error.localizedDescription)")
+                    }
+                    
+                    // 현재 선택한 그룹의 게시판으로 바로 이동하기 위해 초기화
+                    if let currentUser = userViewModel.currentUser {
+                        selectedGroupID = currentUser.onGroup
+                        if let index = currentUser.joinedGroupUIDs.firstIndex(of: currentUser.onGroup),
+                           index < currentUser.joinedGroups.count {
+                            selectedGroupName = currentUser.joinedGroups[index]
+                        }
+                    }
+                }
             }
             .refreshable {
-                viewModel.fetchPosts()
+                do {
+                    try await viewModel.fetchPosts()
+                } catch {
+                    print("포스트 가져오기 실패: \(error.localizedDescription)")
+                }
             }
             .sheet(isPresented: $showingAddPost, onDismiss: {
-                viewModel.fetchPosts()
+                Task {
+                    do {
+                        try await viewModel.fetchPosts()
+                    } catch {
+                        print("포스트 가져오기 실패: \(error.localizedDescription)")
+                    }
+                }
             }) {
                 AddPostView()
             }

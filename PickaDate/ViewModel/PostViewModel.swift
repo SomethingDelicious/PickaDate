@@ -35,16 +35,21 @@ class PostViewModel: ObservableObject {
     }
     
     // 게시판 추가하기
-    func addPost(groupID: String, title: String, content: String, writer: String, createdAt: Date = Date(), likes: Int = 0) {
+    func addPost(groupID: String, groupName: String, title: String, content: String, writer: String, writerID: String, createdAt: Date = Date(), likes: Int = 0, likedUserIDs: [String] = [], likedUserNames: [String] = [], image: String? = nil) {
         let postID = UUID().uuidString
         let postData: [String: Any] = [
             "postID": postID,
             "groupID": groupID,
+            "groupName": groupName,
             "title": title,
             "content": content,
             "writer": writer,
+            "writerID": writerID,
             "createdAt": FieldValue.serverTimestamp(),
-            "likes": likes
+            "likes": likes,
+            "likedUserIDs": likedUserIDs,
+            "likedUserNames": likedUserNames,
+            "image": image ?? ""
         ]
         
         fsDB.collection("posts").document(postID).setData(postData) { error in
@@ -58,16 +63,21 @@ class PostViewModel: ObservableObject {
     }
     
     // 게시판 수정하기
-    func updatePost(postID: String, groupID: String, title: String, content: String, writer: String, createdAt: Date, likes: Int) {
+    func updatePost(postID: String, groupID: String, groupName: String, title: String, content: String, writer: String, writerID: String, createdAt: Date, likes: Int, likedUserIDs: [String], likedUserNames:[String], image: String? = nil) {
         let updateData: [String: Any] = [
             "postID": postID,
             "groupID": groupID,
+            "groupName": groupName,
             "title": title,
             "content": content,
             "writer": writer,
+            "writerID": writerID,
             "createdAt": createdAt,
             "updatedAt": FieldValue.serverTimestamp(),
-            "likes": likes
+            "likes": likes,
+            "likedUserIDs": likedUserIDs,
+            "likedUserNames": likedUserNames,
+            "image": image ?? ""
         ]
         
         fsDB.collection("posts").document(postID).updateData(updateData) { error in
@@ -126,12 +136,13 @@ class PostViewModel: ObservableObject {
     }
     
     // 댓글 추가하기
-    func addComment(postID: String, content: String, writer: String) {
+    func addComment(postID: String, content: String, writer: String, writerID: String) {
         let commentID = UUID().uuidString
         let data: [String: Any] = [
             "commentID": commentID,
             "content": content,
             "writer": writer,
+            "writerID": writerID,
             "createdAt": FieldValue.serverTimestamp()
         ]
         
