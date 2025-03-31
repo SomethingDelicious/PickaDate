@@ -117,6 +117,8 @@ struct AddPostView: View {
                     try await userViewModel.fetchCurrentUser()
                 }
             }
+            // onchange deprecated되어서 task 사용
+            // 이미지를 선택할 때마다 base64로 인코딩하여 base64ImageString 변수에 저장
             .task(id: selectedItem) {
                 if let data = try? await selectedItem?.loadTransferable(type: Data.self) {
                     selectedImageData = data

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ShowLikedUserNames: View {
+    // 좋아요 누른 사람들의 userName을 저장할 변수
     @State private var likedUserNames: [String]
     
     init(likedUserNames: [String]) {

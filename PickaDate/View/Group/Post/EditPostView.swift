@@ -61,7 +61,7 @@ struct EditPostView: View {
                         TextEditor(text: $content)
                             .padding(.vertical, 4)
                         
-                        // 복원할 이미지가 있는 경우
+                        // 복원할 이미지가 있는 경우(게시글에 이미지가 있는경우)
                         if let image = restoredImage {
                             ZStack {
                                 Image(uiImage: image)
@@ -78,7 +78,6 @@ struct EditPostView: View {
                                             restoredImage = nil
                                             base64ImageString = nil
                                             viewModel.updatePost(postID: post.postID, groupID: groupID, groupName: groupName, title: title, content: content, writer: writer, writerID: writerID, createdAt: post.createdAt, likes: likes, likedUserIDs: likedUserIDs, likedUserNames: likedUserNames, image: base64ImageString)
-                                            
                                         }) {
                                             Image(systemName: "xmark.circle.fill")
                                                 .font(.title2)
@@ -91,6 +90,7 @@ struct EditPostView: View {
                             }
                         } else {
                             // 이미지 미리보기 + X 버튼
+                            // 기존 이미지를 삭제하고 새로운 이미지를 추가하는 경우
                             if let data = selectedImageData,
                                let uiImage = UIImage(data: data) {
                                 ZStack {
@@ -172,7 +172,6 @@ struct EditPostView: View {
             .onAppear {
                 Task {
                     try await userViewModel.fetchCurrentUser()
-                    print(image)
                     // base64 → 복원된 이미지
                     if image != "" {
                         if let decodedData = Data(base64Encoded: image),
@@ -187,10 +186,9 @@ struct EditPostView: View {
                     selectedImageData = data
                     
                     // base64 인코딩
+                    // 기존 사진이 아니라 새로운 사진을 선택할 경우
                     let base64String = data.base64EncodedString()
                     base64ImageString = base64String
-                    
-                    
                 }
             }
             .toolbar {

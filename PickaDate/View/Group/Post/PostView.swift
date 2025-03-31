@@ -25,10 +25,12 @@ struct PostView: View {
     var body: some View {
         NavigationView {
             List {
+                // 이전에 전체 게시물이 없는 경우에만 텅...이 표시되도록 하였음
+                // 그룹마다 필터링해서 필터링한 글이 없는 경우 텅...이 표시되도록 변경하였음
                 let filteredPosts = viewModel.posts
                     .filter { $0.groupID == selectedGroupID }
                     .sorted { $0.createdAt < $1.createdAt }
-
+                
                 if filteredPosts.isEmpty {
                     Text("텅...")
                         .font(.title)
@@ -144,11 +146,7 @@ struct PostView: View {
             .onAppear {
                 Task {
                     try await userViewModel.fetchCurrentUser()
-                    do {
-                        try await viewModel.fetchPosts()
-                    } catch {
-                        print("포스트 가져오기 실패: \(error.localizedDescription)")
-                    }
+                    viewModel.fetchPosts()
                     
                     // 현재 선택한 그룹의 게시판으로 바로 이동하기 위해 초기화
                     if let currentUser = userViewModel.currentUser {
@@ -161,21 +159,12 @@ struct PostView: View {
                 }
             }
             .refreshable {
-                do {
-                    try await viewModel.fetchPosts()
-                } catch {
-                    print("포스트 가져오기 실패: \(error.localizedDescription)")
-                }
+                viewModel.fetchPosts()
             }
             .sheet(isPresented: $showingAddPost, onDismiss: {
-                Task {
-                    do {
-                        try await viewModel.fetchPosts()
-                    } catch {
-                        print("포스트 가져오기 실패: \(error.localizedDescription)")
-                    }
-                }
-            }) {
+                viewModel.fetchPosts()
+            }
+                   }) {
                 AddPostView()
             }
         }

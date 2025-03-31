@@ -342,6 +342,7 @@ struct PostDetailView: View {
                 try await userViewModel.fetchCurrentUser()
                 viewModel.fetchPosts()
                 
+                // base64(String)으로 저장된 값을 UIImage타입(사진)으로 디코딩하여 image 변수에 저장
                 if base64ImageString != "" {
                     if let decodedData = Data(base64Encoded: base64ImageString),
                        let uiImage = UIImage(data: decodedData) {
@@ -364,7 +365,6 @@ struct PostDetailView: View {
         }
         .sheet(isPresented: $showingEditPost, onDismiss: {
             viewModel.fetchPosts()
-            print(post.image)
         }) {
             EditPostView(post: post)
         }
