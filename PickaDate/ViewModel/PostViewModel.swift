@@ -63,7 +63,7 @@ class PostViewModel: ObservableObject {
     }
     
     // 게시판 수정하기
-    func updatePost(postID: String, groupID: String, groupName: String, title: String, content: String, writer: String, writerID: String, createdAt: Date, likes: Int, likedUserIDs: [String], likedUserNames:[String], image: String? = nil) {
+    func updatePost(postID: String, groupID: String, groupName: String, title: String, content: String, writer: String, writerID: String, createdAt: Date, likes: Int, likedUserIDs: [String], likedUserNames:[String], image: String?) {
         let updateData: [String: Any] = [
             "postID": postID,
             "groupID": groupID,

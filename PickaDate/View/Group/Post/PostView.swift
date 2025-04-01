@@ -163,8 +163,7 @@ struct PostView: View {
             }
             .sheet(isPresented: $showingAddPost, onDismiss: {
                 viewModel.fetchPosts()
-            }
-                   }) {
+            }) {
                 AddPostView()
             }
         }
